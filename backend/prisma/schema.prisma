@@ -14,29 +14,207 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        Int        @id @default(autoincrement())
-  email     String     @unique
-  password  String
-  role      String     // "candidate" ou "recruiter"
-  createdAt DateTime   @default(now())
-  candidate Candidate?
-  recruiter Recruiter?
+// --- Énumérations pour la robustesse des données ---
+
+enum ContractType {
+  CDI
+  CDD
+  ALTERNANCE
+  STAGE
+  FREELANCE
+  AUTRE
 }
 
-model Candidate {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int      @unique
-  firstname String
-  lastname  String
-  cv        String?  // URL du CV
+enum ApplicationStatus {
+  ENVOYE
+  VU
+  EN_COURS
+  ACCEPTE
+  REFUSE
+  RETIRE
+}
+
+enum SwipeActorType {
+  CANDIDATE
+  RECRUITER
+}
+
+enum SwipeDirection {
+  LEFT
+  RIGHT
+}
+
+
+// --- Modèles de l'application ---
+
+model CandidateProfile {
+  // Champs hérités de AuditedEntity
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Champs hérités de User
+  email        String @unique
+  passwordHash String
+
+  // Champs propres à CandidateProfile
+  firstName              String
+  lastName               String
+  resumeUrl              String?
+  photoUrl               String?
+  coverLetterText        String?
+  desiredJobTitle        String?
+  desiredContractTypes   ContractType[]
+  locationWKT            String? // "POINT(lon lat)"
+  searchRadiusKm         Int?
+  isActive               Boolean        @default(true)
+  notificationsEnabled   Boolean        @default(true)
+
+  // Relations
+  applications Application[]
+  swipes       Swipe[]
 }
 
 model Recruiter {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int      @unique
-  company   String
-  logo      String?  // URL du logo
+  // Champs hérités de AuditedEntity
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Champs hérités de User
+  email        String @unique
+  passwordHash String
+
+  // Champs propres à Recruiter
+  firstName           String
+  lastName            String
+  internalRoleDefault String?
+  matchWindowStart    DateTime?
+  matchesTodayCount   Int       @default(0)
+  dailyMatchLimit     Int       @default(100)
+
+  // Relations
+  memberships         RecruiterMembership[]
+  swipes              Swipe[]
+  viewedApplications  Application[]         @relation("ViewedByRecruiter")
+}
+
+model Company {
+  // Champs hérités de AuditedEntity
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Champs propres à Company
+  name    String
+  siret   String @unique
+  logoUrl String?
+
+  // Relations
+  jobOffers   JobOffer[]
+  members     RecruiterMembership[]
+}
+
+model RecruiterMembership {
+  // Champs hérités de AuditedEntity
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Champs propres à RecruiterMembership
+  internalRole String
+  isPrimary    Boolean @default(false)
+
+  // Relations (Table de jonction explicite entre Recruiter et Company)
+  recruiter   Recruiter @relation(fields: [recruiterId], references: [id])
+  recruiterId String
+  company     Company   @relation(fields: [companyId], references: [id])
+  companyId   String
+
+  @@unique([recruiterId, companyId]) // Un recruteur ne peut pas être membre deux fois de la même entreprise
+}
+
+model JobCategory {
+  // Champs hérités de AuditedEntity
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Champs propres à JobCategory
+  name String @unique
+
+  // Relations (Many-to-Many implicite avec JobOffer)
+  jobOffers JobOffer[]
+}
+
+model JobOffer {
+  // Champs hérités de AuditedEntity
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Champs propres à JobOffer
+  title        String
+  description  String
+  contractType ContractType
+  locationWKT  String
+  salaryMin    Int?
+  salaryMax    Int?
+  currency     String?
+  workHours    String?
+  isActive     Boolean   @default(true)
+  expiresAt    DateTime?
+
+  // Relations
+  company      Company       @relation(fields: [companyId], references: [id])
+  companyId    String
+  applications Application[]
+  swipes       Swipe[]
+  categories   JobCategory[] // Many-to-Many
+}
+
+model Application {
+  // Champs hérités de AuditedEntity
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Champs propres à Application
+  status          ApplicationStatus @default(SOUMISE)
+  cvUrl           String?
+  coverLetterText String?
+  viewedAt        DateTime?
+
+  // Relations
+  candidate         CandidateProfile @relation(fields: [candidateId], references: [id])
+  candidateId       String
+  job               JobOffer         @relation(fields: [jobId], references: [id])
+  jobId             String
+  viewedByRecruiter Recruiter?       @relation("ViewedByRecruiter", fields: [viewedByRecruiterId], references: [id])
+  viewedByRecruiterId String?
+
+  @@unique([candidateId, jobId]) // Un candidat ne peut postuler qu'une seule fois à la même offre
+}
+
+model Swipe {
+  // Champs hérités de AuditedEntity
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Champs propres à Swipe
+  actorType   SwipeActorType
+  direction   SwipeDirection
+  isMatch     Boolean   @default(false)
+  matchedAt   DateTime?
+
+  // Relations
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id])
+  candidateId String
+  recruiter   Recruiter?       @relation(fields: [recruiterId], references: [id])
+  recruiterId String?
+  job         JobOffer         @relation(fields: [jobId], references: [id])
+  jobId       String
+
+  @@unique([candidateId, jobId, actorType]) // Empêche un acteur de swiper plusieurs fois sur la même combinaison
 }
