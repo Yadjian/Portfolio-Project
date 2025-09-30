@@ -180,7 +180,7 @@ model Application {
   updatedAt DateTime @updatedAt
 
   // Champs propres à Application
-  status          ApplicationStatus @default(SOUMISE)
+  status          ApplicationStatus @default(ENVOYE)
   cvUrl           String?
   coverLetterText String?
   viewedAt        DateTime?
