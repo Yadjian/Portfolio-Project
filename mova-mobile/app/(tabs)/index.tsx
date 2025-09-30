@@ -1,13 +1,19 @@
 import { StyleSheet, Pressable, Text } from 'react-native';
 import { View } from '@/components/Themed';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function TabOneScreen() {
   return (
     <View style={styles.container}>
-      {/* Conteneur pour le titre avec un rond/ovale */}
-      <View style={styles.titleContainer}>
+      {/* Conteneur pour le titre avec un dégradé */}
+      <LinearGradient
+        colors={['#6746a8ff', '#6b25f9ff', '#07b9ffff']} // Dégradé violet-bleu
+        style={styles.titleContainer}
+        start={{ x: 0, y: 0 }} // Point de départ (gauche)
+        end={{ x: 1, y: 0 }}   // Point de fin (droite)
+      >
         <Text style={styles.title}>Mova</Text>
-      </View>
+      </LinearGradient>
       
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
 
