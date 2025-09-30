@@ -1,22 +1,14 @@
-import { StyleSheet, Button } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import EditScreenInfo from '@/components/EditScreenInfo';
 import { Text, View } from '@/components/Themed';
 
-export default function TabOneScreen() {
+export default function TabTwoScreen() {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Mova</Text>
+      <Text style={styles.title}>Tab Two</Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      
-      {/* Bouton Connexion */}
-      <Button title="Connexion" onPress={() => console.log('Naviguer vers Connexion')} />
-
-      {/* Espacement entre les boutons */}
-      <View style={{ marginVertical: 10 }} />
-
-      {/* Bouton Créer mon compte */}
-      <Button title="Créer mon compte" onPress={() => console.log('Naviguer vers Créer mon compte')} />
+      <EditScreenInfo path="app/(tabs)/two.tsx" />
     </View>
   );
 }
