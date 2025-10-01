@@ -10,6 +10,10 @@ RUN npm install
 
 # Copier tout le reste du projet et construire l'application
 COPY . .
+
+# Générer le client Prisma avant de compiler le code
+RUN npx prisma generate
+
 RUN npm run build
 
 # Étape 2 : Production
