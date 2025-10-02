@@ -1,28 +1,31 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Dimensions } from 'react-native';
 import MovaLogo from '@/components/ui/MovaLogo';
 import GenericButton from '@/components/ui/GenericButton';
+
+// Récupère la hauteur de l'écran
+const { height } = Dimensions.get('window');
 
 export default function WelcomeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
-      {/* Logo */}
-      <MovaLogo />
+      {/* Conteneur pour le logo */}
+      <View style={styles.logoContainer}>
+        <MovaLogo />
+      </View>
 
-      {/* Bouton Connexion */}
-      <GenericButton
-        title="Connexion"
-        onPress={() => navigation.navigate('Login')}
-      />
-
-      {/* Espacement entre les boutons */}
-      <View style={{ marginVertical: 10 }} />
-
-      {/* Bouton Créer mon compte */}
-      <GenericButton
-        title="Créer mon compte"
-        onPress={() => navigation.navigate('Register')}
-      />
+      {/* Conteneur pour les boutons */}
+      <View style={styles.buttonContainer}>
+        <GenericButton
+          title="Connexion"
+          onPress={() => navigation.navigate('Login')}
+        />
+        <View style={{ marginVertical: 20 }} />
+        <GenericButton
+          title="Créer mon compte"
+          onPress={() => navigation.navigate('Register')}
+        />
+      </View>
     </View>
   );
 }
@@ -30,8 +33,16 @@ export default function WelcomeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     backgroundColor: '#FFFFFF',
+  },
+  logoContainer: {
+    alignItems: 'center', // Centre le logo horizontalement
+    marginTop: height * 0.15, // 10% de la hauteur de l'écran
+  },
+  buttonContainer: {
+    flex: 1, // Prend tout l'espace restant
+    justifyContent: 'flex-start', // Aligne les boutons en haut du conteneur
+    alignItems: 'center', // Centre les boutons horizontalement
+    marginTop: height * 0.2, // 20% de la hauteur de l'écran
   },
 });
