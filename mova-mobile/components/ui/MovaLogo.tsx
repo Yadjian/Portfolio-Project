@@ -18,7 +18,7 @@ export default function MovaLogo() {
 const styles = StyleSheet.create({
   titleContainer: {
     borderWidth: 2,
-    borderColor: '#5800dbff',
+    borderColor: '#ffffffff',
     backgroundColor: '#5c00e7ff',
     borderRadius: 200,
     paddingVertical: 30,

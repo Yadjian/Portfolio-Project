@@ -2,33 +2,38 @@ import React from 'react';
 import { StyleSheet, Pressable, Text } from 'react-native';
 import { View } from '@/components/Themed';
 import { LinearGradient } from 'expo-linear-gradient';
+import MovaLogo from '@/components/ui/MovaLogo';
 
 export default function WelcomeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
+      
       {/* Conteneur pour le titre avec un dégradé */}
-      <LinearGradient
-        colors={['#6746a8ff', '#6b25f9ff', '#07b9ffff']} // Dégradé violet-bleu
-        style={styles.titleContainer}
-        start={{ x: 0, y: 0 }} // Point de départ (gauche)
-        end={{ x: 1, y: 0 }}   // Point de fin (droite)
-      >
-        <Text style={styles.title}>Mova</Text>
-      </LinearGradient>
+      <MovaLogo />
       
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
 
       {/* Bouton Connexion */}
-      <Pressable style={styles.button} onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.buttonText}>Connexion</Text>
+      <Pressable onPress={() => navigation.navigate('Login')}>
+        <LinearGradient
+          colors={['#6746a8', '#6b25f9', '#07b9ff']} // Dégradé violet-bleu
+          style={styles.button} // Applique le dégradé au bouton
+        >
+         <Text style={styles.buttonText}>Connexion</Text>
+        </LinearGradient>
       </Pressable>
 
       {/* Espacement entre les boutons */}
       <View style={{ marginVertical: 10 }} />
 
       {/* Bouton Créer mon compte */}
-      <Pressable style={styles.button} onPress={() => navigation.navigate('Register')}>
-        <Text style={styles.buttonText}>Créer mon compte</Text>
+      <Pressable onPress={() => navigation.navigate('Register')}>
+        <LinearGradient
+          colors={['#6746a8', '#6b25f9', '#07b9ff']} // Dégradé violet-bleu
+          style={styles.button} // Applique le dégradé au bouton
+        >
+          <Text style={styles.buttonText}>Créer mon compte</Text>
+        </LinearGradient>
       </Pressable>
     </View>
   );
@@ -39,6 +44,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
   },
   titleContainer: {
     borderWidth: 2, // Épaisseur de la bordure
