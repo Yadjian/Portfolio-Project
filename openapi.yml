@@ -1,0 +1,523 @@
+openapi: 3.0.3
+info:
+  title: JobSwipe API
+  description: API pour la plateforme de matching entre candidats et recruteurs. Basée sur nos discussions itératives.
+  version: 1.1.0 # Version incrémentée pour refléter les ajouts
+
+servers:
+  - url: /api/v1
+    description: Serveur de développement
+
+tags:
+  - name: Auth
+    description: Authentification des utilisateurs
+  - name: Profile
+    description: Gestion du profil de l'utilisateur connecté
+  - name: Companies
+    description: Gestion des entreprises par les recruteurs
+  - name: Job Offers
+    description: Gestion et consultation des offres d'emploi
+  - name: Job Categories
+    description: Consultation des catégories de métiers
+  - name: Swipes
+    description: Actions de swipe pour les candidats et recruteurs
+  - name: Matches & Applications
+    description: Consultation des matches et des candidatures
+  - name: Admin
+    description: Routes réservées aux administrateurs
+
+paths:
+  # --- AUTH ---
+  /auth/register:
+    post:
+      summary: Inscription d'un nouvel utilisateur
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDto'
+      responses:
+        '201': { $ref: '#/components/responses/AuthSuccess' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /auth/login:
+    post:
+      summary: Connexion d'un utilisateur
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginDto'
+      responses:
+        '200': { $ref: '#/components/responses/AuthSuccess' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # --- PROFILE ---
+  /me:
+    get:
+      summary: Récupérer le profil de l'utilisateur connecté
+      tags: [Profile]
+      security: [ { "bearerAuth": [] } ]
+      responses:
+        '200':
+          description: Données du profil de l'utilisateur.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/CandidateProfile'
+                  - $ref: '#/components/schemas/RecruiterProfile'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /profile:
+    put:
+      summary: Mettre à jour le profil de l'utilisateur connecté
+      tags: [Profile]
+      security: [ { "bearerAuth": [] } ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: '#/components/schemas/UpdateCandidateProfileDto'
+                - $ref: '#/components/schemas/UpdateRecruiterProfileDto'
+      responses:
+        '200': { description: "Profil mis à jour avec succès." }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  # --- COMPANIES ---
+  /companies:
+    post:
+      summary: (Recruteur) Créer une nouvelle entreprise
+      tags: [Companies]
+      security: [ { "bearerAuth": [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCompanyDto'
+      responses:
+        '201':
+          description: Entreprise créée avec succès.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /companies/{id}:
+    put:
+      summary: (Recruteur) Mettre à jour une entreprise
+      tags: [Companies]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCompanyDto'
+      responses:
+        '200':
+          description: Entreprise mise à jour.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Company'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # --- JOB OFFERS ---
+  /job-offers:
+    post:
+      summary: (Recruteur) Créer une offre d'emploi
+      tags: [Job Offers]
+      security: [ { "bearerAuth": [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJobOfferDto'
+      responses:
+        '201':
+          description: Offre créée.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobOffer'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    get:
+      summary: (Candidat) Obtenir la liste des offres d'emploi à swiper
+      tags: [Job Offers]
+      security: [ { "bearerAuth": [] } ]
+      responses:
+        '200':
+          description: Une liste d'offres d'emploi.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobOffer'
+
+  /job-offers/{id}:
+    get:
+      summary: Obtenir les détails d'une offre d'emploi
+      tags: [Job Offers]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '200':
+          description: Détails de l'offre.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobOffer'
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      summary: (Recruteur) Mettre à jour une offre d'emploi
+      tags: [Job Offers]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateJobOfferDto'
+      responses:
+        '200':
+          description: Offre mise à jour.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobOffer'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      summary: (Recruteur) Supprimer une offre d'emploi
+      tags: [Job Offers]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '204': { description: "Offre supprimée avec succès." }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # --- JOB CATEGORIES ---
+  /job-categories:
+    get:
+      summary: Récupérer la liste des catégories de métiers
+      tags: [Job Categories]
+      responses:
+        '200':
+          description: Une liste de catégories.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobCategory'
+
+  # --- SWIPES ---
+  /candidate/swipes:
+    post:
+      summary: (Candidat) Swiper sur une offre d'emploi
+      tags: [Swipes]
+      security: [ { "bearerAuth": [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CandidateSwipeDto'
+      responses:
+        '201':
+          description: Swipe enregistré. Retourne un état de match.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { isMatch: { type: boolean } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /recruiter/swipes:
+    post:
+      summary: (Recruteur) Swiper sur un profil candidat pour une offre
+      tags: [Swipes]
+      security: [ { "bearerAuth": [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecruiterSwipeDto'
+      responses:
+        '201':
+          description: Swipe enregistré. Retourne un état de match.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { isMatch: { type: boolean } }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # --- MATCHES & APPLICATIONS ---
+  /matches:
+    get:
+      summary: Obtenir la liste des matches de l'utilisateur
+      tags: [Matches & Applications]
+      security: [ { "bearerAuth": [] } ]
+      responses:
+        '200': { description: "Une liste de matches." } # Schema à définir
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /applications:
+    get:
+      summary: Obtenir la liste des candidatures de l'utilisateur
+      tags: [Matches & Applications]
+      security: [ { "bearerAuth": [] } ]
+      responses:
+        '200':
+          description: Une liste de candidatures.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Application'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /applications/{id}/status:
+    put:
+      summary: Mettre à jour le statut d'une candidature
+      tags: [Matches & Applications]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateApplicationStatusDto'
+      responses:
+        '200':
+          description: Statut mis à jour.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Application'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  # --- ADMIN ---
+  /admin/job-categories:
+    post:
+      summary: (Admin) Créer une nouvelle catégorie
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ] # Devrait avoir une scope "admin"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateJobCategoryDto'
+      responses:
+        '201':
+          description: Catégorie créée.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JobCategory'
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+components:
+  # --- Reusable Parameters ---
+  parameters:
+    IdPath:
+      name: id
+      in: path
+      required: true
+      description: L'ID de la ressource
+      schema:
+        type: integer
+
+  # --- Reusable Responses ---
+  responses:
+    AuthSuccess:
+      description: Succès de l'authentification.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthResponse'
+    BadRequest:
+      description: La requête est mal formée ou contient des données invalides.
+    Unauthorized:
+      description: Authentification requise. Le token est manquant ou invalide.
+    Forbidden:
+      description: Authentifié mais non autorisé à effectuer cette action.
+    NotFound:
+      description: La ressource demandée n'a pas été trouvée.
+
+  # --- Security Schemes ---
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  # --- Schemas (Data Structures) ---
+  schemas:
+    # --- DTOs (Data Transfer Objects) for Requests ---
+    RegisterDto:
+      type: object
+      required: [email, password, role, firstName, lastName]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        role: { type: string, enum: [candidate, recruiter] }
+        firstName: { type: string }
+        lastName: { type: string }
+    LoginDto:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    UpdateCandidateProfileDto:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        resumeUrl: { type: string, format: uri }
+        coverLetterText: { type: string }
+    UpdateRecruiterProfileDto:
+      type: object
+      properties:
+        firstName: { type: string }
+        lastName: { type: string }
+        companyId: { type: integer }
+    CreateCompanyDto:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        logoUrl: { type: string, format: uri }
+    UpdateCompanyDto:
+      type: object
+      properties:
+        name: { type: string }
+        logoUrl: { type: string, format: uri }
+    CreateJobOfferDto:
+      type: object
+      required: [title, description, jobCategoryId]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        salaryMin: { type: number }
+        salaryMax: { type: number }
+        currency: { type: string }
+        jobCategoryId: { type: integer }
+    UpdateJobOfferDto:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        salaryMin: { type: number }
+        # ... autres champs
+    CandidateSwipeDto:
+      type: object
+      required: [jobOfferId, direction]
+      properties:
+        jobOfferId: { type: integer }
+        direction: { type: string, enum: [left, right] }
+    RecruiterSwipeDto:
+      type: object
+      required: [candidateId, jobOfferId, direction]
+      properties:
+        candidateId: { type: integer }
+        jobOfferId: { type: integer }
+        direction: { type: string, enum: [left, right] }
+    UpdateApplicationStatusDto:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string } # Enum à définir (e.g., WITHDRAWN, INTERVIEW, REJECTED)
+    CreateJobCategoryDto:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        
+    # --- Schemas for Responses & Entities ---
+    AuthResponse:
+      type: object
+      properties:
+        accessToken: { type: string }
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        email: { type: string, format: email }
+        createdAt: { type: string, format: date-time }
+    CandidateProfile:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            firstName: { type: string }
+            lastName: { type: string }
+            resumeUrl: { type: string, format: uri }
+            coverLetterText: { type: string }
+    RecruiterProfile:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            firstName: { type: string }
+            lastName: { type: string }
+            company: { $ref: '#/components/schemas/Company' }
+    Company:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        logoUrl: { type: string, format: uri }
+    JobCategory:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+    JobOffer:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        description: { type: string }
+        salaryMin: { type: number }
+        salaryMax: { type: number }
+        currency: { type: string }
+        company: { $ref: '#/components/schemas/Company' }
+        category: { $ref: '#/components/schemas/JobCategory' }
+        createdAt: { type: string, format: date-time }
+    Application:
+      type: object
+      properties:
+        id: { type: integer }
+        status: { type: string }
+        jobOffer: { $ref: '#/components/schemas/JobOffer' }
+        candidate: { $ref: '#/components/schemas/CandidateProfile' }
+        createdAt: { type: string, format: date-time }
