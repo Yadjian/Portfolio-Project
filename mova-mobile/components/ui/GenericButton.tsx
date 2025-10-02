@@ -1,16 +1,14 @@
 import React from 'react';
-import { Pressable, Text, StyleSheet, ViewStyle, TextStyle, Dimensions } from 'react-native';
+import { Pressable, Text, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
-// Récupère les dimensions de l'écran
-const { width, height } = Dimensions.get('window');
+import Layout from '@/constants/Layout'; // Import des dimensions dynamiques
 
 interface GenericButtonProps {
-  title: string; // Texte du bouton
-  onPress: () => void; // Fonction appelée lors du clic
-  style?: ViewStyle; // Style personnalisé pour le bouton
-  textStyle?: TextStyle; // Style personnalisé pour le texte
-  gradientColors?: string[]; // Couleurs du dégradé
+  title: string;
+  onPress: () => void;
+  style?: ViewStyle;
+  textStyle?: TextStyle;
+  gradientColors?: string[];
 }
 
 export default function GenericButton({
@@ -18,15 +16,15 @@ export default function GenericButton({
   onPress,
   style,
   textStyle,
-  gradientColors = ['#6746a8', '#6b25f9', '#07b9ff'], // Couleurs par défaut
+  gradientColors = ['#6746a8', '#6b25f9', '#07b9ff'],
 }: GenericButtonProps) {
   return (
     <Pressable onPress={onPress}>
       <LinearGradient
-        colors={gradientColors} // Utilise les couleurs passées en props ou les couleurs par défaut
-        style={[styles.button, style]} // Combine les styles par défaut et personnalisés
-        start={{ x: 0, y: 0 }} // Début du dégradé
-        end={{ x: 1, y: 0 }} // Fin du dégradé
+        colors={['#6746a8', '#6b25f9', '#07b9ff']}
+        style={[styles.button, style]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
       >
         <Text style={[styles.buttonText, textStyle]}>{title}</Text>
       </LinearGradient>
@@ -36,16 +34,17 @@ export default function GenericButton({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: height * 0.02, // Hauteur dynamique (2% de la hauteur de l'écran)
-    paddingHorizontal: width * 0.05, // Largeur interne dynamique (5% de la largeur de l'écran)
-    borderRadius: width * 0.05, // Coins arrondis dynamiques (5% de la largeur de l'écran)
-    width: width * 0.6, // Largeur dynamique (60% de la largeur de l'écran)
+    paddingVertical: Layout.window.height * 0.02, // 2% de la hauteur de l'écran
+    paddingHorizontal: Layout.window.width * 0.05, // 5% de la largeur de l'écran
+    borderRadius: Layout.window.width * 0.05, // Coins arrondis dynamiques
+    width: Layout.window.width * 0.8, // Largeur dynamique (80% de la largeur de l'écran)
     alignItems: 'center',
     justifyContent: 'center',
+    marginVertical: Layout.window.height * 0.02, // Espacement vertical dynamique
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: width * 0.045, // Taille du texte dynamique (4.5% de la largeur de l'écran)
+    fontSize: Layout.window.width * 0.045, // Taille du texte dynamique
     fontWeight: 'bold',
   },
 });

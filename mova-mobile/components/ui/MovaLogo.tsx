@@ -8,7 +8,7 @@ const { width, height } = Dimensions.get('window');
 export default function MovaLogo() {
   return (
     <LinearGradient
-      colors={['#6746a8ff', '#6b25f9ff', '#07b9ffff']} // Dégradé violet-bleu
+      colors={['#6746a8', '#6b25f9', '#07b9ff']} // Dégradé violet-bleu
       style={styles.titleContainer}
       start={{ x: 0, y: 0 }} // Point de départ (gauche)
       end={{ x: 1, y: 0 }}   // Point de fin (droite)
@@ -21,17 +21,17 @@ export default function MovaLogo() {
 const styles = StyleSheet.create({
   titleContainer: {
     borderWidth: 2, // Bordure blanche
-    borderColor: '#ffffffff', // Couleur de la bordure
-    backgroundColor: '#5c00e7ff', // Couleur de fond
-    borderRadius: width * 0.2, // Arrondi basé sur la largeur de l'écran
+    borderColor: '#FFFFFF', // Couleur de la bordure
+    backgroundColor: '#5c00e7', // Couleur de fond
+    borderRadius: width * 0.5, // Coins arrondis (10% de la largeur)
     width: width * 0.35, // Largeur dynamique (40% de la largeur de l'écran)
-    height: height * 0.14, // Hauteur dynamique (10% de la hauteur de l'écran)
-    marginBottom: height * 0.02, // Espacement sous le logo (2% de la hauteur de l'écran)
+    height: width * 0.7 * 0.5, // Hauteur proportionnelle à la largeur (60% de la largeur)
+    marginBottom: height * 0.03, // Espacement sous le logo (3% de la hauteur de l'écran)
     alignItems: 'center', // Centre le texte horizontalement
     justifyContent: 'center', // Centre le texte verticalement
   },
   title: {
-    fontSize: width * 0.08, // Taille du texte dynamique (8% de la largeur de l'écran)
+    fontSize: width * 0.07, // Taille du texte dynamique (6% de la largeur de l'écran)
     fontWeight: 'bold', // Texte en gras
     color: '#FFFFFF', // Couleur blanche
   },
