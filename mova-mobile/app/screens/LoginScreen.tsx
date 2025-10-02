@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient'; // Import du LinearGradient
 import CustomButton from '../../components/ui/DefautColorButton';
 import CustomTextInput from '../../components/ui/CustomTextInput';
@@ -15,6 +15,8 @@ export default function LoginScreen({ navigation }: any) {
     <LinearGradient
       colors={['#6746a8', '#6b25f9', '#07b9ff']} // Dégradé violet-bleu
       style={styles.gradientBackground}
+      start={{ x: 0, y: 0 }} // Début du dégradé (gauche)
+      end={{ x: 1, y: 0 }} // Fin du dégradé (droite)
     >
       <View style={styles.container}>
         {/* Titre avec dégradé */}
@@ -28,19 +30,29 @@ export default function LoginScreen({ navigation }: any) {
             onChangeText={setEmail}
           />
           <CustomTextInput
-            placeholder="Password"
+            placeholder="Mot de passe"
             value={password}
             onChangeText={setPassword}
             secureTextEntry
           />
+          
+          <Pressable onPress={() => navigation.navigate('Register')}>
+            <Text style={styles.createAccountText}>Créer mon compte</Text>
+          </Pressable>
+
           <CustomButton
-            title="Login"
+            title="Se connecter"
             onPress={() => console.log('Login pressed')}
-          />
-          <CustomButton
-            title="Go to Register"
-            onPress={() => navigation.navigate('Register')}
-            style={{ backgroundColor: '#03dac6', marginTop: 10 }}
+            style={{
+              backgroundColor: '#6b25f9', // Couleur personnalisée (optionnel)
+              width: 150, // Réduit la largeur du bouton
+              height: 40, // Réduit la hauteur du bouton
+              marginTop: 20, // Ajoute un espacement au-dessus
+              alignSelf: 'center',
+            }}
+            textStyle={{
+              fontSize: 14, // Réduit la taille du texte
+            }}
           />
         </CustomCard>
       </View>
@@ -64,4 +76,10 @@ const styles = StyleSheet.create({
     left: 20, // Position à droite de l'écran
     zIndex: 1, // Assure que le bouton est au-dessus des autres éléments
   },
+  createAccountText: {
+  color: '#000000ff', // Couleur du texte (vert clair)
+  fontSize: 12, // Taille du texte
+  textAlign: 'right', // Centre le texte horizontalement
+  marginTop: 8, // Espacement au-dessus
+},
 });
