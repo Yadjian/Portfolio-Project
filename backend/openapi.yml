@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: JobSwipe API
-  description: API pour la plateforme de matching entre candidats et recruteurs. Basée sur nos discussions itératives.
-  version: 1.1.0 # Version incrémentée pour refléter les ajouts
+  title: Mova API
+  description: API pour la plateforme de matching entre candidats et recruteurs
+  version: 1.2.0 # Version incrémentée pour refléter les ajouts
 
 servers:
   - url: /api/v1
@@ -89,6 +89,15 @@ paths:
         '200': { description: "Profil mis à jour avec succès." }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '400': { $ref: '#/components/responses/BadRequest' }
+
+    delete:
+      summary: Supprimer le compte de l'utilisateur connecté
+      tags: [Profile]
+      security: [ { "bearerAuth": [] } ]
+      responses:
+        '204': 
+          description: Le compte a été supprimé avec succès. Pas de contenu en retour.
+        '401': { $ref: '#/components/responses/Unauthorized' }
 
   # --- COMPANIES ---
   /companies:

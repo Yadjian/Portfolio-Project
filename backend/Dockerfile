@@ -1,44 +1,24 @@
-# Étape 1 : Build
-FROM node:20-alpine AS builder
+# Fichier: backend/Dockerfile (Version DÉVELOPPEMENT à utiliser)
 
-# Définir le répertoire de travail
-WORKDIR /usr/src/app
-
-# Copier les fichiers nécessaires pour installer les dépendances
-COPY package*.json ./
-RUN npm install
-
-# Copier tout le reste du projet et construire l'application
-COPY . .
-
-# Générer le client Prisma avant de compiler le code
-RUN npx prisma generate
-
-RUN npm run build
-
-# Étape 2 : Production
 FROM node:20-alpine
 
-# Définir le répertoire de travail
 WORKDIR /usr/src/app
 
-# Copier uniquement les fichiers nécessaires depuis l'étape de build
-COPY --from=builder /usr/src/app/dist ./dist
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/package*.json ./
-COPY --from=builder /usr/src/app/prisma ./prisma
+# Copier le manifeste des paquets
+COPY package*.json ./
 
-# Exposer le port utilisé par l'application
+# Installer les dépendances
+RUN npm install
+
+# Copier tout le reste du code
+# (le .dockerignore empêchera la copie de node_modules)
+COPY . .
+
+# Générer le client Prisma pour que l'app le trouve au démarrage
+RUN npx prisma generate
+
+# Exposer le port de l'application
 EXPOSE 3000
 
-# Ajouter un utilisateur non-root pour des raisons de sécurité
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
-
-# Donner la propriété du dossier de l'application à notre utilisateur
-RUN chown -R appuser:appgroup /usr/src/app
-
-# Utiliser notre utilisateur non-root
-USER appuser
-
-# Commande pour démarrer l'application
-CMD ["node", "dist/main.js"]
+# La commande qui lance le serveur en mode développement (hot-reload)
+CMD ["npm", "run", "start:dev"]
