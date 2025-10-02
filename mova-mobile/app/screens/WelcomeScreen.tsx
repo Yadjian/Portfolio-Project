@@ -3,8 +3,8 @@ import { StyleSheet, View, Dimensions } from 'react-native';
 import MovaLogo from '@/components/ui/MovaLogo';
 import GenericButton from '@/components/ui/GenericButton';
 
-// Récupère la hauteur de l'écran
-const { height } = Dimensions.get('window');
+// Récupère les dimensions de l'écran
+const { height, width } = Dimensions.get('window');
 
 export default function WelcomeScreen({ navigation }: any) {
   return (
@@ -19,11 +19,13 @@ export default function WelcomeScreen({ navigation }: any) {
         <GenericButton
           title="Connexion"
           onPress={() => navigation.navigate('Login')}
+          style={styles.button} // Applique une largeur commune
         />
-        <View style={{ marginVertical: 20 }} />
+        <View style={{ marginVertical: height * 0.02 }} /> {/* Espacement dynamique */}
         <GenericButton
           title="Créer mon compte"
           onPress={() => navigation.navigate('Register')}
+          style={styles.button} // Applique une largeur commune
         />
       </View>
     </View>
@@ -37,12 +39,15 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center', // Centre le logo horizontalement
-    marginTop: height * 0.15, // 10% de la hauteur de l'écran
+    marginTop: height * 0.1, // Réduit à 10% de la hauteur de l'écran
   },
   buttonContainer: {
-    flex: 1, // Prend tout l'espace restant
     justifyContent: 'flex-start', // Aligne les boutons en haut du conteneur
     alignItems: 'center', // Centre les boutons horizontalement
-    marginTop: height * 0.2, // 20% de la hauteur de l'écran
+    marginTop: height * 0.15, // Ajoute un espacement au-dessus des boutons
+    paddingHorizontal: width * 0.05, // Ajoute un padding latéral pour éviter que les boutons touchent les bords
+  },
+  button: {
+    width: width * 0.8, // Largeur commune pour tous les boutons (80% de la largeur de l'écran)
   },
 });

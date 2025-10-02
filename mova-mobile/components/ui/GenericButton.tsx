@@ -6,9 +6,12 @@ import Layout from '@/constants/Layout'; // Import des dimensions dynamiques
 interface GenericButtonProps {
   title: string;
   onPress: () => void;
-  style?: ViewStyle;
-  textStyle?: TextStyle;
-  gradientColors?: string[];
+  style?: ViewStyle; // Permet de personnaliser le style du bouton
+  textStyle?: TextStyle; // Permet de personnaliser le style du texte
+  gradientColors?: string[]; // Permet de personnaliser les couleurs du dégradé
+  borderRadius?: number; // Permet de personnaliser les coins arrondis
+  paddingVertical?: number; // Permet de personnaliser le padding vertical
+  paddingHorizontal?: number; // Permet de personnaliser le padding horizontal
 }
 
 export default function GenericButton({
@@ -16,13 +19,24 @@ export default function GenericButton({
   onPress,
   style,
   textStyle,
-  gradientColors = ['#6746a8', '#6b25f9', '#07b9ff'],
+  gradientColors = ['#6746a8', '#6b25f9', '#07b9ff'], // Couleurs par défaut
+  borderRadius = Layout.window.width * 0.08, // Coins arrondis par défaut
+  paddingVertical = Layout.window.height * 0.015, // Padding vertical par défaut
+  paddingHorizontal = Layout.window.width * 0.04, // Padding horizontal par défaut
 }: GenericButtonProps) {
   return (
     <Pressable onPress={onPress}>
       <LinearGradient
         colors={['#6746a8', '#6b25f9', '#07b9ff']}
-        style={[styles.button, style]}
+        style={[
+          styles.button,
+          {
+            borderRadius,
+            paddingVertical,
+            paddingHorizontal,
+          },
+          style, // Permet de surcharger les styles depuis les props
+        ]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
       >
@@ -34,17 +48,12 @@ export default function GenericButton({
 
 const styles = StyleSheet.create({
   button: {
-    paddingVertical: Layout.window.height * 0.02, // 2% de la hauteur de l'écran
-    paddingHorizontal: Layout.window.width * 0.05, // 5% de la largeur de l'écran
-    borderRadius: Layout.window.width * 0.05, // Coins arrondis dynamiques
-    width: Layout.window.width * 0.8, // Largeur dynamique (80% de la largeur de l'écran)
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: Layout.window.height * 0.02, // Espacement vertical dynamique
   },
   buttonText: {
     color: '#FFFFFF',
-    fontSize: Layout.window.width * 0.045, // Taille du texte dynamique
+    fontSize: Layout.window.width * 0.04, // Taille du texte par défaut
     fontWeight: 'bold',
   },
 });
