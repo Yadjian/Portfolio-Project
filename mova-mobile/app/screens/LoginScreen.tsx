@@ -1,23 +1,43 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, Pressable } from 'react-native';
+import { View, StyleSheet, Text, Pressable, useWindowDimensions } from 'react-native';
 import GradientBackground from '@/components/ui/ColorBackground';
 import CustomTextInput from '../../components/ui/TextInput';
-import CustomCard from '../../components/ui/WhiteBackGround';
+import CustomCard from '../../components/ui/WhiteFrame';
 import MovaLogo from '../../components/ui/UIWelcomeScreen/MovaLogo';
 import GenericButton from '@/components/ui/UIWelcomeScreen/GenericButton';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { height, width } = useWindowDimensions();
 
   return (
     <GradientBackground>
-      <View style={styles.container}>
+      <View style={[
+        styles.container,
+        {
+          padding: width * 0.05,
+          paddingTop: height * 0.04,
+        }
+      ]}>
         {/* Titre avec dégradé */}
-        <MovaLogo />
+        <View style={{ marginBottom: height * 0.02 }}>
+          <MovaLogo />
+        </View>
 
         {/* Formulaire de connexion */}
         <CustomCard>
+          <Text
+            style={{
+              fontSize: width * 0.06,
+              fontWeight: 'bold',
+              color: '#6746a8',
+              textAlign: 'center',
+              marginBottom: height * 0.04,
+            }}
+          >
+            Connexion
+          </Text>
           <CustomTextInput
             placeholder="Email"
             value={email}
@@ -31,20 +51,28 @@ export default function LoginScreen({ navigation }: any) {
           />
           
           <Pressable onPress={() => navigation.navigate('Register')}>
-            <Text style={styles.createAccountText}>Mot de passe oublié ?</Text>
+            <Text 
+              style={{
+                color: '#000000ff',
+                textAlign: 'right',
+                fontSize: width * 0.035,
+              }}
+            >
+              Mot de passe oublié ?
+            </Text>
           </Pressable>
 
           <GenericButton
             title="Se connecter"
             onPress={() => console.log('Login pressed')}
             style={{
-              width: 150,
-              height: 40,
-              marginTop: 20,
+              width: width * 0.4,
+              height: height * 0.06,
+              marginTop: height * 0.08,
               alignSelf: 'center',
             }}
             textStyle={{
-              fontSize: 14,
+              fontSize: width * 0.045,
             }}
           />
         </CustomCard>
@@ -56,14 +84,7 @@ export default function LoginScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    padding: 20,
-  },
-  createAccountText: {
-    color: '#000000ff',
-    fontSize: 12,
-    textAlign: 'right',
-    marginTop: 8,
   },
 });
