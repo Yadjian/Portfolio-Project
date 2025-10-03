@@ -61,13 +61,8 @@ export default function LoginScreen({ navigation }: any) {
               marginBottom: height * 0.01,
             }}
           >
-            <Pressable onPress={() => navigation.navigate('Register')}>
-              <Text
-                style={{
-                  color: '#6746a8',
-                  fontSize: width * 0.033,
-                }}
-              >
+            <Pressable onPress={() => navigation.navigate('ChooseRegisterType')}>
+              <Text style={{ color: '#6746a8', fontSize: width * 0.033 }}>
                 Créer mon compte
               </Text>
             </Pressable>
