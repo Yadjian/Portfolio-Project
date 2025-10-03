@@ -83,7 +83,6 @@ export default function LoginScreen({ navigation }: any) {
             onPress={() => console.log('Login pressed')}
             style={{
               width: width * 0.4,
-              height: height * 0.06,
               marginTop: height * 0.08,
               alignSelf: 'center',
             }}
