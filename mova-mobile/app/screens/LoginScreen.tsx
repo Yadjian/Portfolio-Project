@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, Pressable } from 'react-native';
 import GradientBackground from '@/components/ui/ColorBackground';
-import CustomTextInput from '../../components/ui/TextInput';
+import CustomTextInput from '../../components/ui/LoginInput';
 import CustomCard from '../../components/ui/WhiteBackGround';
-import MovaLogo from '../../components/ui/UIWelcomeScreen/MovaLogo';
-import GenericButton from '@/components/ui/UIWelcomeScreen/GenericButton';
+import MovaLogo from '../../components/ui/MovaLogo';
+import GenericButton from '@/components/ui/GenericButton';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
