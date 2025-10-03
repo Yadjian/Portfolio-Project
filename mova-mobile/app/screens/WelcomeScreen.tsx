@@ -11,7 +11,7 @@ export default function WelcomeScreen({ navigation }: any) {
     <View style={styles.container}>
       {/* Conteneur pour le logo */}
       <View style={styles.logoContainer}>
-        <MovaLogo />
+        <MovaLogo size={height * 0.18} />
         <Text style={styles.slogan}>
           Votre prochain emploi{'\n'}commence par une rencontre !
         </Text>
@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#FFFFFF',
+    paddingTop: height * 0.15,
   },
   logoContainer: {
     alignItems: 'center', // Centre le logo horizontalement
