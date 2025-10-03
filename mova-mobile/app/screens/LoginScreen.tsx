@@ -13,13 +13,15 @@ export default function LoginScreen({ navigation }: any) {
 
   return (
     <GradientBackground>
-      <View style={[
-        styles.container,
-        {
-          padding: width * 0.05,
-          paddingTop: height * 0.04,
-        }
-      ]}>
+      <View
+        style={[
+          styles.container,
+          {
+            padding: width * 0.05,
+            paddingTop: height * 0.04,
+          },
+        ]}
+      >
         {/* Titre avec dégradé */}
         <View style={{ marginBottom: height * 0.02 }}>
           <MovaLogo />
@@ -49,18 +51,37 @@ export default function LoginScreen({ navigation }: any) {
             onChangeText={setPassword}
             secureTextEntry
           />
-          
-          <Pressable onPress={() => navigation.navigate('Register')}>
-            <Text 
-              style={{
-                color: '#6746a8',
-                textAlign: 'right',
-                fontSize: width * 0.035,
-              }}
-            >
-              Mot de passe oublié ?
-            </Text>
-          </Pressable>
+
+          {/* Deux textes cliquables sur la même ligne */}
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: height * 0.01,
+            }}
+          >
+            <Pressable onPress={() => navigation.navigate('Register')}>
+              <Text
+                style={{
+                  color: '#6746a8',
+                  fontSize: width * 0.033,
+                }}
+              >
+                Créer mon compte
+              </Text>
+            </Pressable>
+            <Pressable onPress={() => navigation.navigate('ForgotPassword')}>
+              <Text
+                style={{
+                  color: '#6746a8',
+                  fontSize: width * 0.033,
+                }}
+              >
+                Mot de passe oublié ?
+              </Text>
+            </Pressable>
+          </View>
 
           <GenericButton
             title="Se connecter"
