@@ -54,16 +54,6 @@ export default function GenericInputBar({ style, ...props }: GenericInputBarProp
 
 const styles = StyleSheet.create({
   input: {
-<<<<<<< HEAD
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginVertical: 10,
-    width: '100%',
-=======
     backgroundColor: '#fff',
->>>>>>> origin/feature/frontend-LoginScreen
   },
 });
