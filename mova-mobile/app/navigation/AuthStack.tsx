@@ -1,11 +1,12 @@
 import React from 'react';
-import { Button } from 'react-native';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
-import RegisterScreen from '../screens/RegisterScreen';
 import { AuthStackParamList } from '../types';
 import BackButton from '@/components/ui/BackButton';
+import RegisterCandidateScreen from '../screens/RegisterScreens/RegisterCandidateScreen';
+import RegisterRecruiterScreen from '../screens/RegisterScreens/RegisterRecruiterScreen';
+import ChooseRegisterTypeScreen from '../screens/RegisterScreens/ChooseRegisterTypeScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -14,7 +15,7 @@ export default function AuthStack() {
     <Stack.Navigator
       initialRouteName="Welcome"
       screenOptions={{
-        headerStyle: { backgroundColor: '#fff' }, // Header blanc
+        headerStyle: { backgroundColor: '#fff' },
       }}
     >
       <Stack.Screen
@@ -33,13 +34,16 @@ export default function AuthStack() {
         })}
       />
       <Stack.Screen
-        name="Register"
-        component={RegisterScreen}
-        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'Register'> }) => ({
-          headerLeft: () => (
-            <Button title="Retour" onPress={() => navigation.navigate('Welcome')} />
-          ),
-        })}
+        name="ChooseRegisterType"
+        component={ChooseRegisterTypeScreen}
+      />
+      <Stack.Screen
+        name="RegisterCandidate"
+        component={RegisterCandidateScreen}
+      />
+      <Stack.Screen
+        name="RegisterRecruiter"
+        component={RegisterRecruiterScreen}
       />
     </Stack.Navigator>
   );
