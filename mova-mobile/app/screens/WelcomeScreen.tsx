@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, Dimensions } from 'react-native';
-import MovaLogo from '@/components/ui/UIWelcomeScreen/MovaLogo';
-import GenericButton from '@/components/ui/UIWelcomeScreen/GenericButton';
+import MovaLogo from '@/components/ui/MovaLogo';
+import GenericButton from '@/components/ui/GenericButton';
 
 const { height, width } = Dimensions.get('window');
 
