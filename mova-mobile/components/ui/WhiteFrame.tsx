@@ -15,7 +15,7 @@ export default function Whiteframe({ children, style }: WhiteframeProps) {
         styles.frame,
         {
           borderRadius: 25,
-          paddingVertical: height * 0.05,
+          paddingVertical: height * 0.08,
           paddingHorizontal: width * 0.07,
           minHeight: height * 0.5,
           marginBottom: height * 0.05,

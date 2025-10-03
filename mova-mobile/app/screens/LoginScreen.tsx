@@ -29,7 +29,7 @@ export default function LoginScreen({ navigation }: any) {
         <CustomCard>
           <Text
             style={{
-              fontSize: width * 0.06,
+              fontSize: width * 0.07,
               fontWeight: 'bold',
               color: '#6746a8',
               textAlign: 'center',
@@ -53,7 +53,7 @@ export default function LoginScreen({ navigation }: any) {
           <Pressable onPress={() => navigation.navigate('Register')}>
             <Text 
               style={{
-                color: '#000000ff',
+                color: '#6746a8',
                 textAlign: 'right',
                 fontSize: width * 0.035,
               }}
