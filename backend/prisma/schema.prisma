@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// --- Énumérations pour la robustesse des données ---
+// --- Énumérations ---
 
 enum ContractType {
   CDI
@@ -43,116 +40,109 @@ enum SwipeDirection {
   RIGHT
 }
 
+// --- NOUVEAU MODÈLE CENTRAL POUR L'IDENTITÉ ---
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  auth0Id   String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-// --- Modèles de l'application ---
+  // Relations (un User peut avoir un profil candidat ET/OU un profil recruteur)
+  candidateProfile CandidateProfile?
+  recruiterProfile Recruiter?
+}
+
+// --- MODÈLES DE PROFILS (CORRIGÉS) ---
 
 model CandidateProfile {
-  // Champs hérités de AuditedEntity
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  // Champs hérités de User
-  email        String @unique
-  passwordHash String
+  // Champs propres au profil
+  firstName            String
+  lastName             String
+  resumeUrl            String?
+  photoUrl             String?
+  coverLetterText      String?
+  desiredJobTitle      String?
+  desiredContractTypes ContractType[]
+  locationWKT          String?
+  searchRadiusKm       Int?
+  isActive             Boolean    @default(true)
+  notificationsEnabled Boolean    @default(true)
 
-  // Champs propres à CandidateProfile
-  firstName              String
-  lastName               String
-  resumeUrl              String?
-  photoUrl               String?
-  coverLetterText        String?
-  desiredJobTitle        String?
-  desiredContractTypes   ContractType[]
-  locationWKT            String? // "POINT(lon lat)"
-  searchRadiusKm         Int?
-  isActive               Boolean        @default(true)
-  notificationsEnabled   Boolean        @default(true)
+  // Relation vers le User (un profil candidat appartient à un seul user)
+  user   User @relation(fields: [userId], references: [id])
+  userId String  @unique // La relation est unique (one-to-one)
 
-  // Relations
+  // Autres relations
   applications Application[]
   swipes       Swipe[]
 }
 
 model Recruiter {
-  // Champs hérités de AuditedEntity
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  // Champs hérités de User
-  email        String @unique
-  passwordHash String
-
-  // Champs propres à Recruiter
-  firstName           String
-  lastName            String
+  // Champs propres au profil
+  firstName         String
+  lastName          String
   internalRoleDefault String?
-  matchWindowStart    DateTime?
-  matchesTodayCount   Int       @default(0)
-  dailyMatchLimit     Int       @default(100)
+  matchWindowStart  DateTime?
+  matchesTodayCount Int       @default(0)
+  dailyMatchLimit   Int       @default(100)
+  
+  // Relation vers le User (un profil recruteur appartient à un seul user)
+  user   User @relation(fields: [userId], references: [id])
+  userId String  @unique // La relation est unique (one-to-one)
 
-  // Relations
-  memberships         RecruiterMembership[]
-  swipes              Swipe[]
-  viewedApplications  Application[]         @relation("ViewedByRecruiter")
+  // Autres relations
+  memberships        RecruiterMembership[]
+  swipes             Swipe[]
+  viewedApplications Application[]       @relation("ViewedByRecruiter")
 }
 
+// --- AUTRES MODÈLES ---
+
 model Company {
-  // Champs hérités de AuditedEntity
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Champs propres à Company
-  name    String
-  siret   String @unique
-  logoUrl String?
-
-  // Relations
-  jobOffers   JobOffer[]
-  members     RecruiterMembership[]
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  siret     String    @unique
+  logoUrl   String?
+  jobOffers JobOffer[]
+  members   RecruiterMembership[]
 }
 
 model RecruiterMembership {
-  // Champs hérités de AuditedEntity
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Champs propres à RecruiterMembership
+  id           String    @id @default(uuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
   internalRole String
-  isPrimary    Boolean @default(false)
-
-  // Relations (Table de jonction explicite entre Recruiter et Company)
-  recruiter   Recruiter @relation(fields: [recruiterId], references: [id])
-  recruiterId String
-  company     Company   @relation(fields: [companyId], references: [id])
-  companyId   String
-
-  @@unique([recruiterId, companyId]) // Un recruteur ne peut pas être membre deux fois de la même entreprise
+  isPrimary    Boolean   @default(false)
+  recruiter    Recruiter @relation(fields: [recruiterId], references: [id])
+  recruiterId  String
+  company      Company   @relation(fields: [companyId], references: [id])
+  companyId    String
+  @@unique([recruiterId, companyId])
 }
 
 model JobCategory {
-  // Champs hérités de AuditedEntity
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Champs propres à JobCategory
-  name String @unique
-
-  // Relations (Many-to-Many implicite avec JobOffer)
+  id        String     @id @default(uuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  name      String     @unique
   jobOffers JobOffer[]
 }
 
 model JobOffer {
-  // Champs hérités de AuditedEntity
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Champs propres à JobOffer
+  id           String         @id @default(uuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   title        String
   description  String
   contractType ContractType
@@ -161,59 +151,45 @@ model JobOffer {
   salaryMax    Int?
   currency     String?
   workHours    String?
-  isActive     Boolean   @default(true)
+  isActive     Boolean        @default(true)
   expiresAt    DateTime?
-
-  // Relations
-  company      Company       @relation(fields: [companyId], references: [id])
+  company      Company        @relation(fields: [companyId], references: [id])
   companyId    String
   applications Application[]
   swipes       Swipe[]
-  categories   JobCategory[] // Many-to-Many
+  categories   JobCategory[]
 }
 
 model Application {
-  // Champs hérités de AuditedEntity
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Champs propres à Application
-  status          ApplicationStatus @default(ENVOYE)
-  cvUrl           String?
-  coverLetterText String?
-  viewedAt        DateTime?
-
-  // Relations
-  candidate         CandidateProfile @relation(fields: [candidateId], references: [id])
-  candidateId       String
-  job               JobOffer         @relation(fields: [jobId], references: [id])
-  jobId             String
-  viewedByRecruiter Recruiter?       @relation("ViewedByRecruiter", fields: [viewedByRecruiterId], references: [id])
+  id                  String            @id @default(uuid())
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  status              ApplicationStatus @default(ENVOYE)
+  cvUrl               String?
+  coverLetterText     String?
+  viewedAt            DateTime?
+  candidate           CandidateProfile  @relation(fields: [candidateId], references: [id])
+  candidateId         String
+  job                 JobOffer          @relation(fields: [jobId], references: [id])
+  jobId               String
+  viewedByRecruiter   Recruiter?        @relation("ViewedByRecruiter", fields: [viewedByRecruiterId], references: [id])
   viewedByRecruiterId String?
-
-  @@unique([candidateId, jobId]) // Un candidat ne peut postuler qu'une seule fois à la même offre
+  @@unique([candidateId, jobId])
 }
 
 model Swipe {
-  // Champs hérités de AuditedEntity
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Champs propres à Swipe
+  id          String         @id @default(uuid())
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
   actorType   SwipeActorType
   direction   SwipeDirection
-  isMatch     Boolean   @default(false)
+  isMatch     Boolean        @default(false)
   matchedAt   DateTime?
-
-  // Relations
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id])
   candidateId String
-  recruiter   Recruiter?       @relation(fields: [recruiterId], references: [id])
+  recruiter   Recruiter?     @relation(fields: [recruiterId], references: [id])
   recruiterId String?
-  job         JobOffer         @relation(fields: [jobId], references: [id])
+  job         JobOffer       @relation(fields: [jobId], references: [id])
   jobId       String
-
-  @@unique([candidateId, jobId, actorType]) // Empêche un acteur de swiper plusieurs fois sur la même combinaison
+  @@unique([candidateId, jobId, actorType])
 }
