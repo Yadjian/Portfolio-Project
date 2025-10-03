@@ -67,17 +67,11 @@ export default function LoginScreen({ navigation }: any) {
               </Text>
             </Pressable>
             <Pressable onPress={() => navigation.navigate('ForgotPassword')}>
-              <Text
-                style={{
-                  color: '#6746a8',
-                  fontSize: width * 0.033,
-                }}
-              >
+              <Text style={{ color: '#6746a8', fontSize: width * 0.033 }}>
                 Mot de passe oublié ?
               </Text>
             </Pressable>
           </View>
-
           <GenericButton
             title="Se connecter"
             onPress={() => console.log('Login pressed')}
