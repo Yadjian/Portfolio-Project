@@ -9,9 +9,11 @@ export type AuthStackParamList = {
   ChooseRegisterType: undefined;
 };
 
-// Définir les props pour LoginScreen
+// Définir les props pour chaque écran
+export type WelcomeScreenProps = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
 export type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
+export type ChooseRegisterTypeScreenProps = NativeStackScreenProps<AuthStackParamList, 'ChooseRegisterType'>;
+export type RegisterCandidateScreenProps = NativeStackScreenProps<AuthStackParamList, 'RegisterCandidate'>;
+export type RegisterRecruiterScreenProps = NativeStackScreenProps<AuthStackParamList, 'RegisterRecruiter'>;
 
-// Définir les props pour RegisterScreen
-export type RegisterScreenProps = NativeStackScreenProps<AuthStackParamList, 'Register'>;
 
