@@ -1,12 +1,11 @@
 import React from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-interface MovaLogoProps {
-  size?: number;
-}
+export default function MovaLogo() {
+  const { height } = useWindowDimensions();
+  const size = Math.min(height * 0.18, 180); // max 120px
 
-export default function MovaLogo({ size = 100 }: MovaLogoProps) {
   return (
     <LinearGradient
       colors={['#6746a8', '#6b25f9', '#07b9ff']}
