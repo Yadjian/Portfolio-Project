@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: Mova API
-  description: API pour la plateforme de matching entre candidats et recruteurs
-  version: 1.2.0 # Version incrémentée pour refléter les ajouts
+  description: API pour la plateforme de matching entre candidats et recruteurs (Auth0, Géolocalisation).
+  version: 1.3.0
 
 servers:
   - url: /api/v1
@@ -10,9 +10,11 @@ servers:
 
 tags:
   - name: Auth
-    description: Authentification des utilisateurs
+    description: Synchronisation avec le fournisseur d'authentification externe (Auth0)
   - name: Profile
     description: Gestion du profil de l'utilisateur connecté
+  - name: Geolocation & Discovery
+    description: Routes pour la géolocalisation et la découverte d'offres
   - name: Companies
     description: Gestion des entreprises par les recruteurs
   - name: Job Offers
@@ -27,33 +29,22 @@ tags:
     description: Routes réservées aux administrateurs
 
 paths:
-  # --- AUTH ---
-  /auth/register:
+  # --- AUTH (with Auth0) ---
+  /auth/sync-user:
     post:
-      summary: Inscription d'un nouvel utilisateur
+      summary: Synchronise l'utilisateur après une connexion/inscription via Auth0
       tags: [Auth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterDto'
+      security: [ { "bearerAuth": [] } ]
+      description: "À appeler la 1ère fois que l'utilisateur se connecte pour le créer dans notre DB."
       responses:
-        '201': { $ref: '#/components/responses/AuthSuccess' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-
-  /auth/login:
-    post:
-      summary: Connexion d'un utilisateur
-      tags: [Auth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LoginDto'
-      responses:
-        '200': { $ref: '#/components/responses/AuthSuccess' }
+        '200':
+          description: Utilisateur synchronisé ou déjà existant.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/CandidateProfile'
+                  - $ref: '#/components/schemas/RecruiterProfile'
         '401': { $ref: '#/components/responses/Unauthorized' }
 
   # --- PROFILE ---
@@ -72,8 +63,6 @@ paths:
                   - $ref: '#/components/schemas/CandidateProfile'
                   - $ref: '#/components/schemas/RecruiterProfile'
         '401': { $ref: '#/components/responses/Unauthorized' }
-
-  /profile:
     put:
       summary: Mettre à jour le profil de l'utilisateur connecté
       tags: [Profile]
@@ -88,15 +77,46 @@ paths:
       responses:
         '200': { description: "Profil mis à jour avec succès." }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '400': { $ref: '#/components/responses/BadRequest' }
-
     delete:
       summary: Supprimer le compte de l'utilisateur connecté
       tags: [Profile]
       security: [ { "bearerAuth": [] } ]
       responses:
         '204': 
-          description: Le compte a été supprimé avec succès. Pas de contenu en retour.
+          description: Le compte a été supprimé avec succès.
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # --- GEOLOCATION & DISCOVERY ---
+  /me/location:
+    post:
+      summary: (Candidat) Met à jour la position géographique de l'utilisateur
+      tags: [Geolocation & Discovery]
+      security: [ { "bearerAuth": [] } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLocationDto'
+      responses:
+        '204':
+          description: Position mise à jour avec succès.
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  
+  /discovery/jobs:
+    get:
+      summary: (Candidat) Récupère le "deck" d'offres découvertes à proximité
+      tags: [Geolocation & Discovery]
+      security: [ { "bearerAuth": [] } ]
+      responses:
+        '200':
+          description: Une liste d'offres à swiper.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JobOffer'
         '401': { $ref: '#/components/responses/Unauthorized' }
 
   # --- COMPANIES ---
@@ -113,11 +133,8 @@ paths:
               $ref: '#/components/schemas/CreateCompanyDto'
       responses:
         '201':
-          description: Entreprise créée avec succès.
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Company'
+            application/json: { schema: { $ref: '#/components/schemas/Company' } }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
 
@@ -135,11 +152,8 @@ paths:
               $ref: '#/components/schemas/UpdateCompanyDto'
       responses:
         '200':
-          description: Entreprise mise à jour.
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Company'
+            application/json: { schema: { $ref: '#/components/schemas/Company' } }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -158,26 +172,10 @@ paths:
               $ref: '#/components/schemas/CreateJobOfferDto'
       responses:
         '201':
-          description: Offre créée.
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobOffer'
+            application/json: { schema: { $ref: '#/components/schemas/JobOffer' } }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-    get:
-      summary: (Candidat) Obtenir la liste des offres d'emploi à swiper
-      tags: [Job Offers]
-      security: [ { "bearerAuth": [] } ]
-      responses:
-        '200':
-          description: Une liste d'offres d'emploi.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/JobOffer'
 
   /job-offers/{id}:
     get:
@@ -187,11 +185,8 @@ paths:
       parameters: [ { $ref: '#/components/parameters/IdPath' } ]
       responses:
         '200':
-          description: Détails de l'offre.
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobOffer'
+            application/json: { schema: { $ref: '#/components/schemas/JobOffer' } }
         '404': { $ref: '#/components/responses/NotFound' }
     put:
       summary: (Recruteur) Mettre à jour une offre d'emploi
@@ -205,11 +200,8 @@ paths:
               $ref: '#/components/schemas/UpdateJobOfferDto'
       responses:
         '200':
-          description: Offre mise à jour.
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobOffer'
+            application/json: { schema: { $ref: '#/components/schemas/JobOffer' } }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -224,7 +216,7 @@ paths:
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
 
-  # --- JOB CATEGORIES ---
+  # --- JOB CATEGORIES (Public) ---
   /job-categories:
     get:
       summary: Récupérer la liste des catégories de métiers
@@ -332,26 +324,116 @@ paths:
         '404': { $ref: '#/components/responses/NotFound' }
 
   # --- ADMIN ---
+  /admin/users:
+    get:
+      summary: (Admin) Lister tous les utilisateurs
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      responses:
+        '200': { description: "Liste des utilisateurs." }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  
+  /admin/users/{id}:
+    get:
+      summary: (Admin) Obtenir les détails d'un utilisateur
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '200': { description: "Détails de l'utilisateur." }
+    put:
+      summary: (Admin) Mettre à jour un utilisateur
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '200': { description: "Utilisateur mis à jour." }
+    delete:
+      summary: (Admin) Supprimer un utilisateur
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '204': { description: "Utilisateur supprimé." }
+
+  /admin/companies:
+    get:
+      summary: (Admin) Lister toutes les entreprises
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      responses:
+        '200': { description: "Liste des entreprises." }
+        
+  /admin/companies/{id}:
+    put:
+      summary: (Admin) Mettre à jour une entreprise
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '200': { description: "Entreprise mise à jour." }
+    delete:
+      summary: (Admin) Supprimer une entreprise
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '204': { description: "Entreprise supprimée." }
+
+  /admin/job-offers:
+    get:
+      summary: (Admin) Lister toutes les offres d'emploi
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      responses:
+        '200': { description: "Liste des offres d'emploi." }
+
+  /admin/job-offers/{id}:
+    put:
+      summary: (Admin) Mettre à jour une offre d'emploi
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '200': { description: "Offre mise à jour." }
+    delete:
+      summary: (Admin) Supprimer une offre d'emploi
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '204': { description: "Offre supprimée." }
+        
   /admin/job-categories:
     post:
       summary: (Admin) Créer une nouvelle catégorie
       tags: [Admin]
-      security: [ { "bearerAuth": [] } ] # Devrait avoir une scope "admin"
+      security: [ { "bearerAuth": [] } ]
       requestBody:
-        required: true
         content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateJobCategoryDto'
+          application/json: { schema: { $ref: '#/components/schemas/CreateJobCategoryDto' } }
       responses:
-        '201':
-          description: Catégorie créée.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/JobCategory'
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
+        '201': { content: { application/json: { schema: { $ref: '#/components/schemas/JobCategory' } } } }
+    
+  /admin/job-categories/{id}:
+    put:
+      summary: (Admin) Mettre à jour une catégorie
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      requestBody:
+        content:
+          application/json: { schema: { $ref: '#/components/schemas/UpdateJobCategoryDto' } }
+      responses:
+        '200': { description: "Catégorie mise à jour." }
+    delete:
+      summary: (Admin) Supprimer une catégorie
+      tags: [Admin]
+      security: [ { "bearerAuth": [] } ]
+      parameters: [ { $ref: '#/components/parameters/IdPath' } ]
+      responses:
+        '204': { description: "Catégorie supprimée." }
 
 components:
   # --- Reusable Parameters ---
@@ -391,21 +473,6 @@ components:
   # --- Schemas (Data Structures) ---
   schemas:
     # --- DTOs (Data Transfer Objects) for Requests ---
-    RegisterDto:
-      type: object
-      required: [email, password, role, firstName, lastName]
-      properties:
-        email: { type: string, format: email }
-        password: { type: string, minLength: 8 }
-        role: { type: string, enum: [candidate, recruiter] }
-        firstName: { type: string }
-        lastName: { type: string }
-    LoginDto:
-      type: object
-      required: [email, password]
-      properties:
-        email: { type: string, format: email }
-        password: { type: string }
     UpdateCandidateProfileDto:
       type: object
       properties:
@@ -470,7 +537,10 @@ components:
       required: [name]
       properties:
         name: { type: string }
-        
+    UpdateJobCategoryDto:
+      type: object
+      properties:
+        name: { type: string }        
     # --- Schemas for Responses & Entities ---
     AuthResponse:
       type: object
