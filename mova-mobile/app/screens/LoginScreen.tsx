@@ -30,7 +30,7 @@ export default function LoginScreen({ navigation }: any) {
             secureTextEntry
           />
           
-          <Pressable onPress={() => navigation.navigate('Register')}>
+          <Pressable onPress={() => navigation.navigate('ChooseRegisterType')}>
             <Text style={styles.createAccountText}>Mot de passe oublié ?</Text>
           </Pressable>
 
