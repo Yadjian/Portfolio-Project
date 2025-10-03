@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, Pressable, useWindowDimensions } from 'react-native';
 import GradientBackground from '@/components/ui/ColorBackground';
-import CustomTextInput from '../../components/ui/LoginInput';
+import CustomTextInput from '../../components/ui/TextInput';
 import CustomCard from '../../components/ui/WhiteFrame';
 import MovaLogo from '../../components/ui/MovaLogo';
 import GenericButton from '@/components/ui/GenericButton';
