@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, Text, Pressable, useWindowDimensions } from 'react-native';
 import GradientBackground from '@/components/ui/ColorBackground';
-import CustomTextInput from '../../components/ui/LoginInput';
+import CustomTextInput from '../../components/ui/TextInput';
 import CustomCard from '../../components/ui/WhiteFrame';
 import MovaLogo from '../../components/ui/MovaLogo';
 import GenericButton from '@/components/ui/GenericButton';
@@ -61,13 +61,8 @@ export default function LoginScreen({ navigation }: any) {
               marginBottom: height * 0.01,
             }}
           >
-            <Pressable onPress={() => navigation.navigate('Register')}>
-              <Text
-                style={{
-                  color: '#6746a8',
-                  fontSize: width * 0.033,
-                }}
-              >
+            <Pressable onPress={() => navigation.navigate('ChooseRegisterType')}>
+              <Text style={{ color: '#6746a8', fontSize: width * 0.033 }}>
                 Créer mon compte
               </Text>
             </Pressable>
