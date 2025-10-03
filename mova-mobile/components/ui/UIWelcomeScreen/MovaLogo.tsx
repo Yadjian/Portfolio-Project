@@ -20,7 +20,7 @@ export default function MovaLogo() {
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
     >
-      <Text style={[styles.title, { fontSize: size * 0.32 }]}>Mova</Text>
+      <Text style={[styles.title, { fontSize: size * 0.32, fontFamily: 'Dynapuff' }]}>Mova</Text>
     </LinearGradient>
   );
 }
