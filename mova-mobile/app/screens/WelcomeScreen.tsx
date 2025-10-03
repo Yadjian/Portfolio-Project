@@ -13,9 +13,8 @@ export default function WelcomeScreen({ navigation }: any) {
         <Text style={styles.slogan}>
           Votre prochain emploi{'\n'}commence par une rencontre !
         </Text>
-        <View style={styles.separator} /> {/* Séparateur ajouté ici */}
       </View>
-
+      <View style={styles.separator} /> {/* Séparateur ajouté ici */}
       <View style={styles.buttonContainer}>
         <GenericButton
           title="Connexion"
