@@ -12,11 +12,11 @@ export default function Whiteframe({ children, style }: WhiteframeProps) {
   return (
     <View
       style={[
-        styles.frame,
+        styles.card,
         {
           borderRadius: 25,
           paddingVertical: height * 0.08,
-          paddingHorizontal: width * 0.07,
+          paddingHorizontal: width * 0.09,
           minHeight: height * 0.5,
           marginBottom: height * 0.05,
           marginVertical: height * 0.02,
@@ -30,7 +30,7 @@ export default function Whiteframe({ children, style }: WhiteframeProps) {
 }
 
 const styles = StyleSheet.create({
-  frame: {
+  card: {
     backgroundColor: '#fff',
     borderRadius: 10,
     shadowColor: '#000',
