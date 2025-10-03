@@ -1,0 +1,10 @@
+# Fichier : .dockerignore
+
+# Ignorer les dépendances locales, Docker doit gérer les siennes
+node_modules
+
+# Ignorer le dossier de build local
+dist
+
+# Fichiers de log npm
+npm-debug.log
