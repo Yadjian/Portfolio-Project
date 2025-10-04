@@ -4,8 +4,6 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import { AuthStackParamList } from '../types';
 import BackButton from '@/components/ui/BackButton';
-import RegisterCandidateScreen from '../screens/RegisterScreens/RegisterCandidateScreen';
-import RegisterRecruiterScreen from '../screens/RegisterScreens/RegisterRecruiterScreen';
 import ChooseRegisterTypeScreen from '../screens/RegisterScreens/ChooseRegisterTypeScreen';
 import HomeButton from '@/components/ui/HomeButton';
 
@@ -38,32 +36,6 @@ export default function AuthStack() {
         name="ChooseRegisterType"
         component={ChooseRegisterTypeScreen}
         options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'ChooseRegisterType'> }) => ({
-          headerLeft: () => (
-            <BackButton onPress={() => navigation.goBack()} />
-          ),
-          headerTitle: () => null,
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
-          ),
-        })}
-      />
-      <Stack.Screen
-        name="RegisterCandidate"
-        component={RegisterCandidateScreen}
-        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'RegisterCandidate'> }) => ({
-          headerLeft: () => (
-            <BackButton onPress={() => navigation.goBack()} />
-          ),
-          headerTitle: () => null,
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
-          ),
-        })}
-      />
-      <Stack.Screen
-        name="RegisterRecruiter"
-        component={RegisterRecruiterScreen}
-        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'RegisterRecruiter'> }) => ({
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),

@@ -7,7 +7,7 @@ export default function SmallMovaLogo() {
   const size = width * 0.2;
 
   return (
-    <View style={{ width: '100%', alignItems: 'flex-start', padding: '2%' }}>
+    <View style={{ width: '100%', padding: '2%' }}>
       <LinearGradient
         colors={['#6746a8', '#6b25f9', '#07b9ff']}
         style={[
