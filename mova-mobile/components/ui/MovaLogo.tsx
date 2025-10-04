@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 export default function MovaLogo() {
   const { height } = useWindowDimensions();
-  const size = Math.min(height * 0.18, 180); // max 120px
+  const size = Math.min(height * 0.18, 180);
 
   return (
     <LinearGradient
