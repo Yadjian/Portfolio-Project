@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
 import MovaLogo from '@/components/ui/MovaLogo';
-import WhiteCard from '@/components/ui/WhiteCard';
 import GradientBackground from '@/components/ui/ColorBackground';
 
 export default function ChooseRegisterTypeScreen({ navigation }: any) {
@@ -15,21 +14,21 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
         <View style={styles.logoContainer}>
           <MovaLogo />
         </View>
-        <WhiteCard style={{ height: '65%', alignItems: 'center', justifyContent: 'center' }}>
-          <Text style={styles.title}>Je suis ici pour ?</Text>
+        <View style={styles.content}>
+          <Text style={styles.title}>Je suis...</Text>
           <Pressable
             style={[styles.button, { backgroundColor: '#07b9ff' }]}
             onPress={() => handleAuth0Signup('candidat')}
           >
-            <Text style={styles.buttonText}>Candidater</Text>
+            <Text style={styles.buttonText}>Candidat</Text>
           </Pressable>
           <Pressable
             style={[styles.button, { backgroundColor: '#6b25f9' }]}
             onPress={() => handleAuth0Signup('recruteur')}
           >
-            <Text style={styles.buttonText}>Recruter</Text>
+            <Text style={styles.buttonText}>Recruteur</Text>
           </Pressable>
-        </WhiteCard>
+        </View>
       </View>
     </GradientBackground>
   );
@@ -44,21 +43,30 @@ const styles = StyleSheet.create({
     marginBottom: '8%',
     alignItems: 'center',
   },
+  content: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '65%',
+  },
   title: {
-    fontSize: 25,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#6746a8',
-    marginBottom: '30%',
+    color: '#ffffffff',
+    marginBottom: '15%',
   },
   button: {
     borderRadius: 30,
-    width: '90%',
-    paddingVertical: '8%',
+    width: '80%',
+    paddingVertical: '7%',
     marginBottom: '10%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: '#fff',
   },
   buttonText: {
     color: '#fff',
-    fontSize: 22,
+    fontSize: 25,
     fontWeight: 'bold',
     textAlign: 'center',
   },
