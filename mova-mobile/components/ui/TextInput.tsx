@@ -4,9 +4,10 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 interface GenericInputBarProps extends TextInputProps {
   style?: object;
+  rightIcon?: React.ReactNode; // Ajoute la prop ici
 }
 
-export default function GenericInputBar({ style, ...props }: GenericInputBarProps) {
+export default function GenericInputBar({ style, rightIcon, ...props }: GenericInputBarProps) {
   const { width, height } = useWindowDimensions();
   const inputWidth = width * 0.7;
   const inputHeight = height * 0.055;
@@ -32,13 +33,16 @@ export default function GenericInputBar({ style, ...props }: GenericInputBarProp
         borderRadius: borderRadius,
         width: inputWidth - borderWidth * 2,
         height: inputHeight,
+        flexDirection: 'row', // Pour placer l'input et l'icône sur la même ligne
+        alignItems: 'center',
         justifyContent: 'center',
+        paddingRight: 8, // Un peu d'espace à droite
       }}>
         <TextInput
           style={[
             styles.input,
             {
-              width: inputWidth - borderWidth * 2,
+              flex: 1, // L'input prend la largeur restante
               height: inputHeight,
               borderRadius: borderRadius,
               paddingHorizontal: paddingHorizontal,
@@ -47,6 +51,11 @@ export default function GenericInputBar({ style, ...props }: GenericInputBarProp
           ]}
           {...props}
         />
+        {rightIcon ? (
+          <View style={{ marginLeft: 8 }}>
+            {rightIcon}
+          </View>
+        ) : null}
       </View>
     </LinearGradient>
   );

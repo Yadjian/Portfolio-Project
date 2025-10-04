@@ -2,9 +2,9 @@ import React from 'react';
 import { Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-export default function MovaLogo() {
-  const { height } = useWindowDimensions();
-  const size = Math.min(height * 0.18, 180); // max 120px
+export default function MovaLogo({ sizeProp }: { sizeProp?: number }) {
+  const { width } = useWindowDimensions();
+  const size = width * 0.40;
 
   return (
     <LinearGradient
