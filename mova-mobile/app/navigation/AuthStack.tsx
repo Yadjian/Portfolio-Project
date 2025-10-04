@@ -4,7 +4,7 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import { AuthStackParamList } from '../types';
 import BackButton from '@/components/ui/BackButton';
-import ChooseRegisterTypeScreen from '../screens/RegisterScreens/ChooseRegisterTypeScreen';
+import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
 import HomeButton from '@/components/ui/HomeButton';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
