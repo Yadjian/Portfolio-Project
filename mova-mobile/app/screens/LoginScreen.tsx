@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text, Pressable, TextInput, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import GradientBackground from '@/components/ui/ColorBackground';
-import CustomCard from '../../components/ui/WhiteFrame';
+import WhiteCard from '../../components/ui/WhiteCard';
 import MovaLogo from '../../components/ui/MovaLogo';
 
 export default function LoginScreen({ navigation }: any) {
@@ -25,7 +25,7 @@ export default function LoginScreen({ navigation }: any) {
           <MovaLogo />
         </View>
 
-        <CustomCard>
+        <WhiteCard>
           <Text
             style={{
               marginTop: height * 0.05,
@@ -152,7 +152,7 @@ export default function LoginScreen({ navigation }: any) {
               </Text>
             </Pressable>
           </LinearGradient>
-        </CustomCard>
+        </WhiteCard>
       </View>
     </GradientBackground>
   );
