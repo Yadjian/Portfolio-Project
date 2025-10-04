@@ -14,18 +14,16 @@ export default function RegisterCandidateScreen({ navigation }: any) {
   const [prenom, setPrenom] = useState('');
   const [nom, setNom] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const buttonWidth = width * 0.85;
-  const buttonRadius = height * 0.05;
-  const buttonPaddingVertical = height * 0.025;
 
   return (
     <GradientBackground>
       <View style={[styles.container, { backgroundColor: 'transparent' }]}>
-        <CustomCard style={{ width: '90%', alignItems: 'center', paddingVertical: height * 0.04 }}>
-          <View style={{ alignItems: 'flex-start', width: '100%' }}>
-            <SmallMovaLogo/>
-          </View>
-          <View style={{ alignItems: 'center', marginBottom: height * 0.08 }}>
+        {/* SmallMovaLogo en dehors du CustomCard */}
+        <View style={{ alignItems: 'flex-start', width: '100%' }}>
+          <SmallMovaLogo/>
+        </View>
+        <CustomCard>
+          <View style={{ alignItems: 'center' }}>
             <Text
               style={{
                 fontSize: width * 0.07,
@@ -41,44 +39,43 @@ export default function RegisterCandidateScreen({ navigation }: any) {
               Inscription Candidat
             </Text>
           </View>
-          <CustomTextInput
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <CustomTextInput
-            placeholder="Mot de passe"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            rightIcon={
-              <Pressable onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={24} color="#6746a8" />
-              </Pressable>
-            }
-          />
-          <CustomTextInput
-            placeholder="Confirmer le mot de passe"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-          />
-          <CustomTextInput
-            placeholder="Nom"
-            value={nom}
-            onChangeText={setNom}
-          />
-          <CustomTextInput
-            placeholder="Prénom"
-            value={prenom}
-            onChangeText={setPrenom}
-          />
+          <View style={{ alignItems: 'center', width: '100%' }}>
+            <CustomTextInput
+              placeholder="Email"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <CustomTextInput
+              placeholder="Mot de passe"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              rightIcon={
+                <Pressable onPress={() => setShowPassword(!showPassword)}>
+                  <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={24} color="#6746a8" />
+                </Pressable>
+              }
+            />
+            <CustomTextInput
+              placeholder="Confirmer le mot de passe"
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              secureTextEntry
+            />
+            <CustomTextInput
+              placeholder="Nom"
+              value={nom}
+              onChangeText={setNom}
+            />
+            <CustomTextInput
+              placeholder="Prénom"
+              value={prenom}
+              onChangeText={setPrenom}
+            />
+          </View>
           <Pressable
             style={{
               backgroundColor: '#07b9ff',
-              borderRadius: buttonRadius,
-              width: buttonWidth,
-              paddingVertical: buttonPaddingVertical,
               elevation: 2,
               marginTop: height * 0.04,
               alignItems: 'center',

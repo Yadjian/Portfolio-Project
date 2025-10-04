@@ -50,10 +50,28 @@ export default function AuthStack() {
       <Stack.Screen
         name="RegisterCandidate"
         component={RegisterCandidateScreen}
+        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'RegisterCandidate'> }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+          ),
+        })}
       />
       <Stack.Screen
         name="RegisterRecruiter"
         component={RegisterRecruiterScreen}
+        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'RegisterRecruiter'> }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+          ),
+        })}
       />
     </Stack.Navigator>
   );
