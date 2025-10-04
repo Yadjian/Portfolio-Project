@@ -22,7 +22,7 @@ export default function WelcomeScreen({ navigation }: any) {
         <View style={{ marginVertical: 20 }} />
         <GenericButton
           title="Créer mon compte"
-          onPress={() => navigation.navigate('Register')}
+          onPress={() => navigation.navigate('ChooseRegisterType')}
         />
       </View>
     </View>
