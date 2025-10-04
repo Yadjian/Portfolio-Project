@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, Text, Dimensions } from 'react-native';
+import { StyleSheet, View, Text, Dimensions, Pressable } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import MovaLogo from '@/components/ui/MovaLogo';
 
 const { height, width } = Dimensions.get('window');
@@ -13,17 +14,35 @@ export default function WelcomeScreen({ navigation }: any) {
           Votre prochain emploi{'\n'}commence par une rencontre !
         </Text>
       </View>
-      <View style={styles.separator} /> {/* Séparateur ajouté ici */}
+      <View style={styles.separator} />
       <View style={styles.buttonContainer}>
-        <GenericButton
-          title="Connexion"
-          onPress={() => navigation.navigate('Login')}
-        />
+        <LinearGradient
+          colors={['#6746a8', '#6b25f9', '#07b9ff']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.gradientButton}
+        >
+          <Pressable
+            style={styles.pressable}
+            onPress={() => navigation.navigate('Login')}
+          >
+            <Text style={styles.buttonText}>Connexion</Text>
+          </Pressable>
+        </LinearGradient>
         <View style={{ marginVertical: 20 }} />
-        <GenericButton
-          title="Créer mon compte"
-          onPress={() => navigation.navigate('ChooseRegisterType')}
-        />
+        <LinearGradient
+          colors={['#6746a8', '#6b25f9', '#07b9ff']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.gradientButton}
+        >
+          <Pressable
+            style={styles.pressable}
+            onPress={() => navigation.navigate('ChooseRegisterType')}
+          >
+            <Text style={styles.buttonText}>Créer mon compte</Text>
+          </Pressable>
+        </LinearGradient>
       </View>
     </View>
   );
@@ -44,7 +63,7 @@ const styles = StyleSheet.create({
     fontSize: width * 0.055,
     color: '#6746a8',
     textAlign: 'center',
-    fontWeight: '600',
+    fontWeight: 'bold',
     paddingHorizontal: width * 0.06,
   },
   separator: {
@@ -60,5 +79,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: height * 0.06,
     paddingHorizontal: width * 0.05,
+  },
+  gradientButton: {
+    width: '95%',
+    borderRadius: 25,
+    alignSelf: 'center',
+    paddingVertical: height * 0.03,
+  },
+  pressable: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: width * 0.055,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
