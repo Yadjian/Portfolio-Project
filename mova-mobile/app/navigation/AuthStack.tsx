@@ -4,9 +4,7 @@ import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import { AuthStackParamList } from '../types';
 import BackButton from '@/components/ui/BackButton';
-import RegisterCandidateScreen from '../screens/RegisterScreens/RegisterCandidateScreen';
-import RegisterRecruiterScreen from '../screens/RegisterScreens/RegisterRecruiterScreen';
-import ChooseRegisterTypeScreen from '../screens/RegisterScreens/ChooseRegisterTypeScreen';
+import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
 import HomeButton from '@/components/ui/HomeButton';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -46,14 +44,6 @@ export default function AuthStack() {
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
         })}
-      />
-      <Stack.Screen
-        name="RegisterCandidate"
-        component={RegisterCandidateScreen}
-      />
-      <Stack.Screen
-        name="RegisterRecruiter"
-        component={RegisterRecruiterScreen}
       />
     </Stack.Navigator>
   );

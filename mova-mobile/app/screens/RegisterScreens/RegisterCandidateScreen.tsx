@@ -1,31 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Pressable, StyleSheet, useWindowDimensions } from 'react-native';
-import CustomTextInput from '@/components/ui/TextInput';
 import SmallMovaLogo from '@/components/ui/SmallMovaLogo';
 import CustomCard from '@/components/ui/WhiteFrame';
 import GradientBackground from '@/components/ui/ColorBackground';
-import { Ionicons } from '@expo/vector-icons';
 
 export default function RegisterCandidateScreen({ navigation }: any) {
   const { height, width } = useWindowDimensions();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [prenom, setPrenom] = useState('');
-  const [nom, setNom] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const buttonWidth = width * 0.85;
-  const buttonRadius = height * 0.05;
-  const buttonPaddingVertical = height * 0.025;
 
   return (
     <GradientBackground>
       <View style={[styles.container, { backgroundColor: 'transparent' }]}>
-        <CustomCard style={{ width: '90%', alignItems: 'center', paddingVertical: height * 0.04 }}>
-          <View style={{ alignItems: 'flex-start', width: '100%' }}>
-            <SmallMovaLogo/>
-          </View>
-          <View style={{ alignItems: 'center', marginBottom: height * 0.08 }}>
+        {/* Logo centré */}
+        <View style={{ alignItems: 'center' }}>
+          <SmallMovaLogo />
+        </View>
+        <CustomCard>
+          <View style={{ alignItems: 'center' }}>
             <Text
               style={{
                 fontSize: width * 0.07,
@@ -41,51 +31,24 @@ export default function RegisterCandidateScreen({ navigation }: any) {
               Inscription Candidat
             </Text>
           </View>
-          <CustomTextInput
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <CustomTextInput
-            placeholder="Mot de passe"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            rightIcon={
-              <Pressable onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={24} color="#6746a8" />
-              </Pressable>
-            }
-          />
-          <CustomTextInput
-            placeholder="Confirmer le mot de passe"
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-            secureTextEntry
-          />
-          <CustomTextInput
-            placeholder="Nom"
-            value={nom}
-            onChangeText={setNom}
-          />
-          <CustomTextInput
-            placeholder="Prénom"
-            value={prenom}
-            onChangeText={setPrenom}
-          />
+          {/* Bouton Auth0 pour créer un compte */}
           <Pressable
             style={{
               backgroundColor: '#07b9ff',
-              borderRadius: buttonRadius,
-              width: buttonWidth,
-              paddingVertical: buttonPaddingVertical,
               elevation: 2,
               marginTop: height * 0.04,
               alignItems: 'center',
               justifyContent: 'center',
               alignSelf: 'center',
+              borderRadius: height * 0.05,
+              width: '90%',
+              paddingVertical: height * 0.025,
             }}
-            onPress={() => {/* action d'inscription */}}
+            onPress={() => {
+              // Ici tu appelles Auth0 pour l'inscription
+              // Exemple :
+              // auth0.webAuth.authorize({ scope: 'openid profile email', prompt: 'login' })
+            }}
           >
             <Text
               style={{

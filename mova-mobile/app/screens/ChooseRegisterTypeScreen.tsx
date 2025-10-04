@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text, Pressable, useWindowDimensions, StyleSheet } from 'react-native';
 import MovaLogo from '@/components/ui/MovaLogo';
+// Si tu utilises Auth0, importe le SDK ici
+// import Auth0 from 'react-native-auth0';
+// const auth0 = new Auth0({ domain: 'TON_DOMAINE.auth0.com', clientId: 'TON_CLIENT_ID' });
 
 export default function ChooseRegisterTypeScreen({ navigation }: any) {
   const { width, height } = useWindowDimensions();
@@ -8,6 +11,12 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
   const buttonRadius = height * 0.05;
   const buttonPaddingVertical = height * 0.03;
   const buttonMarginVertical = height * 0.01;
+
+  // Fonction pour lancer Auth0 (remplace navigation si tu utilises Auth0)
+  const handleAuth0Signup = (role: 'candidat' | 'recruteur') => {
+    // auth0.webAuth.authorize({ scope: 'openid profile email', prompt: 'login', /* ...autres params... */ });
+    // Tu peux passer le rôle en paramètre si besoin
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: '#fff' }]}>
@@ -41,7 +50,11 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
           justifyContent: 'center',
           alignSelf: 'center',
         }}
-        onPress={() => navigation.navigate('RegisterCandidate')}
+        // Si tu utilises Auth0, remplace navigation par handleAuth0Signup('candidat')
+        onPress={() => {
+          // navigation.navigate('RegisterCandidate');
+          handleAuth0Signup('candidat');
+        }}
       >
         <Text
           style={{
@@ -65,7 +78,11 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
           justifyContent: 'center',
           alignSelf: 'center',
         }}
-        onPress={() => navigation.navigate('RegisterRecruiter')}
+        // Si tu utilises Auth0, remplace navigation par handleAuth0Signup('recruteur')
+        onPress={() => {
+          // navigation.navigate('RegisterRecruiter');
+          handleAuth0Signup('recruteur');
+        }}
       >
         <Text
           style={{
