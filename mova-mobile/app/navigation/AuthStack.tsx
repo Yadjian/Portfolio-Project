@@ -7,6 +7,7 @@ import BackButton from '@/components/ui/BackButton';
 import RegisterCandidateScreen from '../screens/RegisterScreens/RegisterCandidateScreen';
 import RegisterRecruiterScreen from '../screens/RegisterScreens/RegisterRecruiterScreen';
 import ChooseRegisterTypeScreen from '../screens/RegisterScreens/ChooseRegisterTypeScreen';
+import HomeButton from '@/components/ui/HomeButton';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -28,7 +29,7 @@ export default function AuthStack() {
         component={LoginScreen}
         options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'Login'> }) => ({
           headerLeft: () => (
-            <BackButton onPress={() => navigation.navigate('Welcome')} />
+            <BackButton onPress={() => navigation.goBack()} />
           ),
           headerTitle: () => null,
         })}
@@ -36,6 +37,15 @@ export default function AuthStack() {
       <Stack.Screen
         name="ChooseRegisterType"
         component={ChooseRegisterTypeScreen}
+        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'ChooseRegisterType'> }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+          ),
+        })}
       />
       <Stack.Screen
         name="RegisterCandidate"

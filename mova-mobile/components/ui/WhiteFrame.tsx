@@ -9,6 +9,20 @@ interface CustomCardProps {
 export default function CustomCard({ children, style }: CustomCardProps) {
   return (
     <View style={[styles.card, style]}>
+    <View
+      style={[
+        styles.card,
+        {
+          borderRadius: 25,
+          paddingVertical: height * 0.08,
+          paddingHorizontal: width * 0.09,
+          minHeight: height * 0.5,
+          marginBottom: height * 0.05,
+          marginVertical: height * 0.02,
+        },
+        style,
+      ]}
+    >
       {children}
     </View>
   );
