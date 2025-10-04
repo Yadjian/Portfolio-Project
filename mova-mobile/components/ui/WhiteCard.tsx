@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ViewStyle } from 'react-native';
+import { View, StyleSheet, ViewStyle, useWindowDimensions } from 'react-native';
 
 interface WhiteCardProps {
   children: React.ReactNode;
@@ -7,8 +7,21 @@ interface WhiteCardProps {
 }
 
 export default function WhiteCard({ children, style }: WhiteCardProps) {
+  const { width, height } = useWindowDimensions();
+
   return (
-    <View style={[styles.card, style]}>
+    <View
+      style={[
+        styles.card,
+        {
+          borderRadius: width * 0.07,
+          width: width * 0.9,
+          height: height * 0.85,
+          paddingBottom: height * 0.04,
+        },
+        style,
+      ]}
+    >
       {children}
     </View>
   );
@@ -17,15 +30,11 @@ export default function WhiteCard({ children, style }: WhiteCardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
-    borderRadius: 25,
     alignSelf: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
-    paddingBottom: 32,
-    width: '90%',
-    height: '85%',
   },
 });
