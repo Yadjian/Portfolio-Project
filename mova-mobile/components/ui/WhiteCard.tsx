@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, StyleSheet, ViewStyle } from 'react-native';
 
-interface CustomCardProps {
+interface WhiteCardProps {
   children: React.ReactNode;
   style?: ViewStyle;
 }
 
-export default function CustomCard({ children, style }: CustomCardProps) {
+export default function WhiteCard({ children, style }: WhiteCardProps) {
   return (
     <View style={[styles.card, style]}>
       {children}
