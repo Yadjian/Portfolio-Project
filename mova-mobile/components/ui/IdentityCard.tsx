@@ -9,7 +9,6 @@ interface IdentityCardProps {
   location?: string;
   job?: string;
   experience?: string;
-  contractType?: string; // Ajouté pour CDD, CDI, Stage, Alternance
   presentation?: string;
   style?: ViewStyle;
 }
@@ -59,7 +58,6 @@ export default function IdentityCard({
   location,
   job = "Développeur React Native",
   experience = "Intermédiaire",
-  contractType = "CDI",
   presentation = "",
   style 
 }: IdentityCardProps) {
@@ -67,14 +65,14 @@ export default function IdentityCard({
   const lines = splitPresentation(presentation, width);
 
   // Tailles dynamiques basées sur la largeur d'écran
-  const photoWidth = width * 0.32; // ENCORE PLUS GRANDE : de 0.28 à 0.32
-  const photoHeight = photoWidth * 1.25; // Ratio légèrement plus grand aussi
+  const photoWidth = width * 0.26; // AUGMENTÉE : pour éviter la bordure grasse
+  const photoHeight = photoWidth * 1.2; // Ratio normal
   const nameFontSize = width * 0.055; // Agrandi de 0.048 à 0.055
   const jobFontSize = width * 0.045; // Agrandi de 0.038 à 0.045
   const experienceFontSize = width * 0.042; // Agrandi de 0.035 à 0.042
   const presentationFontSize = width * 0.044; // Agrandi de 0.037 à 0.044
   const cardPadding = width * 0.03;
-  const lineHeight = height * 0.045; // Espacement normal
+  const lineHeight = height * 0.035; // RÉDUIT : espacement plus serré entre les lignes
 
   const dynamicStyles = {
     container: {
@@ -141,12 +139,6 @@ export default function IdentityCard({
       fontWeight: '600' as const,
       marginBottom: 4,
     },
-    contractType: {
-      fontSize: experienceFontSize,
-      color: '#333',
-      fontWeight: '600' as const,
-      marginBottom: 4,
-    },
     detailsSection: {
       borderTopWidth: 1,
       borderTopColor: '#f0f0f0',
@@ -199,7 +191,6 @@ export default function IdentityCard({
           {location && <Text style={dynamicStyles.location}>{location}</Text>}
           <Text style={dynamicStyles.job}>{job}</Text>
           <Text style={dynamicStyles.experience}>Expérience: {experience}</Text>
-          <Text style={dynamicStyles.contractType}>Contrat: {contractType}</Text>
         </View>
       </View>
 

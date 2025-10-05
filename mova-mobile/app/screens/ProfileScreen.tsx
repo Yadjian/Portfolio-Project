@@ -22,7 +22,6 @@ export default function ProfileScreen() {
     avatarUrl: '',
     job: 'Développeur Front-end',
     experience: 'Débutant',
-    contractType: 'CDI',
     presentation: "Débutant en développement front-end, mais talentueux et prêt à vous surprendre !",
   };
 
@@ -128,7 +127,6 @@ export default function ProfileScreen() {
           location={user.location}
           job={user.job}
           experience={user.experience}
-          contractType={user.contractType}
           presentation={user.presentation}
         />
 
