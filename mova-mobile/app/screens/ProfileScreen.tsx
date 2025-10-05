@@ -1,29 +1,28 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, useWindowDimensions, SafeAreaView, ScrollView } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ActiveToggle from '../../components/ui/ActiveToggle';
 import IdentityCard from '../../components/ui/IdentityCard';
 import EditProfileButton from '../../components/ui/EditProfileButton';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../components/ui/SmallMovaLogo';
+import ColorBackground from '../../components/ui/ColorBackground';
 
 export default function ProfileScreen() {
-  const { width, height } = useWindowDimensions();
   const [isActive, setIsActive] = useState(true);
   const navigation = useNavigation();
+  const { width, height } = useWindowDimensions();
 
-  // Déterminer le type d'utilisateur (à récupérer depuis le contexte/store)
-  const userType = 'candidat'; // ou 'recruteur'
+  const userType = 'candidat';
 
   const user = {
-    name: 'Lucas Boyadjian',
-    email: 'luc.boyadjian@gmail.com',
+    firstName: 'Lucas',
+    lastName: 'Boyadjian',
     avatarUrl: '',
-    phone: '06 59 21 96 61',
-    location: 'Fréjus, France',
-    age: '25 ans',
-    company: 'Tech Solutions', // Seulement pour les recruteurs
-    sector: 'Informatique', // Seulement pour les recruteurs
+    job: 'Développeur Front-end',
+    experience: 'Débutant',
+    contractType: 'CDI',
+    presentation: "Débutant en développement front-end, mais talentueux et prêt à vous surprendre !",
   };
 
   const handleToggleActive = (value: boolean) => {
@@ -35,7 +34,6 @@ export default function ProfileScreen() {
     console.log('Modifier le profil');
   };
 
-  // Configuration des onglets selon le type d'utilisateur
   const getTabsForUserType = () => {
     const baseTabs = [
       {
@@ -73,7 +71,6 @@ export default function ProfileScreen() {
         }
       ];
     } else {
-      // recruteur
       return [
         ...baseTabs,
         {
@@ -102,22 +99,20 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <ColorBackground>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        {/* Logo Mova centré en haut */}
-        <View style={styles.logoContainer}>
+        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
           <SmallMovaLogo />
+          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035 }]}>ID CARD</Text>
         </View>
 
-        {/* Espace pour descendre tout le bloc plus bas */}
-        <View style={styles.mainSpacer} />
+        <View style={{ height: height * 0.035 }} />
 
-        <View style={styles.container}>
-          {/* Ligne avec toggle à gauche et bouton d'édition à droite */}
-          <View style={styles.actionRow}>
+        <View style={[styles.container, { paddingHorizontal: width * 0.06 }]}>
+          <View style={[styles.actionRow, { marginBottom: height * 0.01, paddingHorizontal: width * 0.01 }]}>
             <View style={styles.toggleWrapper}>
               <ActiveToggle 
-                isActive={isActive}
+                initialValue={isActive}
                 onToggle={handleToggleActive}
               />
             </View>
@@ -125,59 +120,46 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Carte d'identité SORTIE du conteneur avec padding */}
         <IdentityCard
           avatarUrl={user.avatarUrl}
-          name={user.name}
-          email={user.email}
-          phone={user.phone}
-          location={user.location}
-          age={user.age}
+          firstName={user.firstName}
+          lastName={user.lastName}
+          job={user.job}
+          experience={user.experience}
+          contractType={user.contractType}
+          presentation={user.presentation}
         />
 
         <View style={styles.container}>
-          {/* Espace pour éviter que le contenu soit caché par la navigation */}
-          <View style={styles.bottomSpacer} />
+          <View style={{ height: height * 0.08 }} />
         </View>
       </ScrollView>
-
-      {/* Barre de navigation adaptée au type d'utilisateur */}
       <BottomTabBar tabs={getTabsForUserType()} activeTabId="profile" />
-    </SafeAreaView>
+    </ColorBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: '#F8F9FA',
-  },
   scrollContainer: {
     flex: 1,
   },
   container: {
     flex: 1,
-    paddingHorizontal: 24,
   },
   logoContainer: {
     alignItems: 'center',
-    paddingTop: 20,
-    paddingBottom: 20,
   },
-  mainSpacer: {
-    height: 60, // Grand espace pour descendre tout le bloc
+  title: {
+    color: '#fff',
+    fontWeight: 'bold',
+    letterSpacing: 2,
   },
   actionRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-    paddingHorizontal: 4,
   },
   toggleWrapper: {
     flex: 1,
-  },
-  bottomSpacer: {
-    height: 70,
   },
 });

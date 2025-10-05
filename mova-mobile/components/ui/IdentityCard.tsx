@@ -1,157 +1,214 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ViewStyle } from 'react-native';
+import { View, Text, Image, StyleSheet, ViewStyle, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface IdentityCardProps {
   avatarUrl: string;
-  name: string;
-  email: string;
-  phone: string;
-  location: string;
-  age: string;
+  firstName: string;
+  lastName: string;
+  job?: string;
+  experience?: string;
+  contractType?: string; // Ajouté pour CDD, CDI, Stage, Alternance
+  presentation?: string;
   style?: ViewStyle;
+}
+
+// Découpe le texte pour utiliser TOUTE LA LARGEUR de l'ID card
+function splitPresentation(text: string, screenWidth: number): string[] {
+  if (!text) return ['', '', '']; // 3 lignes vides si pas de texte
+  
+  // Calcul OPTIMISÉ pour lignes bien remplies sur 3 lignes
+  const cardWidth = screenWidth * 0.9;
+  const cardPadding = screenWidth * 0.03;
+  const availableWidth = cardWidth - cardPadding;
+  
+  // Valeurs RÉDUITES pour éviter le débordement et le chevauchement
+  let maxCharsPerLine = 35; // Réduit pour éviter débordement
+  if (screenWidth > 350) maxCharsPerLine = 40; // Écran moyen réduit
+  if (screenWidth > 400) maxCharsPerLine = 45; // Grand écran réduit  
+  if (screenWidth > 450) maxCharsPerLine = 50; // Très grand écran réduit
+  
+  const words = text.split(' ');
+  const lines: string[] = ['', '', ''];
+  let currentLineIndex = 0;
+  
+  for (const word of words) {
+    if (currentLineIndex >= 3) break; // Max 3 lignes
+    
+    const testLine = lines[currentLineIndex] ? `${lines[currentLineIndex]} ${word}` : word;
+    
+    if (testLine.length <= maxCharsPerLine) {
+      lines[currentLineIndex] = testLine;
+    } else {
+      // Passer à la ligne suivante
+      currentLineIndex++;
+      if (currentLineIndex < 3) {
+        lines[currentLineIndex] = word;
+      }
+    }
+  }
+  
+  return lines; // Toujours 3 lignes
 }
 
 export default function IdentityCard({ 
   avatarUrl, 
-  name, 
-  email, 
-  phone, 
-  location, 
-  age,
+  firstName,
+  lastName,
+  job = "Développeur React Native",
+  experience = "Intermédiaire",
+  contractType = "CDI",
+  presentation = "",
   style 
 }: IdentityCardProps) {
+  const { width, height } = useWindowDimensions();
+  const lines = splitPresentation(presentation, width);
+
+  // Tailles dynamiques basées sur la largeur d'écran
+  const photoWidth = width * 0.28; // Agrandi de 0.22 à 0.28
+  const photoHeight = photoWidth * 1.2;
+  const nameFontSize = width * 0.055; // Agrandi de 0.048 à 0.055
+  const jobFontSize = width * 0.045; // Agrandi de 0.038 à 0.045
+  const experienceFontSize = width * 0.042; // Agrandi de 0.035 à 0.042
+  const presentationFontSize = width * 0.044; // Agrandi de 0.037 à 0.044
+  const cardPadding = width * 0.03;
+  const lineHeight = height * 0.045; // Espacement normal
+
+  const dynamicStyles = {
+    container: {
+      backgroundColor: '#fff',
+      borderRadius: 12,
+      padding: cardPadding,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.12,
+      shadowRadius: 10,
+      elevation: 6,
+      marginVertical: height * 0.012,
+      borderWidth: 1,
+      borderColor: '#f0f0f0',
+      width: '90%' as const,
+      alignSelf: 'center' as const,
+    },
+    topSection: {
+      flexDirection: 'row' as const,
+      marginBottom: height * 0.025,
+    },
+    photoGradientBorder: {
+      borderRadius: 10,
+      padding: 1,
+      marginRight: width * 0.04,
+    },
+    photoContainer: {
+      borderRadius: 8,
+      overflow: 'hidden' as const,
+    },
+    photo: {
+      width: photoWidth,
+      height: photoHeight,
+      borderRadius: 8,
+      backgroundColor: '#f8f9fa',
+    },
+    mainInfo: {
+      flex: 1,
+      justifyContent: 'flex-start' as const,
+      paddingTop: 4,
+    },
+    name: {
+      fontSize: nameFontSize,
+      fontWeight: '700' as const,
+      color: '#1a1a1a',
+      marginBottom: 4,
+      letterSpacing: -0.3,
+    },
+    job: {
+      fontSize: experienceFontSize,
+      color: '#333',
+      fontWeight: '600' as const,
+      marginBottom: 4,
+    },
+    experience: {
+      fontSize: experienceFontSize,
+      color: '#333',
+      fontWeight: '600' as const,
+      marginBottom: 4,
+    },
+    contractType: {
+      fontSize: experienceFontSize,
+      color: '#333',
+      fontWeight: '600' as const,
+      marginBottom: 4,
+    },
+    detailsSection: {
+      borderTopWidth: 1,
+      borderTopColor: '#f0f0f0',
+      paddingTop: height * 0.01,
+    },
+    lineContainer: {
+      marginBottom: height * 0.015, // Espacement normal
+      position: 'relative' as const,
+      minHeight: lineHeight,
+      justifyContent: 'center' as const,
+    },
+    presentationText: {
+      fontSize: presentationFontSize,
+      color: '#333',
+      textAlign: 'left' as const,
+      fontWeight: '500' as const,
+      paddingRight: 8,
+      paddingLeft: 2,
+      backgroundColor: 'transparent',
+      zIndex: 2,
+      lineHeight: presentationFontSize * 1.5, // Augmenté l'interligne du texte
+    },
+    separator: {
+      position: 'absolute' as const,
+      left: 0,
+      right: 0,
+      bottom: 4,
+      height: 1,
+      backgroundColor: '#d1d5db',
+      zIndex: 1,
+      borderRadius: 1,
+    },
+  };
+
   return (
-    <View style={[styles.container, style]}>
-      {/* Section haute : Photo à gauche, infos principales à droite */}
-      <View style={styles.topSection}>
-        {/* Photo de profil rectangulaire avec bordure dégradée */}
+    <View style={[dynamicStyles.container, style]}>
+      <View style={dynamicStyles.topSection}>
         <LinearGradient
           colors={['#6746a8', '#6b25f9', '#07b9ff']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={styles.photoGradientBorder}
+          style={dynamicStyles.photoGradientBorder}
         >
-          <View style={styles.photoContainer}>
-            <Image source={{ uri: avatarUrl }} style={styles.photo} />
+          <View style={dynamicStyles.photoContainer}>
+            <Image source={{ uri: avatarUrl }} style={dynamicStyles.photo} />
           </View>
         </LinearGradient>
-
-        {/* Informations principales à droite de la photo */}
-        <View style={styles.mainInfo}>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.email}>{email}</Text>
-          <Text style={styles.role}>Candidat</Text>
+        <View style={dynamicStyles.mainInfo}>
+          <Text style={dynamicStyles.name}>{firstName} {lastName}</Text>
+          <Text style={dynamicStyles.job}>{job}</Text>
+          <Text style={dynamicStyles.experience}>Expérience: {experience}</Text>
+          <Text style={dynamicStyles.contractType}>Contrat: {contractType}</Text>
         </View>
       </View>
 
-      {/* Section basse : Détails complets sous la photo */}
-      <View style={styles.detailsSection}>
-        <View style={styles.detailsRow}>
-          <Text style={styles.detailLabel}>Téléphone:</Text>
-          <Text style={styles.detailValue}>{phone}</Text>
+      {/* Section basse : EXACTEMENT 3 lignes avec séparateurs */}
+      <View style={dynamicStyles.detailsSection}>
+        <View style={dynamicStyles.lineContainer}>
+          <Text style={dynamicStyles.presentationText}>{lines[0] || ' '}</Text>
+          <View style={dynamicStyles.separator} />
         </View>
-        
-        <View style={styles.detailsRow}>
-          <Text style={styles.detailLabel}>Localisation:</Text>
-          <Text style={styles.detailValue}>{location}</Text>
+        <View style={dynamicStyles.lineContainer}>
+          <Text style={dynamicStyles.presentationText}>{lines[1] || ' '}</Text>
+          <View style={dynamicStyles.separator} />
         </View>
-        
-        <View style={styles.detailsRow}>
-          <Text style={styles.detailLabel}>Âge:</Text>
-          <Text style={styles.detailValue}>{age}</Text>
+        <View style={dynamicStyles.lineContainer}>
+          <Text style={dynamicStyles.presentationText}>{lines[2] || ' '}</Text>
+          <View style={dynamicStyles.separator} />
         </View>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 6,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: '#f0f0f0',
-    width: '90%',
-    alignSelf: 'center',
-  },
-  topSection: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  photoGradientBorder: {
-    borderRadius: 10,
-    padding: 2, // épaisseur de la bordure dégradée autour de la photo
-    marginRight: 16,
-  },
-  photoContainer: {
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  photo: {
-    width: 90,
-    height: 110,
-    borderRadius: 8,
-    backgroundColor: '#f8f9fa',
-  },
-  mainInfo: {
-    flex: 1,
-    justifyContent: 'flex-start',
-    paddingTop: 4,
-  },
-  name: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 6,
-    letterSpacing: -0.3,
-  },
-  email: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-  },
-  role: {
-    fontSize: 14,
-    color: '#6746a8',
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  detailsSection: {
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-    paddingTop: 16,
-  },
-  detailsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 0.5,
-    borderBottomColor: '#f5f5f5',
-  },
-  detailLabel: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#6746a8',
-    flex: 1,
-  },
-  detailValue: {
-    fontSize: 15,
-    color: '#333',
-    flex: 1.5,
-    textAlign: 'right',
-    fontWeight: '500',
-  },
-});

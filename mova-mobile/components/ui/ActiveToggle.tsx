@@ -1,103 +1,81 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Animated } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { TouchableOpacity, Text, Animated, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ActiveToggleProps {
-  isActive: boolean;
+  initialValue?: boolean;
   onToggle: (value: boolean) => void;
 }
 
-export default function ActiveToggle({ isActive, onToggle }: ActiveToggleProps) {
-  const toggleAnimation = new Animated.Value(isActive ? 1 : 0);
+export default function ActiveToggle({ 
+  initialValue = false, 
+  onToggle 
+}: ActiveToggleProps) {
+  const { width, height } = useWindowDimensions();
+  const [isActive, setIsActive] = useState(initialValue);
+  const animatedValue = useState(new Animated.Value(initialValue ? 1 : 0))[0];
+
+  // Tailles dynamiques basées sur la largeur de l'écran
+  const switchWidth = width * 0.1; // 10% de la largeur d'écran
+  const switchHeight = switchWidth * 0.55; // Ratio hauteur/largeur
+  const circleSize = switchHeight * 0.8;
+  const labelWidth = width * 0.14; // 14% pour le label
+  const fontSize = width * 0.035; // Taille de police dynamique
+
+  useEffect(() => {
+    setIsActive(initialValue);
+    animatedValue.setValue(initialValue ? 1 : 0);
+  }, [initialValue]);
 
   const handleToggle = () => {
     const newValue = !isActive;
+    setIsActive(newValue);
     onToggle(newValue);
-    
-    Animated.timing(toggleAnimation, {
+
+    Animated.timing(animatedValue, {
       toValue: newValue ? 1 : 0,
       duration: 200,
       useNativeDriver: false,
     }).start();
   };
 
-  const switchTranslate = toggleAnimation.interpolate({
+  const switchTranslate = animatedValue.interpolate({
     inputRange: [0, 1],
-    outputRange: [2, 16],
+    outputRange: [2, switchWidth - circleSize - 2],
   });
 
-  return (
-    <View style={styles.container}>
-      <View style={styles.labelContainer}>
-        <Text style={styles.label}>
-          {isActive ? 'Actif' : 'Inactif'}
-        </Text>
-      </View>
-      <TouchableOpacity 
-        style={styles.switchContainer} 
-        onPress={handleToggle}
-        activeOpacity={0.8}
-      >
-        <View style={[styles.switchBackground, !isActive && styles.inactiveBackground]}>
-          {isActive && (
-            <LinearGradient
-              colors={['#6746a8', '#6b25f9', '#07b9ff']}
-              style={styles.gradientBackground}
-            />
-          )}
-          <Animated.View 
-            style={[
-              styles.switchCircle,
-              { transform: [{ translateX: switchTranslate }] }
-            ]}
-          />
-        </View>
-      </TouchableOpacity>
-    </View>
-  );
-}
+  const containerStyle = {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingVertical: height * 0.008, // Padding dynamique
+  };
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 6,
-  },
-  labelContainer: {
-    width: 55,
-    marginRight: 6,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#333',
-  },
-  switchContainer: {
-    padding: 1,
-  },
-  switchBackground: {
-    width: 38,
-    height: 22,
-    borderRadius: 11,
-    justifyContent: 'center',
-    position: 'relative',
-    overflow: 'hidden',
-  },
-  inactiveBackground: {
-    backgroundColor: '#e0e0e0',
-  },
-  gradientBackground: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    borderRadius: 11,
-  },
-  switchCircle: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+  const labelContainerStyle = {
+    width: labelWidth,
+    marginRight: width * 0.015,
+  };
+
+  const labelStyle = {
+    fontSize: fontSize,
+    fontWeight: '600' as const,
+    color: '#fff',
+  };
+
+  const switchBackgroundStyle = {
+    width: switchWidth,
+    height: switchHeight,
+    borderRadius: switchHeight / 2,
+    justifyContent: 'center' as const,
+    position: 'relative' as const,
+    overflow: 'hidden' as const,
+    borderWidth: 1,
+    borderColor: '#fff',
+  };
+
+  const switchCircleStyle = {
+    width: circleSize,
+    height: circleSize,
+    borderRadius: circleSize / 2,
     backgroundColor: '#fff',
     shadowColor: '#000',
     shadowOffset: {
@@ -107,7 +85,48 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1,
     elevation: 2,
-    position: 'absolute',
+    position: 'absolute' as const,
     zIndex: 1,
-  },
-});
+  };
+
+  return (
+    <View style={containerStyle}>
+      <View style={labelContainerStyle}>
+        <Text style={labelStyle}>
+          {isActive ? 'Actif' : 'Inactif'}
+        </Text>
+      </View>
+      <TouchableOpacity
+        style={{ padding: 1 }}
+        onPress={handleToggle}
+        activeOpacity={0.8}
+      >
+        {isActive ? (
+          <LinearGradient
+            colors={['#6746a8', '#6b25f9', '#07b9ff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={switchBackgroundStyle}
+          >
+            <Animated.View
+              style={[
+                switchCircleStyle,
+                { transform: [{ translateX: switchTranslate }] }
+              ]}
+            />
+          </LinearGradient>
+        ) : (
+          <View style={[switchBackgroundStyle, { backgroundColor: '#7e7e7e' }]}>
+            <Animated.View
+              style={[
+                switchCircleStyle,
+                { transform: [{ translateX: switchTranslate }] }
+              ]}
+            />
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+}
+
