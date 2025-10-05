@@ -6,7 +6,8 @@ import { AuthStackParamList } from '../types';
 import BackButton from '@/components/ui/BackButton';
 import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
 import HomeButton from '@/components/ui/HomeButton';
-import ProfileScreen from '../screens/CandidateProfileScreen';
+import CandidateProfileScreen from '../screens/CandidateProfileScreen';
+import RecruiterProfileScreen from '../screens/RecruiterProfileScreen';
 import NotificationButton from '@/components/ui/NotificationButton';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
@@ -63,9 +64,25 @@ export default function AuthStack() {
         })}
       />
       <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'Profile'> }) => ({
+        name="CandidateProfile"
+        component={CandidateProfileScreen}
+        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'CandidateProfile'> }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
+          headerRight: () => (
+            <NotificationButton 
+              notificationCount={notificationCount} 
+              onPress={handleNotificationPress} 
+            />
+          ),
+        })}
+      />
+      <Stack.Screen
+        name="RecruiterProfile"
+        component={RecruiterProfileScreen}
+        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'RecruiterProfile'> }) => ({
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),

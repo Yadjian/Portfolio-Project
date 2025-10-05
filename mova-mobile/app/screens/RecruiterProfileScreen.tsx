@@ -2,27 +2,29 @@ import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ActiveToggle from '../../components/ui/ActiveToggle';
-import IdentityCard from '../../components/ui/CandidateCard';
+import RecruiterCard from '../../components/ui/RecruiterCard';
 import EditProfileButton from '../../components/ui/EditProfileButton';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../components/ui/SmallMovaLogo';
 import ColorBackground from '../../components/ui/ColorBackground';
 
-export default function ProfileScreen() {
+export default function RecruiterProfileScreen() {
   const [isActive, setIsActive] = useState(true);
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
 
-  const userType = 'candidat';
+  const userType = 'recruteur';
 
-  const user = {
-    firstName: 'Lucas',
-    lastName: 'Boyadjian',
-    location: 'Paris, France',
+  const recruiter = {
+    firstName: 'Marie',
+    lastName: 'Dubois',
+    companyName: 'TechCorp Solutions',
+    location: 'Lyon, France',
     avatarUrl: '',
-    job: 'Développeur Front-end',
-    experience: 'Débutant',
-    presentation: "Débutant en développement front-end, mais talentueux et prêt à vous surprendre !",
+    jobSeeking: 'Développeur React Native',
+    experienceRequired: 'Intermédiaire',
+    contractType: 'CDI',
+    presentation: "Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et innovative !",
   };
 
   const handleToggleActive = (value: boolean) => {
@@ -31,7 +33,7 @@ export default function ProfileScreen() {
   };
 
   const handleEditProfile = () => {
-    console.log('Modifier le profil');
+    console.log('Modifier le profil recruteur');
   };
 
   const getTabsForUserType = () => {
@@ -45,57 +47,30 @@ export default function ProfileScreen() {
       },
     ];
 
-    if (userType === 'candidat') {
-      return [
-        ...baseTabs,
-        {
-          id: 'cv',
-          iconName: 'document-text-outline',
-          iconNameActive: 'document-text',
-          label: 'Mon CV',
-          onPress: () => console.log('Navigation vers Mon CV'),
-        },
-        {
-          id: 'matches',
-          iconName: 'heart-outline',
-          iconNameActive: 'heart',
-          label: 'Matchs',
-          onPress: () => console.log('Navigation vers Mes matchs'),
-        },
-        {
-          id: 'home',
-          iconName: 'home-outline',
-          iconNameActive: 'home',
-          label: 'Home',
-          onPress: () => navigation.goBack(),
-        }
-      ];
-    } else {
-      return [
-        ...baseTabs,
-        {
-          id: 'offre',
-          iconName: 'document-text-outline',
-          iconNameActive: 'document-text',
-          label: 'Mon Offre',
-          onPress: () => console.log('Navigation vers Mon Offre Détaillée'),
-        },
-        {
-          id: 'matches',
-          iconName: 'people-outline',
-          iconNameActive: 'people',
-          label: 'Candidats',
-          onPress: () => console.log('Navigation vers Candidats matchés'),
-        },
-        {
-          id: 'home',
-          iconName: 'home-outline',
-          iconNameActive: 'home',
-          label: 'Home',
-          onPress: () => navigation.goBack(),
-        }
-      ];
-    }
+    return [
+      ...baseTabs,
+      {
+        id: 'offre',
+        iconName: 'document-text-outline',
+        iconNameActive: 'document-text',
+        label: 'Mon Offre',
+        onPress: () => console.log('Navigation vers Mon Offre Détaillée'),
+      },
+      {
+        id: 'matches',
+        iconName: 'people-outline',
+        iconNameActive: 'people',
+        label: 'Candidats',
+        onPress: () => console.log('Navigation vers Candidats matchés'),
+      },
+      {
+        id: 'home',
+        iconName: 'home-outline',
+        iconNameActive: 'home',
+        label: 'Home',
+        onPress: () => navigation.goBack(),
+      }
+    ];
   };
 
   return (
@@ -103,7 +78,7 @@ export default function ProfileScreen() {
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
           <SmallMovaLogo />
-          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035 }]}>ID CARD</Text>
+          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035 }]}>MON OFFRE</Text>
         </View>
 
         <View style={{ height: height * 0.055 }} />
@@ -120,14 +95,16 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        <IdentityCard
-          avatarUrl={user.avatarUrl}
-          firstName={user.firstName}
-          lastName={user.lastName}
-          location={user.location}
-          job={user.job}
-          experience={user.experience}
-          presentation={user.presentation}
+        <RecruiterCard
+          avatarUrl={recruiter.avatarUrl}
+          firstName={recruiter.firstName}
+          lastName={recruiter.lastName}
+          companyName={recruiter.companyName}
+          location={recruiter.location}
+          jobSeeking={recruiter.jobSeeking}
+          experienceRequired={recruiter.experienceRequired}
+          contractType={recruiter.contractType}
+          presentation={recruiter.presentation}
         />
 
         <View style={styles.container}>

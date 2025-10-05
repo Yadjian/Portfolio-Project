@@ -18,13 +18,13 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
           <Text style={styles.title}>Je suis...</Text>
           <Pressable
             style={[styles.button, { backgroundColor: '#07b9ff' }]}
-            onPress={() => handleAuth0Signup('candidat')}
+            onPress={() => navigation.navigate('CandidateProfile')}
           >
             <Text style={styles.buttonText}>Candidat</Text>
           </Pressable>
           <Pressable
             style={[styles.button, { backgroundColor: '#6b25f9' }]}
-            onPress={() => handleAuth0Signup('recruteur')}
+            onPress={() => navigation.navigate('RecruiterProfile')}
           >
             <Text style={styles.buttonText}>Recruteur</Text>
           </Pressable>
