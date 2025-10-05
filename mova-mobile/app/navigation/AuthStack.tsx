@@ -6,7 +6,7 @@ import { AuthStackParamList } from '../types';
 import BackButton from '@/components/ui/BackButton';
 import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
 import HomeButton from '@/components/ui/HomeButton';
-import ProfileScreen from '../screens/ProfileScreen';
+import ProfileScreen from '../screens/CandidateProfileScreen';
 import NotificationButton from '@/components/ui/NotificationButton';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
