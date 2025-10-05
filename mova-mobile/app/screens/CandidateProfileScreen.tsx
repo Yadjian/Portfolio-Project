@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ActiveToggle from '../../components/ui/ActiveToggle';
-import IdentityCard from '../../components/ui/IdentityCard';
+import IdentityCard from '../../components/ui/CandidateIdCard';
 import EditProfileButton from '../../components/ui/EditProfileButton';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../components/ui/SmallMovaLogo';
