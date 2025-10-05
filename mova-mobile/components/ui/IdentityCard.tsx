@@ -70,7 +70,7 @@ export default function IdentityCard({
   const nameFontSize = width * 0.055; // Agrandi de 0.048 à 0.055
   const jobFontSize = width * 0.045; // Agrandi de 0.038 à 0.045
   const experienceFontSize = width * 0.042; // Agrandi de 0.035 à 0.042
-  const presentationFontSize = width * 0.044; // Agrandi de 0.037 à 0.044
+  const presentationFontSize = width * 0.042; // IDENTIQUE aux infos : même taille que experienceFontSize
   const cardPadding = width * 0.03;
   const lineHeight = height * 0.035; // RÉDUIT : espacement plus serré entre les lignes
 
@@ -142,10 +142,10 @@ export default function IdentityCard({
     detailsSection: {
       borderTopWidth: 1,
       borderTopColor: '#f0f0f0',
-      paddingTop: height * 0.005, // ULTRA RÉDUIT : Presque pas d'espace
+      paddingTop: height * 0.015, // AUGMENTÉ : plus d'espace entre photo et présentation
     },
     lineContainer: {
-      marginBottom: height * 0.015, // Espacement normal
+      marginBottom: height * 0.008, // RÉDUIT : espacement plus serré entre les lignes
       position: 'relative' as const,
       minHeight: lineHeight,
       justifyContent: 'center' as const,

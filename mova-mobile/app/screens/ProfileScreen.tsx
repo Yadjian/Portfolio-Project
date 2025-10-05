@@ -106,7 +106,7 @@ export default function ProfileScreen() {
           <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035 }]}>ID CARD</Text>
         </View>
 
-        <View style={{ height: height * 0.035 }} />
+        <View style={{ height: height * 0.055 }} />
 
         <View style={[styles.container, { paddingHorizontal: width * 0.06 }]}>
           <View style={[styles.actionRow, { marginBottom: height * 0.01, paddingHorizontal: width * 0.01 }]}>
