@@ -6,6 +6,7 @@ import { AuthStackParamList } from '../types';
 import BackButton from '@/components/ui/BackButton';
 import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
 import HomeButton from '@/components/ui/HomeButton';
+import ProfileScreen from '../screens/ProfileScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -44,6 +45,11 @@ export default function AuthStack() {
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
         })}
+      />
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
