@@ -6,6 +6,7 @@ interface IdentityCardProps {
   avatarUrl: string;
   firstName: string;
   lastName: string;
+  location?: string;
   job?: string;
   experience?: string;
   contractType?: string; // Ajouté pour CDD, CDI, Stage, Alternance
@@ -55,6 +56,7 @@ export default function IdentityCard({
   avatarUrl, 
   firstName,
   lastName,
+  location,
   job = "Développeur React Native",
   experience = "Intermédiaire",
   contractType = "CDI",
@@ -65,8 +67,8 @@ export default function IdentityCard({
   const lines = splitPresentation(presentation, width);
 
   // Tailles dynamiques basées sur la largeur d'écran
-  const photoWidth = width * 0.28; // Agrandi de 0.22 à 0.28
-  const photoHeight = photoWidth * 1.2;
+  const photoWidth = width * 0.32; // ENCORE PLUS GRANDE : de 0.28 à 0.32
+  const photoHeight = photoWidth * 1.25; // Ratio légèrement plus grand aussi
   const nameFontSize = width * 0.055; // Agrandi de 0.048 à 0.055
   const jobFontSize = width * 0.045; // Agrandi de 0.038 à 0.045
   const experienceFontSize = width * 0.042; // Agrandi de 0.035 à 0.042
@@ -92,7 +94,7 @@ export default function IdentityCard({
     },
     topSection: {
       flexDirection: 'row' as const,
-      marginBottom: height * 0.025,
+      marginBottom: 0, // SUPPRIMÉ : Aucun espace sous la photo
     },
     photoGradientBorder: {
       borderRadius: 10,
@@ -121,6 +123,12 @@ export default function IdentityCard({
       marginBottom: 4,
       letterSpacing: -0.3,
     },
+    location: {
+      fontSize: experienceFontSize,
+      color: '#333',
+      fontWeight: '600' as const,
+      marginBottom: 4,
+    },
     job: {
       fontSize: experienceFontSize,
       color: '#333',
@@ -142,7 +150,7 @@ export default function IdentityCard({
     detailsSection: {
       borderTopWidth: 1,
       borderTopColor: '#f0f0f0',
-      paddingTop: height * 0.01,
+      paddingTop: height * 0.005, // ULTRA RÉDUIT : Presque pas d'espace
     },
     lineContainer: {
       marginBottom: height * 0.015, // Espacement normal
@@ -188,6 +196,7 @@ export default function IdentityCard({
         </LinearGradient>
         <View style={dynamicStyles.mainInfo}>
           <Text style={dynamicStyles.name}>{firstName} {lastName}</Text>
+          {location && <Text style={dynamicStyles.location}>{location}</Text>}
           <Text style={dynamicStyles.job}>{job}</Text>
           <Text style={dynamicStyles.experience}>Expérience: {experience}</Text>
           <Text style={dynamicStyles.contractType}>Contrat: {contractType}</Text>

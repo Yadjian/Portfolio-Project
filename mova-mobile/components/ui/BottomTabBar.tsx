@@ -20,10 +20,10 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
   const { width, height } = useWindowDimensions();
   
   // Tailles dynamiques basées sur les dimensions de l'écran
-  const iconSize = Math.max(16, width * 0.045); // Au moins 16px, adaptatif
+  const iconSize = Math.max(20, width * 0.065); // AGRANDI : Au moins 20px, plus adaptatif
   const fontSize = Math.max(8, width * 0.022); // Au moins 8px pour la police
   const containerHeight = Math.max(65, height * 0.09); // Au moins 65px pour la hauteur
-  const iconContainerSize = Math.max(22, width * 0.055);
+  const iconContainerSize = Math.max(28, width * 0.070); // AGRANDI aussi le conteneur
   const paddingHorizontal = width * 0.05;
   const paddingVertical = height * 0.01;
 

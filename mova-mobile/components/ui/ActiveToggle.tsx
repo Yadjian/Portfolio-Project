@@ -15,12 +15,12 @@ export default function ActiveToggle({
   const [isActive, setIsActive] = useState(initialValue);
   const animatedValue = useState(new Animated.Value(initialValue ? 1 : 0))[0];
 
-  // Tailles dynamiques basées sur la largeur de l'écran
-  const switchWidth = width * 0.1; // 10% de la largeur d'écran
+  // Tailles dynamiques basées sur la largeur de l'écran - AGRANDIES
+  const switchWidth = width * 0.12; // AGRANDI : 12% de la largeur d'écran
   const switchHeight = switchWidth * 0.55; // Ratio hauteur/largeur
   const circleSize = switchHeight * 0.8;
-  const labelWidth = width * 0.14; // 14% pour le label
-  const fontSize = width * 0.035; // Taille de police dynamique
+  const labelWidth = width * 0.16; // AGRANDI : 16% pour le label
+  const fontSize = width * 0.038; // AGRANDI : Taille de police plus grande
 
   useEffect(() => {
     setIsActive(initialValue);
@@ -101,30 +101,14 @@ export default function ActiveToggle({
         onPress={handleToggle}
         activeOpacity={0.8}
       >
-        {isActive ? (
-          <LinearGradient
-            colors={['#6746a8', '#6b25f9', '#07b9ff']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={switchBackgroundStyle}
-          >
-            <Animated.View
-              style={[
-                switchCircleStyle,
-                { transform: [{ translateX: switchTranslate }] }
-              ]}
-            />
-          </LinearGradient>
-        ) : (
-          <View style={[switchBackgroundStyle, { backgroundColor: '#7e7e7e' }]}>
-            <Animated.View
-              style={[
-                switchCircleStyle,
-                { transform: [{ translateX: switchTranslate }] }
-              ]}
-            />
-          </View>
-        )}
+        <View style={[switchBackgroundStyle, { backgroundColor: isActive ? '#007AFF' : '#7e7e7e' }]}>
+          <Animated.View
+            style={[
+              switchCircleStyle,
+              { transform: [{ translateX: switchTranslate }] }
+            ]}
+          />
+        </View>
       </TouchableOpacity>
     </View>
   );

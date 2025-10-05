@@ -18,6 +18,7 @@ export default function ProfileScreen() {
   const user = {
     firstName: 'Lucas',
     lastName: 'Boyadjian',
+    location: 'Paris, France',
     avatarUrl: '',
     job: 'Développeur Front-end',
     experience: 'Débutant',
@@ -124,6 +125,7 @@ export default function ProfileScreen() {
           avatarUrl={user.avatarUrl}
           firstName={user.firstName}
           lastName={user.lastName}
+          location={user.location}
           job={user.job}
           experience={user.experience}
           contractType={user.contractType}
