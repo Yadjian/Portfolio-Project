@@ -1,116 +1,183 @@
-import React from 'react';
-import { View, Text, StyleSheet, useWindowDimensions, Image, Pressable } from 'react-native';
-import GradientBackground from '@/components/ui/ColorBackground';
-import WhiteCard from '@/components/ui/WhiteCard';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, useWindowDimensions, SafeAreaView, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import ActiveToggle from '../../components/ui/ActiveToggle';
+import IdentityCard from '../../components/ui/IdentityCard';
+import EditProfileButton from '../../components/ui/EditProfileButton';
+import BottomTabBar from '../../components/ui/BottomTabBar';
+import SmallMovaLogo from '../../components/ui/SmallMovaLogo';
 
 export default function ProfileScreen() {
   const { width, height } = useWindowDimensions();
+  const [isActive, setIsActive] = useState(true);
+  const navigation = useNavigation();
 
-  // --- Données utilisateur dynamiques (à remplacer par les vraies données d'Auth0) ---
+  // Déterminer le type d'utilisateur (à récupérer depuis le contexte/store)
+  const userType = 'candidat'; // ou 'recruteur'
+
   const user = {
-    name: 'Lucas Dupont',
-    email: 'lucas.d@email.com',
-    role: 'candidat', // Change 'candidat' en 'recruteur' pour voir la différence
-    avatarUrl: 'https://placehold.co/100x100/6746a8/FFF?text=LD', // URL de l'avatar
-  };
-  // ------------------------------------------------------------------------------------
-
-  const handleCVAccess = () => {
-    console.log("Accès au CV sur R2 Storage...");
-    // Logique pour télécharger/afficher le CV
+    name: 'Lucas Boyadjian',
+    email: 'luc.boyadjian@gmail.com',
+    avatarUrl: '',
+    phone: '06 59 21 96 61',
+    location: 'Fréjus, France',
+    age: '25 ans',
+    company: 'Tech Solutions', // Seulement pour les recruteurs
+    sector: 'Informatique', // Seulement pour les recruteurs
   };
 
-  const handleOffersAccess = () => {
-    console.log("Accès aux offres sur R2 Storage...");
-    // Logique pour afficher les offres
+  const handleToggleActive = (value: boolean) => {
+    setIsActive(value);
+    console.log(`Statut changé: ${value ? 'Activé' : 'Désactivé'}`);
   };
 
-  // Styles dynamiques
-  const cardWidth = width * 0.9;
-  const avatarSize = width * 0.25;
-  const titleFontSize = width * 0.06;
-  const detailFontSize = width * 0.04;
-  const buttonWidth = cardWidth * 0.8;
-  const buttonPaddingVertical = height * 0.02;
+  const handleEditProfile = () => {
+    console.log('Modifier le profil');
+  };
+
+  // Configuration des onglets selon le type d'utilisateur
+  const getTabsForUserType = () => {
+    const baseTabs = [
+      {
+        id: 'profile',
+        iconName: 'card-outline',
+        iconNameActive: 'card',
+        label: 'Mon Profil',
+        onPress: () => console.log('Déjà sur Mon Profil'),
+      },
+    ];
+
+    if (userType === 'candidat') {
+      return [
+        ...baseTabs,
+        {
+          id: 'cv',
+          iconName: 'document-text-outline',
+          iconNameActive: 'document-text',
+          label: 'Mon CV',
+          onPress: () => console.log('Navigation vers Mon CV'),
+        },
+        {
+          id: 'matches',
+          iconName: 'heart-outline',
+          iconNameActive: 'heart',
+          label: 'Matchs',
+          onPress: () => console.log('Navigation vers Mes matchs'),
+        },
+        {
+          id: 'home',
+          iconName: 'home-outline',
+          iconNameActive: 'home',
+          label: 'Home',
+          onPress: () => navigation.goBack(),
+        }
+      ];
+    } else {
+      // recruteur
+      return [
+        ...baseTabs,
+        {
+          id: 'offre',
+          iconName: 'document-text-outline',
+          iconNameActive: 'document-text',
+          label: 'Mon Offre',
+          onPress: () => console.log('Navigation vers Mon Offre Détaillée'),
+        },
+        {
+          id: 'matches',
+          iconName: 'people-outline',
+          iconNameActive: 'people',
+          label: 'Candidats',
+          onPress: () => console.log('Navigation vers Candidats matchés'),
+        },
+        {
+          id: 'home',
+          iconName: 'home-outline',
+          iconNameActive: 'home',
+          label: 'Home',
+          onPress: () => navigation.goBack(),
+        }
+      ];
+    }
+  };
 
   return (
-    <GradientBackground>
-      <View style={styles.container}>
-        <Text style={[styles.headerTitle, { fontSize: width * 0.08 }]}>Mon Profil</Text>
+    <SafeAreaView style={styles.wrapper}>
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {/* Logo Mova centré en haut */}
+        <View style={styles.logoContainer}>
+          <SmallMovaLogo />
+        </View>
 
-        {/* Carte d'identité */}
-        <WhiteCard style={{ width: cardWidth, height: 'auto', paddingVertical: height * 0.04 }}>
-          <View style={styles.cardContent}>
-            <Image
-              source={{ uri: user.avatarUrl }}
-              style={{
-                width: avatarSize,
-                height: avatarSize,
-                borderRadius: avatarSize / 2,
-                marginBottom: height * 0.02,
-              }}
-            />
-            <Text style={[styles.userName, { fontSize: titleFontSize }]}>{user.name}</Text>
-            <Text style={[styles.userEmail, { fontSize: detailFontSize }]}>{user.email}</Text>
+        {/* Espace pour descendre tout le bloc plus bas */}
+        <View style={styles.mainSpacer} />
 
-            {/* Bouton d'action dynamique basé sur le rôle */}
-            {user.role === 'candidat' ? (
-              <Pressable
-                style={[styles.actionButton, { width: buttonWidth, paddingVertical: buttonPaddingVertical, backgroundColor: '#07b9ff' }]}
-                onPress={handleCVAccess}
-              >
-                <Text style={styles.buttonText}>Voir mon CV</Text>
-              </Pressable>
-            ) : (
-              <Pressable
-                style={[styles.actionButton, { width: buttonWidth, paddingVertical: buttonPaddingVertical, backgroundColor: '#6b25f9' }]}
-                onPress={handleOffersAccess}
-              >
-                <Text style={styles.buttonText}>Gérer mes offres</Text>
-              </Pressable>
-            )}
+        <View style={styles.container}>
+          {/* Ligne avec toggle à gauche et bouton d'édition à droite */}
+          <View style={styles.actionRow}>
+            <View style={styles.toggleWrapper}>
+              <ActiveToggle 
+                isActive={isActive}
+                onToggle={handleToggleActive}
+              />
+            </View>
+            <EditProfileButton onPress={handleEditProfile} />
           </View>
-        </WhiteCard>
-      </View>
-    </GradientBackground>
+        </View>
+
+        {/* Carte d'identité SORTIE du conteneur avec padding */}
+        <IdentityCard
+          avatarUrl={user.avatarUrl}
+          name={user.name}
+          email={user.email}
+          phone={user.phone}
+          location={user.location}
+          age={user.age}
+        />
+
+        <View style={styles.container}>
+          {/* Espace pour éviter que le contenu soit caché par la navigation */}
+          <View style={styles.bottomSpacer} />
+        </View>
+      </ScrollView>
+
+      {/* Barre de navigation adaptée au type d'utilisateur */}
+      <BottomTabBar tabs={getTabsForUserType()} activeTabId="profile" />
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  scrollContainer: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  logoContainer: {
     alignItems: 'center',
+    paddingTop: 20,
+    paddingBottom: 20,
   },
-  headerTitle: {
-    fontWeight: 'bold',
-    color: '#fff',
-    position: 'absolute',
-    top: '10%',
-    alignSelf: 'center',
+  mainSpacer: {
+    height: 60, // Grand espace pour descendre tout le bloc
   },
-  cardContent: {
+  actionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    width: '100%',
-  },
-  userName: {
-    fontWeight: 'bold',
-    color: '#333',
     marginBottom: 8,
+    paddingHorizontal: 4,
   },
-  userEmail: {
-    color: '#666',
-    marginBottom: '10%',
+  toggleWrapper: {
+    flex: 1,
   },
-  actionButton: {
-    borderRadius: 25,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 3,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+  bottomSpacer: {
+    height: 70,
   },
 });
