@@ -24,7 +24,7 @@ export default function WelcomeScreen({ navigation }: any) {
         >
           <Pressable
             style={styles.pressable}
-            onPress={() => navigation.navigate('Login')}
+            onPress={() => navigation.navigate('ChooseRegisterType')}
           >
             <Text style={styles.buttonText}>Connexion</Text>
           </Pressable>

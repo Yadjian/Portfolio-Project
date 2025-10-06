@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
@@ -6,15 +6,36 @@ import { AuthStackParamList } from '../types';
 import BackButton from '@/components/ui/BackButton';
 import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
 import HomeButton from '@/components/ui/HomeButton';
+import CandidateProfileScreen from '../screens/ProfileScreens/CandidateProfileScreen';
+import RecruiterProfileScreen from '../screens/ProfileScreens/RecruiterProfileScreen';
+import NotificationButton from '@/components/ui/NotificationButton';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export default function AuthStack() {
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    // Simule la récupération du nombre de notifications depuis une API
+    const fetchNotificationCount = () => {
+      const fetchedCount = 7; // Simulation de 7 notifications
+      setNotificationCount(fetchedCount);
+    };
+    fetchNotificationCount();
+  }, []);
+
+  const handleNotificationPress = () => {
+    // Pour l'instant, on remet juste le compteur à zéro
+    setNotificationCount(0);
+    console.log('Notifications consultées');
+  };
+
   return (
     <Stack.Navigator
       initialRouteName="Welcome"
       screenOptions={{
         headerStyle: { backgroundColor: '#fff' },
+        headerShadowVisible: false,
       }}
     >
       <Stack.Screen
@@ -40,8 +61,37 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerTitle: () => null,
+        })}
+      />
+      <Stack.Screen
+        name="CandidateProfile"
+        component={CandidateProfileScreen}
+        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'CandidateProfile'> }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <NotificationButton 
+              notificationCount={notificationCount} 
+              onPress={handleNotificationPress} 
+            />
+          ),
+        })}
+      />
+      <Stack.Screen
+        name="RecruiterProfile"
+        component={RecruiterProfileScreen}
+        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'RecruiterProfile'> }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
+          headerRight: () => (
+            <NotificationButton 
+              notificationCount={notificationCount} 
+              onPress={handleNotificationPress} 
+            />
           ),
         })}
       />
