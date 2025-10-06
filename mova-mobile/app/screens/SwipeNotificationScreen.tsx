@@ -85,7 +85,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   list: {
-    paddingHorizontal: 12,
     paddingBottom: 24,
   },
 });
