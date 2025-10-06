@@ -4,8 +4,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 interface RecruiterCardProps {
   avatarUrl: string;
-  firstName: string;
-  lastName: string;
   companyName: string;
   location?: string;
   jobSeeking?: string;
@@ -46,8 +44,6 @@ function splitPresentation(text: string, screenWidth: number): string[] {
 
 export default function RecruiterCard({ 
   avatarUrl, 
-  firstName,
-  lastName,
   companyName,
   location = "",
   jobSeeking = "Poste à pourvoir",
@@ -60,15 +56,15 @@ export default function RecruiterCard({
 
   const lines = splitPresentation(presentation, width);
 
-  // Tailles dynamiques
-  const photoWidth = width * 0.26;
-  const photoHeight = photoWidth * 1.2;
+  // Tailles dynamiques basées sur la largeur d'écran - COPIE EXACTE du CandidateCard
+  const photoWidth = width * 0.31; // UN TOUT PETIT PEU PLUS : pour parfaitement éliminer la bordure
+  const photoHeight = photoWidth * 1.2; // Ratio normal
+  const nameFontSize = width * 0.055; // Agrandi de 0.048 à 0.055
+  const jobFontSize = width * 0.045; // Agrandi de 0.038 à 0.045
+  const experienceFontSize = width * 0.042; // Agrandi de 0.035 à 0.042
+  const presentationFontSize = width * 0.042; // IDENTIQUE aux infos : même taille que experienceFontSize
   const cardPadding = width * 0.03;
-  const nameFontSize = width * 0.055;
-  const companyFontSize = width * 0.045;
-  const infoFontSize = width * 0.042;
-  const presentationFontSize = width * 0.042;
-  const lineHeight = height * 0.035;
+  const lineHeight = height * 0.035; // RÉDUIT : espacement plus serré entre les lignes
 
   const dynamicStyles = {
     container: {
@@ -88,12 +84,12 @@ export default function RecruiterCard({
     },
     topSection: {
       flexDirection: 'row' as const,
-      marginBottom: 0,
+      marginBottom: 0, // SUPPRIMÉ : Aucun espace sous la photo
     },
     photoGradientBorder: {
       borderRadius: 10,
       padding: 1,
-      marginRight: width * 0.04,
+      marginRight: width * 0.025, // RÉDUIT : moins de marge pour plus d'espace texte
     },
     photoContainer: {
       borderRadius: 8,
@@ -117,32 +113,26 @@ export default function RecruiterCard({
       marginBottom: 4,
       letterSpacing: -0.3,
     },
-    companyName: {
-      fontSize: companyFontSize,
-      color: '#6746a8',
-      fontWeight: '700' as const,
-      marginBottom: 4,
-    },
     location: {
-      fontSize: infoFontSize,
+      fontSize: experienceFontSize,
       color: '#333',
       fontWeight: '600' as const,
       marginBottom: 4,
     },
     jobSeeking: {
-      fontSize: infoFontSize,
+      fontSize: experienceFontSize,
       color: '#333',
       fontWeight: '600' as const,
       marginBottom: 4,
     },
     experienceRequired: {
-      fontSize: infoFontSize,
+      fontSize: experienceFontSize,
       color: '#333',
       fontWeight: '600' as const,
       marginBottom: 4,
     },
     contractType: {
-      fontSize: infoFontSize,
+      fontSize: experienceFontSize,
       color: '#333',
       fontWeight: '600' as const,
       marginBottom: 4,
@@ -150,10 +140,10 @@ export default function RecruiterCard({
     detailsSection: {
       borderTopWidth: 1,
       borderTopColor: '#f0f0f0',
-      paddingTop: height * 0.015,
+      paddingTop: height * 0.015, // AUGMENTÉ : plus d'espace entre photo et présentation
     },
     lineContainer: {
-      marginBottom: height * 0.008,
+      marginBottom: height * 0.008, // RÉDUIT : espacement plus serré entre les lignes
       position: 'relative' as const,
       minHeight: lineHeight,
       justifyContent: 'center' as const,
@@ -167,7 +157,7 @@ export default function RecruiterCard({
       paddingLeft: 2,
       backgroundColor: 'transparent',
       zIndex: 2,
-      lineHeight: presentationFontSize * 1.5,
+      lineHeight: presentationFontSize * 1.5, // Augmenté l'interligne du texte
     },
     separator: {
       position: 'absolute' as const,
@@ -195,12 +185,11 @@ export default function RecruiterCard({
           </View>
         </LinearGradient>
         <View style={dynamicStyles.mainInfo}>
-          <Text style={dynamicStyles.name}>{firstName} {lastName}</Text>
-          <Text style={dynamicStyles.companyName}>{companyName}</Text>
+          <Text style={dynamicStyles.name}>{companyName}</Text>
           {location && <Text style={dynamicStyles.location}>{location}</Text>}
           <Text style={dynamicStyles.jobSeeking}>{jobSeeking}</Text>
-          <Text style={dynamicStyles.experienceRequired}>Expérience: {experienceRequired}</Text>
-          <Text style={dynamicStyles.contractType}>Contrat: {contractType}</Text>
+          <Text style={dynamicStyles.experienceRequired}>{experienceRequired}</Text>
+          <Text style={dynamicStyles.contractType}>{contractType}</Text>
         </View>
       </View>
 

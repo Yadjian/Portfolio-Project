@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import ActiveToggle from '../../components/ui/ActiveToggle';
-import RecruiterCard from '../../components/ui/RecruiterCard';
-import EditProfileButton from '../../components/ui/EditProfileButton';
-import BottomTabBar from '../../components/ui/BottomTabBar';
-import SmallMovaLogo from '../../components/ui/SmallMovaLogo';
-import ColorBackground from '../../components/ui/ColorBackground';
+import ActiveToggle from '../../../components/ui/ActiveToggle';
+import RecruiterCard from '../../../components/ui/RecruiterCard';
+import EditProfileButton from '../../../components/ui/EditProfileButton';
+import BottomTabBar from '../../../components/ui/BottomTabBar';
+import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
+import ColorBackground from '../../../components/ui/ColorBackground';
 
 export default function RecruiterProfileScreen() {
   const [isActive, setIsActive] = useState(true);
@@ -16,12 +16,10 @@ export default function RecruiterProfileScreen() {
   const userType = 'recruteur';
 
   const recruiter = {
-    firstName: 'Marie',
-    lastName: 'Dubois',
     companyName: 'TechCorp Solutions',
     location: 'Lyon, France',
     avatarUrl: '',
-    jobSeeking: 'Développeur React Native',
+    jobSeeking: 'Développeur',
     experienceRequired: 'Intermédiaire',
     contractType: 'CDI',
     presentation: "Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et innovative !",
@@ -97,8 +95,6 @@ export default function RecruiterProfileScreen() {
 
         <RecruiterCard
           avatarUrl={recruiter.avatarUrl}
-          firstName={recruiter.firstName}
-          lastName={recruiter.lastName}
           companyName={recruiter.companyName}
           location={recruiter.location}
           jobSeeking={recruiter.jobSeeking}
