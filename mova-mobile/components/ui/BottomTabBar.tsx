@@ -5,10 +5,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 interface TabItem {
   id: string;
-  iconName: any;
-  iconNameActive: any;
   label: string;
   onPress: () => void;
+  // iconName et iconNameActive sont maintenant optionnels (pour compatibilité)
+  iconName?: any;
+  iconNameActive?: any;
 }
 
 interface BottomTabBarProps {
@@ -85,9 +86,27 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
       {tabs.map((tab) => {
         const isActive = tab.id === activeTabId;
         
-        // Si c'est le bouton home, utiliser l'icône maison
-        const iconName = tab.id === 'home' ? 'home-outline' : tab.iconName;
-        const iconNameActive = tab.id === 'home' ? 'home' : tab.iconNameActive;
+        // Définition centralisée des icônes selon l'ID
+        const getIconsForTab = (tabId: string) => {
+          switch (tabId) {
+            case 'profile':
+              return { iconName: 'card-outline', iconNameActive: 'card' };
+            case 'cv':
+              return { iconName: 'document-text-outline', iconNameActive: 'document-text' };
+            case 'offre':
+              return { iconName: 'document-text-outline', iconNameActive: 'document-text' };
+            case 'matches':
+              return { iconName: 'heart-outline', iconNameActive: 'heart' };
+            case 'swipe':
+              return { iconName: 'location-outline', iconNameActive: 'location' };
+            case 'home':
+              return { iconName: 'home-outline', iconNameActive: 'home' };
+            default:
+              return { iconName: tab.iconName, iconNameActive: tab.iconNameActive };
+          }
+        };
+        
+        const { iconName, iconNameActive } = getIconsForTab(tab.id);
         
         return (
           <TouchableOpacity 

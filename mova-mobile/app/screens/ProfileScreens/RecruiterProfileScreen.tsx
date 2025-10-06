@@ -33,42 +33,28 @@ export default function RecruiterProfileScreen() {
     console.log('Modifier le profil recruteur');
   };
 
-  const getTabsForUserType = () => {
-    const baseTabs = [
-      {
-        id: 'profile',
-        iconName: 'card-outline',
-        iconNameActive: 'card',
-        label: 'Mon Profil',
-        onPress: () => console.log('Déjà sur Mon Profil'),
-      },
-    ];
-
-    return [
-      ...baseTabs,
-      {
-        id: 'offre',
-        iconName: 'document-text-outline',
-        iconNameActive: 'document-text',
-        label: 'Mon Offre',
-        onPress: () => console.log('Navigation vers Mon Offre Détaillée'),
-      },
-      {
-        id: 'matches',
-        iconName: 'people-outline',
-        iconNameActive: 'people',
-        label: 'Candidats',
-        onPress: () => console.log('Navigation vers Candidats matchés'),
-      },
-      {
-        id: 'home',
-        iconName: 'home-outline',
-        iconNameActive: 'home',
-        label: 'Home',
-        onPress: () => navigation.goBack(),
-      }
-    ];
-  };
+  const getTabsForUserType = () => [
+    {
+      id: 'profile',
+      label: 'Mon Profil',
+      onPress: () => console.log('Déjà sur Mon Profil'),
+    },
+    {
+      id: 'offre',
+      label: 'Mon Offre',
+      onPress: () => console.log('Navigation vers Mon Offre Détaillée'),
+    },
+    {
+      id: 'matches',
+      label: 'Matchs',
+      onPress: () => console.log('Navigation vers Mes matchs'),
+    },
+    {
+      id: 'home',
+      label: 'Home',
+      onPress: () => navigation.goBack(),
+    }
+  ];
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fffffffb' }}>
