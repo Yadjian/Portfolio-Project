@@ -14,25 +14,15 @@ export default function EditProfileButton({
   size 
 }: EditProfileButtonProps) {
   const { width } = useWindowDimensions();
-  
-  // Taille dynamique simple : plus l'écran est large, plus l'icône est grande
   const dynamicSize = size || Math.floor(width * 0.08);
-  
-  const dynamicStyles = StyleSheet.create({
-    container: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: width * 0.03,
-    },
-  });
 
   return (
     <TouchableOpacity 
-      style={[dynamicStyles.container, style]} 
+      style={style} 
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <Ionicons name="pencil" size={dynamicSize} color="#ffffffff" />
+      <Ionicons name="pencil" size={dynamicSize} color="#6b25f9" />
     </TouchableOpacity>
   );
 }

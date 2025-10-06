@@ -6,7 +6,6 @@ import RecruiterCard from '../../../components/ui/RecruiterCard';
 import EditProfileButton from '../../../components/ui/EditProfileButton';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
-import ColorBackground from '../../../components/ui/ColorBackground';
 
 export default function RecruiterProfileScreen() {
   const [isActive, setIsActive] = useState(true);
@@ -72,11 +71,11 @@ export default function RecruiterProfileScreen() {
   };
 
   return (
-    <ColorBackground>
+    <View style={{ flex: 1, backgroundColor: '#fffffffb' }}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
+        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01, }]}>
           <SmallMovaLogo />
-          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035 }]}>ID CARD</Text>
+          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035, color: '#6746a8' }]}>ID CARD</Text>
         </View>
 
         <View style={{ height: height * 0.055 }} />
@@ -108,7 +107,7 @@ export default function RecruiterProfileScreen() {
         </View>
       </ScrollView>
       <BottomTabBar tabs={getTabsForUserType()} activeTabId="profile" />
-    </ColorBackground>
+    </View>
   );
 }
 
