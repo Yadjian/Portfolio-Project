@@ -1,72 +1,76 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { View, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
 import MovaLogo from '@/components/ui/MovaLogo';
-import GradientBackground from '@/components/ui/ColorBackground';
+
+const { height, width } = Dimensions.get('window');
 
 export default function ChooseRegisterTypeScreen({ navigation }: any) {
   const handleAuth0Signup = (role: 'candidat' | 'recruteur') => {
-    // auth0.webAuth.authorize({ scope: 'openid profile email', prompt: 'login' });
+    if (role === 'candidat') navigation.navigate('CandidateProfile');
+    else navigation.navigate('RecruiterProfile');
   };
 
   return (
-    <GradientBackground>
-      <View style={styles.container}>
-        <View style={styles.logoContainer}>
-          <MovaLogo />
-        </View>
-        <View style={styles.content}>
-          <Text style={styles.title}>Je suis...</Text>
-          <Pressable
-            style={[styles.button, { backgroundColor: '#07b9ff' }]}
-            onPress={() => handleAuth0Signup('candidat')}
-          >
-            <Text style={styles.buttonText}>Candidat</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.button, { backgroundColor: '#6b25f9' }]}
-            onPress={() => handleAuth0Signup('recruteur')}
-          >
-            <Text style={styles.buttonText}>Recruteur</Text>
-          </Pressable>
-        </View>
+    <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <MovaLogo />
       </View>
-    </GradientBackground>
+      <View style={styles.content}>
+        <Text style={styles.title}>Je suis...</Text>
+        <Pressable
+          style={[styles.button, { backgroundColor: '#07b9ff' }]}
+          onPress={() => handleAuth0Signup('candidat')}
+        >
+          <Text style={styles.buttonText}>Candidat</Text>
+        </Pressable>
+        <View style={{ marginVertical: 20 }} />
+        <Pressable
+          style={[styles.button, { backgroundColor: '#6b25f9' }]}
+          onPress={() => handleAuth0Signup('recruteur')}
+        >
+          <Text style={styles.buttonText}>Recruteur</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: '#fff',
+    paddingTop: height * 0.08,
   },
   logoContainer: {
-    marginBottom: '8%',
     alignItems: 'center',
+    marginBottom: height * 0.05, 
   },
   content: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: '65%',
+    marginTop: height * 0.04,
   },
   title: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#ffffffff',
-    marginBottom: '15%',
+    color: '#6746a8',
+    marginBottom: 40,
+    textAlign: 'center',
   },
   button: {
-    borderRadius: 30,
     width: '80%',
-    paddingVertical: '7%',
-    marginBottom: '10%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    borderColor: '#fff',
+    borderRadius: 25,
+    alignSelf: 'center',
+    paddingVertical: height * 0.03,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    elevation: 3,
   },
   buttonText: {
     color: '#fff',
-    fontSize: 25,
+    fontSize: width * 0.055,
     fontWeight: 'bold',
     textAlign: 'center',
   },
