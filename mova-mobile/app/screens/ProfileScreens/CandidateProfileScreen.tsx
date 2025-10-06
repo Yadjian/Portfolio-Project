@@ -6,7 +6,6 @@ import CandidateCard from '../../../components/ui/CandidateCard';
 import EditProfileButton from '../../../components/ui/EditProfileButton';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
-import ColorBackground from '../../../components/ui/ColorBackground';
 
 export default function CandidateProfileScreen() {
   const [isActive, setIsActive] = useState(true);
@@ -21,16 +20,6 @@ export default function CandidateProfileScreen() {
     job: 'Développeur Front-end',
     experience: 'Débutant',
     contractType: 'CDI',
-    presentation: "Débutant en développement front-end, mais talentueux et prêt à vous surprendre !",
-  };
-
-  const user = {
-    firstName: 'Lucas',
-    lastName: 'Boyadjian',
-    location: 'Paris, France',
-    avatarUrl: '',
-    job: 'Développeur Front-end',
-    experience: 'Débutant',
     presentation: "Débutant en développement front-end, mais talentueux et prêt à vous surprendre !",
   };
 
@@ -75,11 +64,11 @@ export default function CandidateProfileScreen() {
   ];
 
   return (
-    <ColorBackground>
+    <View style={{ flex: 1, backgroundColor: '#fffffffb' }}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
+        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01, }]}>
           <SmallMovaLogo />
-          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035 }]}>ID CARD</Text>
+          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035, color: '#6746a8' }]}>ID CARD</Text>
         </View>
 
         <View style={{ height: height * 0.055 }} />
@@ -112,7 +101,7 @@ export default function CandidateProfileScreen() {
         </View>
       </ScrollView>
       <BottomTabBar tabs={getTabsForCandidate()} activeTabId="profile" />
-    </ColorBackground>
+    </View>
   );
 }
 

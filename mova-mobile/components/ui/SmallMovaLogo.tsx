@@ -33,8 +33,6 @@ export default function SmallMovaLogo() {
 
 const styles = StyleSheet.create({
   titleContainer: {
-    borderWidth: 1.5,
-    borderColor: '#FFFFFF',
   },
   title: {
     fontWeight: 'bold',
