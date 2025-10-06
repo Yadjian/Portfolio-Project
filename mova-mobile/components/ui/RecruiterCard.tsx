@@ -112,9 +112,10 @@ export default function RecruiterCard({
       flex: 1,
       justifyContent: 'flex-start' as const,
       paddingTop: 4,
+      paddingRight: width * 0.03,
     },
     name: {
-      fontSize: width * 0.055,
+      fontSize: width * 0.05,
       fontWeight: '700' as const,
       color: '#1a1a1a',
       marginBottom: 4,
