@@ -76,7 +76,7 @@ export default function RecruiterProfileScreen() {
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
           <SmallMovaLogo />
-          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035 }]}>ID CARD</Text>
+          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035, color: '#6746a8' }]}>ID CARD</Text>
         </View>
 
         <View style={{ height: height * 0.055 }} />

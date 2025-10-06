@@ -16,11 +16,11 @@ export default function ActiveToggle({
   const animatedValue = useState(new Animated.Value(initialValue ? 1 : 0))[0];
 
   // Tailles dynamiques basées sur la largeur de l'écran - AGRANDIES
-  const switchWidth = width * 0.12; // AGRANDI : 12% de la largeur d'écran
-  const switchHeight = switchWidth * 0.55; // Ratio hauteur/largeur
+  const switchWidth = width * 0.12;
+  const switchHeight = switchWidth * 0.55;
   const circleSize = switchHeight * 0.8;
-  const labelWidth = width * 0.16; // AGRANDI : 16% pour le label
-  const fontSize = width * 0.038; // AGRANDI : Taille de police plus grande
+  const labelWidth = width * 0.16;
+  const fontSize = width * 0.038;
 
   useEffect(() => {
     setIsActive(initialValue);
@@ -47,7 +47,7 @@ export default function ActiveToggle({
   const containerStyle = {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    paddingVertical: height * 0.008, // Padding dynamique
+    paddingVertical: height * 0.008,
   };
 
   const labelContainerStyle = {
@@ -58,7 +58,7 @@ export default function ActiveToggle({
   const labelStyle = {
     fontSize: fontSize,
     fontWeight: '600' as const,
-    color: '#fff',
+    color: '#6b25f9', // Texte violet
   };
 
   const switchBackgroundStyle = {
@@ -101,16 +101,31 @@ export default function ActiveToggle({
         onPress={handleToggle}
         activeOpacity={0.8}
       >
-        <View style={[switchBackgroundStyle, { backgroundColor: isActive ? '#007AFF' : '#7e7e7e' }]}>
-          <Animated.View
-            style={[
-              switchCircleStyle,
-              { transform: [{ translateX: switchTranslate }] }
-            ]}
-          />
-        </View>
+        {isActive ? (
+          <LinearGradient
+            colors={['#6746a8', '#6b25f9', '#07b9ff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={switchBackgroundStyle}
+          >
+            <Animated.View
+              style={[
+                switchCircleStyle,
+                { transform: [{ translateX: switchTranslate }] }
+              ]}
+            />
+          </LinearGradient>
+        ) : (
+          <View style={[switchBackgroundStyle, { backgroundColor: '#7e7e7e' }]}>
+            <Animated.View
+              style={[
+                switchCircleStyle,
+                { transform: [{ translateX: switchTranslate }] }
+              ]}
+            />
+          </View>
+        )}
       </TouchableOpacity>
     </View>
   );
 }
-
