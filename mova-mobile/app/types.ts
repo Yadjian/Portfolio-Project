@@ -7,6 +7,7 @@ export type AuthStackParamList = {
   ChooseRegisterType: undefined;
   CandidateProfile: undefined;
   RecruiterProfile: undefined;
+  SwipeNotification: { userType: 'candidat' | 'recruteur' } | undefined;
 };
 
 // Définir les props pour chaque écran

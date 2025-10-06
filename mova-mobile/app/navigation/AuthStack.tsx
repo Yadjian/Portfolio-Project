@@ -5,10 +5,12 @@ import LoginScreen from '../screens/LoginScreen';
 import { AuthStackParamList } from '../types';
 import BackButton from '@/components/ui/BackButton';
 import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
-import HomeButton from '@/components/ui/HomeButton';
 import CandidateProfileScreen from '../screens/ProfileScreens/CandidateProfileScreen';
 import RecruiterProfileScreen from '../screens/ProfileScreens/RecruiterProfileScreen';
 import NotificationButton from '@/components/ui/NotificationButton';
+import SwipeNotificationScreen from '../screens/SwipeNotificationScreen';
+
+
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -74,7 +76,10 @@ export default function AuthStack() {
           headerRight: () => (
             <NotificationButton 
               notificationCount={notificationCount} 
-              onPress={handleNotificationPress} 
+              onPress={() => {
+                setNotificationCount(0);
+                navigation.navigate('SwipeNotification', { userType: 'candidat' });
+              }}
             />
           ),
         })}
@@ -90,9 +95,22 @@ export default function AuthStack() {
           headerRight: () => (
             <NotificationButton 
               notificationCount={notificationCount} 
-              onPress={handleNotificationPress} 
+              onPress={() => {
+                setNotificationCount(0);
+                navigation.navigate('SwipeNotification', { userType: 'recruteur' });
+              }}
             />
           ),
+        })}
+      />
+      <Stack.Screen
+        name="SwipeNotification"
+        component={SwipeNotificationScreen}
+        options={({ navigation }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
         })}
       />
     </Stack.Navigator>
