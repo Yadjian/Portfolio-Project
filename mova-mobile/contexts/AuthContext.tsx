@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as AuthSession from 'expo-auth-session';
 import * as SecureStore from 'expo-secure-store';
 import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from '../constants/auth0Config';
+import { getCurrentUser } from '../services/api'; // Ajoute cet import en haut
+
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -45,25 +47,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Vérifier le token stocké au démarrage
   useEffect(() => {
-    const checkToken = async () => {
-      try {
-        const storedToken = await SecureStore.getItemAsync('auth_token');
-        const storedUser = await SecureStore.getItemAsync('user_data');
-        
-        if (storedToken && storedUser) {
-          setToken(storedToken);
-          setUser(JSON.parse(storedUser));
-          setIsAuthenticated(true);
-        }
-      } catch (error) {
-        console.error('Erreur lors de la vérification du token:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const checkToken = async () => {
+    try {
+      const storedToken = await SecureStore.getItemAsync('auth_token');
+      if (storedToken) {
+        setToken(storedToken);
+        setIsAuthenticated(true);
 
-    checkToken();
-  }, []);
+        // Appel GET /me ici
+        try {
+          const userData = await getCurrentUser();
+          setUser(userData);
+        } catch (error) {
+          setUser(null);
+        }
+      }
+    } catch (error) {
+      setUser(null);
+      setIsAuthenticated(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+  checkToken();
+}, []);
 
   // Gestion complète du résultat de l'authentification
   useEffect(() => {
