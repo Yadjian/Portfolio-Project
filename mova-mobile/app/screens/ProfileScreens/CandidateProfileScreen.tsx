@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { AuthStackParamList } from '../../../lib/types';
 import ActiveToggle from '../../../components/ui/ActiveToggle';
 import CandidateCard from '../../../components/ui/CandidateCard';
 import EditProfileButton from '../../../components/ui/EditProfileButton';
@@ -9,7 +11,7 @@ import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
 
 export default function CandidateProfileScreen() {
   const [isActive, setIsActive] = useState(true);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { width, height } = useWindowDimensions();
 
   const candidate = {
@@ -28,8 +30,9 @@ export default function CandidateProfileScreen() {
     console.log(`Statut changé: ${value ? 'Activé' : 'Désactivé'}`);
   };
 
+  // ✅ Navigation sans cast ni erreur
   const handleEditProfile = () => {
-    console.log('Modifier le profil');
+    navigation.navigate('EditProfileScreen', { userType: 'candidat' });
   };
 
   const getTabsForCandidate = () => [

@@ -9,6 +9,8 @@ import CandidateProfileScreen from '../screens/ProfileScreens/CandidateProfileSc
 import RecruiterProfileScreen from '../screens/ProfileScreens/RecruiterProfileScreen';
 import NotificationButton from '@/components/ui/NotificationButton';
 import SwipeNotificationScreen from '../screens/SwipeNotificationScreen';
+import EditProfileScreen from '../screens/ProfileScreens/EditProfileScreen';
+
 
 
 
@@ -113,6 +115,12 @@ export default function AuthStack() {
           headerTitle: () => null,
         })}
       />
+      <Stack.Screen
+        name="EditProfileScreen"
+        component={EditProfileScreen}
+        options={{ title: 'Modifier mon profil' }}
+      />    
+      
     </Stack.Navigator>
   );
 }
