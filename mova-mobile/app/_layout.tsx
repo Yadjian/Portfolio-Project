@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 
 import { AuthStack, AppTabs } from './navigation';
 import { useColorScheme } from '@/components/useColorScheme';
+import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -42,13 +43,20 @@ export default function RootLayout() {
   }
 
   return (
-    <RootLayoutNav />
+    <AuthProvider>
+      <RootLayoutNav />
+    </AuthProvider>
   );
 }
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const isAuthenticated = false; // Change cette valeur selon ton auth
+  const { isAuthenticated, loading } = useAuth();
+
+  // Afficher un écran de chargement pendant la vérification de l'auth
+  if (loading) {
+    return null; // Tu peux remplacer par un composant de loading
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

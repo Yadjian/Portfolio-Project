@@ -1,53 +1,21 @@
 import React from 'react';
 import { StyleSheet, View, Text, Dimensions, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import * as AuthSession from 'expo-auth-session';
-import * as WebBrowser from 'expo-web-browser';
 import MovaLogo from '@/components/ui/MovaLogo';
-import { AUTH0_DOMAIN, AUTH0_CLIENT_ID } from '../../constants/auth0Config';
-
-WebBrowser.maybeCompleteAuthSession();
+import { useAuth } from '../../contexts/AuthContext'; // ✅ Utilise le AuthProvider
 
 const { height, width } = Dimensions.get('window');
 
-// Configuration Auth0
-const discovery = {
-  authorizationEndpoint: `https://${AUTH0_DOMAIN}/authorize`,
-  tokenEndpoint: `https://${AUTH0_DOMAIN}/oauth/token`,
-  revocationEndpoint: `https://${AUTH0_DOMAIN}/oauth/revoke`,
-};
-
 export default function WelcomeScreen({ navigation }: any) {
-  const redirectUri = AuthSession.makeRedirectUri({
-    preferLocalhost: true,
-  });
+  // ✅ Utilise les fonctions du AuthProvider
+  const { isAuthenticated, user, login, logout, loading } = useAuth();
 
-  const [request, result, promptAsync] = AuthSession.useAuthRequest(
-    {
-      clientId: AUTH0_CLIENT_ID,
-      scopes: ['openid', 'profile', 'email'],
-      extraParams: {
-        audience: `https://${AUTH0_DOMAIN}/userinfo`,
-      },
-      responseType: AuthSession.ResponseType.Token,
-      redirectUri,
-    },
-    discovery
-  );
-
-  React.useEffect(() => {
-    if (result) {
-      if (result.type === 'success') {
-        console.log('Connexion réussie:', result.params);
-        // Ici tu peux stocker le token et naviguer vers l'écran principal
-      } else if (result.type === 'error') {
-        console.error('Erreur de connexion:', result.error);
-      }
+  const handleAuthAction = () => {
+    if (isAuthenticated) {
+      logout(); // ✅ Fonction logout du AuthProvider
+    } else {
+      login(); // ✅ Fonction login du AuthProvider  
     }
-  }, [result]);
-
-  const handleLogin = async () => {
-    promptAsync();
   };
 
   return (
@@ -57,6 +25,11 @@ export default function WelcomeScreen({ navigation }: any) {
         <Text style={styles.slogan}>
           Votre prochain emploi{'\n'}commence par une rencontre !
         </Text>
+        {isAuthenticated && user && (
+          <Text style={styles.welcomeText}>
+            Bonjour {user.name || user.email} !
+          </Text>
+        )}
       </View>
       <View style={styles.separator} />
       <View style={styles.buttonContainer}>
@@ -68,25 +41,33 @@ export default function WelcomeScreen({ navigation }: any) {
         >
           <Pressable
             style={styles.pressable}
-            onPress={handleLogin}
+            onPress={handleAuthAction}
+            disabled={loading}
           >
-            <Text style={styles.buttonText}>Connexion</Text>
+            <Text style={styles.buttonText}>
+              {loading ? 'Chargement...' : isAuthenticated ? 'Déconnexion' : 'Connexion'}
+            </Text>
           </Pressable>
         </LinearGradient>
-        <View style={{ marginVertical: 20 }} />
-        <LinearGradient
-          colors={['#6746a8', '#6b25f9', '#07b9ff']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradientButton}
-        >
-          <Pressable
-            style={styles.pressable}
-            onPress={() => navigation.navigate('ChooseRegisterType')}
-          >
-            <Text style={styles.buttonText}>Créer mon compte</Text>
-          </Pressable>
-        </LinearGradient>
+
+        {!isAuthenticated && (
+          <>
+            <View style={{ marginVertical: 20 }} />
+            <LinearGradient
+              colors={['#6746a8', '#6b25f9', '#07b9ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.gradientButton}
+            >
+              <Pressable
+                style={styles.pressable}
+                onPress={() => navigation.navigate('ChooseRegisterType')}
+              >
+                <Text style={styles.buttonText}>Créer mon compte</Text>
+              </Pressable>
+            </LinearGradient>
+          </>
+        )}
       </View>
     </View>
   );
@@ -109,6 +90,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 18,
     marginBottom: 8,
+  },
+  welcomeText: {
+    fontSize: width * 0.04,
+    color: '#6746a8',
+    textAlign: 'center',
+    marginTop: 10,
   },
   separator: {
     height: 1,
