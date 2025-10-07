@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
-import { AuthStackParamList } from '../types';
+import { AuthStackParamList } from '../../lib/types';
 import BackButton from '@/components/ui/BackButton';
 import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
 import CandidateProfileScreen from '../screens/ProfileScreens/CandidateProfileScreen';

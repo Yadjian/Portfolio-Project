@@ -5,9 +5,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
-import { AuthStack, AppTabs } from './navigation'; // Import des navigateurs
+import { AuthStack, AppTabs } from './navigation';
 import { useColorScheme } from '@/components/useColorScheme';
-import { Auth0Provider } from '../components/Auth0Provider'; // Ajout Auth0Provider
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -28,7 +27,6 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -43,17 +41,14 @@ export default function RootLayout() {
     return null;
   }
 
-  // Entoure toute l'app avec Auth0Provider
   return (
-    <Auth0Provider>
-      <RootLayoutNav />
-    </Auth0Provider>
+    <RootLayoutNav />
   );
 }
 
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
-  const isAuthenticated = false; // Change cette valeur pour tester
+  const isAuthenticated = false; // Change cette valeur selon ton auth
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
