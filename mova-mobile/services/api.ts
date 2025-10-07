@@ -17,3 +17,20 @@ export async function getCurrentUser() {
   if (!response.ok) throw new Error('Erreur API');
   return await response.json();
 }
+
+export async function updateProfile(profileData: any) {
+  const token = await SecureStore.getItemAsync('auth_token');
+  if (!token) throw new Error('Pas de token');
+
+  const response = await fetch(`${API_BASE_URL}/profile`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(profileData),
+  });
+
+  if (!response.ok) throw new Error('Erreur API');
+  return await response.json();
+}
