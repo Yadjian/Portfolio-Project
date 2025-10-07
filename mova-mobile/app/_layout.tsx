@@ -7,6 +7,7 @@ import 'react-native-reanimated';
 
 import { AuthStack, AppTabs } from './navigation'; // Import des navigateurs
 import { useColorScheme } from '@/components/useColorScheme';
+import { Auth0Provider } from '../components/Auth0Provider'; // Ajout Auth0Provider
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -42,7 +43,12 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  // Entoure toute l'app avec Auth0Provider
+  return (
+    <Auth0Provider>
+      <RootLayoutNav />
+    </Auth0Provider>
+  );
 }
 
 function RootLayoutNav() {
