@@ -50,7 +50,7 @@ model User {
 
   // Relations (un User peut avoir un profil candidat ET/OU un profil recruteur)
   candidateProfile CandidateProfile?
-  recruiterProfile Recruiter?
+  recruiterProfile RecruiterProfile?
 }
 
 // --- MODÈLES DE PROFILS (CORRIGÉS) ---
@@ -67,7 +67,7 @@ model CandidateProfile {
   photoUrl             String?
   coverLetterText      String?
   desiredJobTitle      String?
-  desiredContractTypes ContractType[]
+  desiredContractTypes ContractType[] @default([])
   locationWKT          String?
   searchRadiusKm       Int?
   isActive             Boolean    @default(true)
@@ -82,7 +82,7 @@ model CandidateProfile {
   swipes       Swipe[]
 }
 
-model Recruiter {
+model RecruiterProfile {
   id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -124,7 +124,7 @@ model RecruiterMembership {
   updatedAt    DateTime  @updatedAt
   internalRole String
   isPrimary    Boolean   @default(false)
-  recruiter    Recruiter @relation(fields: [recruiterId], references: [id])
+  recruiter    RecruiterProfile @relation(fields: [recruiterId], references: [id])
   recruiterId  String
   company      Company   @relation(fields: [companyId], references: [id])
   companyId    String
@@ -172,7 +172,7 @@ model Application {
   candidateId         String
   job                 JobOffer          @relation(fields: [jobId], references: [id])
   jobId               String
-  viewedByRecruiter   Recruiter?        @relation("ViewedByRecruiter", fields: [viewedByRecruiterId], references: [id])
+  viewedByRecruiter   RecruiterProfile?        @relation("ViewedByRecruiter", fields: [viewedByRecruiterId], references: [id])
   viewedByRecruiterId String?
   @@unique([candidateId, jobId])
 }
@@ -185,9 +185,9 @@ model Swipe {
   direction   SwipeDirection
   isMatch     Boolean        @default(false)
   matchedAt   DateTime?
-  candidate   CandidateProfile @relation(fields: [candidateId], references: [id])
+  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id])
   candidateId String
-  recruiter   Recruiter?     @relation(fields: [recruiterId], references: [id])
+  recruiter   RecruiterProfile?     @relation(fields: [recruiterId], references: [id])
   recruiterId String?
   job         JobOffer       @relation(fields: [jobId], references: [id])
   jobId       String

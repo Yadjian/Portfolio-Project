@@ -32,6 +32,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7
@@ -44,3 +46,6 @@ services:
 networks:
   mova-network:
     driver: bridge
+
+volumes:
+  postgres_data:
