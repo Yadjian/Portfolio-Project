@@ -103,6 +103,7 @@ model RecruiterProfile {
   memberships        RecruiterMembership[]
   swipes             Swipe[]
   viewedApplications Application[]       @relation("ViewedByRecruiter")
+  createdJobOffers   JobOffer[]          @relation("CreatedByRecruiter")
 }
 
 // --- AUTRES MODÈLES ---
@@ -158,6 +159,10 @@ model JobOffer {
   applications Application[]
   swipes       Swipe[]
   categories   JobCategory[]
+
+  // Relation pour savoir qui a créé l'offre
+  createdBy   RecruiterProfile @relation("CreatedByRecruiter", fields: [createdById], references: [id])
+  createdById String
 }
 
 model Application {
