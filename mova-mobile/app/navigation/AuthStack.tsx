@@ -10,6 +10,9 @@ import RecruiterProfileScreen from '../screens/ProfileScreens/RecruiterProfileSc
 import NotificationButton from '@/components/ui/NotificationButton';
 import SwipeNotificationScreen from '../screens/SwipeNotificationScreen';
 import EditProfileScreen from '../screens/ProfileScreens/EditProfileScreen';
+import RecruiterOnboardingScreen from '../screens/ProfileScreens/RecruiterOnboardingScreen';
+import CreateCompanyScreen from '../screens/ProfileScreens/CreateCompanyScreen';
+import JoinCompanyScreen from '../screens/ProfileScreens/JoinCompanyScreen';
 
 
 
@@ -119,8 +122,22 @@ export default function AuthStack() {
         name="EditProfileScreen"
         component={EditProfileScreen}
         options={{ title: 'Modifier mon profil' }}
-      />    
-      
+      />
+      <Stack.Screen
+        name="RecruiterOnboarding"
+        component={RecruiterOnboardingScreen}
+        options={{ title: 'Onboarding Recruteur' }}
+      />
+      <Stack.Screen
+        name="CreateCompany"
+        component={CreateCompanyScreen}
+        options={{ title: 'Créer une entreprise' }}
+      />
+      <Stack.Screen
+        name="JoinCompany"
+        component={JoinCompanyScreen}
+        options={{ title: 'Rejoindre une entreprise' }}
+      />
     </Stack.Navigator>
   );
 }

@@ -2,13 +2,16 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 // Définir les types des paramètres pour AuthStack
 export type AuthStackParamList = {
-  Welcome: undefined; // Pas de paramètres pour Welcome
-  Login: undefined; // Pas de paramètres pour l'écran Login
+  Welcome: undefined;
+  Login: undefined;
   ChooseRegisterType: undefined;
-  CandidateProfile: undefined;
-  RecruiterProfile: undefined;
-  SwipeNotification: { userType: 'candidat' | 'recruteur' } | undefined;
-  EditProfileScreen: { userType: string };
+  CandidateProfile: { startEditing?: boolean };
+  RecruiterProfile: { startEditing?: boolean };
+  SwipeNotification: { userType: string };
+  EditProfileScreen: { userType: 'candidat' | 'recruteur' };
+  RecruiterOnboarding: undefined;
+  CreateCompany: undefined;
+  JoinCompany: undefined;
 };
 
 // Définir les props pour chaque écran

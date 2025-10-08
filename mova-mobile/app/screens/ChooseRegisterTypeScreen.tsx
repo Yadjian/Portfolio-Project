@@ -5,9 +5,9 @@ import MovaLogo from '@/components/ui/MovaLogo';
 const { height, width } = Dimensions.get('window');
 
 export default function ChooseRegisterTypeScreen({ navigation }: any) {
-  const handleAuth0Signup = (role: 'candidat' | 'recruteur') => {
-    if (role === 'candidat') navigation.navigate('CandidateProfile');
-    else navigation.navigate('RecruiterProfile');
+  const handleRegister = async (role: 'candidat' | 'recruteur') => {
+    // ... logique d'inscription ...
+    navigation.navigate('EditProfileScreen', { userType: 'candidat' }); // ou 'recruteur'
   };
 
   return (
@@ -19,14 +19,14 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
         <Text style={styles.title}>Je suis...</Text>
         <Pressable
           style={[styles.button, { backgroundColor: '#07b9ff' }]}
-          onPress={() => handleAuth0Signup('candidat')}
+          onPress={() => navigation.navigate('CandidateProfile', { startEditing: true })}
         >
           <Text style={styles.buttonText}>Candidat</Text>
         </Pressable>
         <View style={{ marginVertical: 20 }} />
         <Pressable
           style={[styles.button, { backgroundColor: '#6b25f9' }]}
-          onPress={() => handleAuth0Signup('recruteur')}
+          onPress={() => navigation.navigate('RecruiterOnboarding')}
         >
           <Text style={styles.buttonText}>Recruteur</Text>
         </Pressable>

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, Button, useWindowDimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import type { AuthStackParamList } from '../../../lib/types';
 import ActiveToggle from '../../../components/ui/ActiveToggle';
 import RecruiterCard from '../../../components/ui/RecruiterCard';
 import EditProfileButton from '../../../components/ui/EditProfileButton';
@@ -9,12 +11,16 @@ import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function RecruiterProfileScreen() {
+  const route = useRoute<RouteProp<AuthStackParamList, 'RecruiterProfile'>>();
+  const startEditing = route.params?.startEditing === true;
+
   const [isActive, setIsActive] = useState(true);
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
 
   // Ajout état édition
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(startEditing);
+  const [firstEdit, setFirstEdit] = useState(startEditing);
 
   // Données modifiables
   const [recruiter, setRecruiter] = useState({
@@ -39,8 +45,19 @@ export default function RecruiterProfileScreen() {
 
   // Sauvegarder les modifications
   const handleSave = async () => {
+    if (
+      !recruiter.companyName ||
+      !recruiter.location ||
+      !recruiter.jobSeeking ||
+      !recruiter.experienceRequired ||
+      !recruiter.contractType
+    ) {
+      alert('Tous les champs sont obligatoires sauf la présentation.');
+      return;
+    }
     // Ajoute ici ta logique d'API si besoin
     setIsEditing(false);
+    setFirstEdit(false); // Permet d'afficher le bouton Annuler après la première édition
   };
 
   // Annuler édition
@@ -124,15 +141,9 @@ export default function RecruiterProfileScreen() {
 
         {/* Boutons d'action en mode édition */}
         {isEditing && (
-          <View style={[styles.buttonContainer, { paddingHorizontal: width * 0.06 }]}>
-            <View style={styles.buttonRow}>
-              <View style={styles.buttonWrapper}>
-                <Button title="Enregistrer" onPress={handleSave} />
-              </View>
-              <View style={styles.buttonWrapper}>
-                <Button title="Annuler" onPress={handleCancel} color="#999" />
-              </View>
-            </View>
+          <View style={styles.buttonContainer}>
+            <Button title="Enregistrer" onPress={handleSave} />
+            {!firstEdit && <Button title="Annuler" onPress={handleCancel} color="#999" />}
           </View>
         )}
 

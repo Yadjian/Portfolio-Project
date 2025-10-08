@@ -1,23 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Text, TextInput, Button, useWindowDimensions, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { View, StyleSheet, ScrollView, Text, Button, Dimensions } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import type { AuthStackParamList } from '../../../lib/types';
 import ActiveToggle from '../../../components/ui/ActiveToggle';
 import CandidateCard from '../../../components/ui/CandidateCard';
 import EditProfileButton from '../../../components/ui/EditProfileButton';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
-import {getCurrentUser, updateProfile } from '../../../services/api';
+import { getCurrentUser, updateProfile } from '../../../services/api';
 import * as ImagePicker from 'expo-image-picker';
 
-export default function CandidateProfileScreen() {
-  const [isActive, setIsActive] = useState(true);
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const { width, height } = useWindowDimensions();
+// Get device width and height
+const { width, height } = Dimensions.get('window');
 
-  // État d'édition
-  const [isEditing, setIsEditing] = useState(false);
+export default function CandidateProfileScreen() {
+  const route = useRoute<RouteProp<AuthStackParamList, 'CandidateProfile'>>();
+  const startEditing = route.params?.startEditing === true;
+
+  const [isEditing, setIsEditing] = useState(startEditing);
+  const [firstEdit, setFirstEdit] = useState(startEditing);
+  const [isActive, setIsActive] = useState(true);
 
   // Données modifiables (au lieu de constante)
   const [candidate, setCandidate] = useState({
@@ -66,9 +69,22 @@ export default function CandidateProfileScreen() {
 
   // Sauvegarder les modifications
   const handleSave = async () => {
+    // Vérifie que tous les champs sauf présentation sont remplis
+    if (
+      !candidate.firstName ||
+      !candidate.lastName ||
+      !candidate.location ||
+      !candidate.job ||
+      !candidate.experience ||
+      !candidate.contractType
+    ) {
+      alert('Tous les champs sont obligatoires sauf la présentation.');
+      return;
+    }
     try {
       await updateProfile(candidate);
       setIsEditing(false);
+      setFirstEdit(false); // Permet d'afficher le bouton Annuler après la première édition
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
     }
@@ -87,6 +103,8 @@ export default function CandidateProfileScreen() {
       setCandidate(prev => ({ ...prev, avatarUrl: result.assets[0].uri }));
     }
   };
+
+  const navigation = useNavigation();
 
   const getTabsForCandidate = () => [
     {
@@ -158,15 +176,9 @@ export default function CandidateProfileScreen() {
 
         {/* ✅ Boutons d'action en mode édition */}
         {isEditing && (
-          <View style={[styles.buttonContainer, { paddingHorizontal: width * 0.06 }]}>
-            <View style={styles.buttonRow}>
-              <View style={styles.buttonWrapper}>
-                <Button title="Enregistrer" onPress={handleSave} />
-              </View>
-              <View style={styles.buttonWrapper}>
-                <Button title="Annuler" onPress={() => setIsEditing(false)} color="#999" />
-              </View>
-            </View>
+          <View style={styles.buttonContainer}>
+            <Button title="Enregistrer" onPress={handleSave} />
+            {!firstEdit && <Button title="Annuler" onPress={() => setIsEditing(false)} color="#999" />}
           </View>
         )}
 
