@@ -28,39 +28,38 @@ export class AuthService {
       return existingUser;
     }
 
-    // L'utilisateur n'existe pas, on le crée avec son profil.
-    this.logger.log(`Creating new user for auth0Id ${auth0Id} with role ${role}.`);
-
-    if (role !== 'candidate' && role !== 'recruiter') {
-      throw new InternalServerErrorException(`Invalid or missing role in token: ${role}`);
+    // Si l'utilisateur n'existe pas, on le crée
+    if (role === 'candidate') {
+      // Pour un candidat, on peut créer l'utilisateur et le profil vide d'un coup
+      this.logger.log(`Creating new user and candidate profile for ${auth0Id}`);
+      return this.prisma.user.create({
+        data: {
+          auth0Id,
+          email,
+          candidateProfile: {
+            create: { firstName: "Prénom", lastName: "Nom" },
+          },
+        },
+        include: {
+          candidateProfile: true,
+          recruiterProfile: true,
+        },
+      });
+    } else if (role === 'recruiter') {
+      // Pour un recruteur, on ne crée QUE l'utilisateur. L'onboarding est géré ailleurs.
+      this.logger.log(`Creating new user shell for recruiter ${auth0Id}`);
+      return this.prisma.user.create({
+        data: {
+          auth0Id,
+          email,
+        },
+        include: {
+          candidateProfile: true,
+          recruiterProfile: true,
+        },
+      });
+    } else {
+      throw new InternalServerErrorException(`Invalid role for new user: ${role}`);
     }
-
-    const newUser = await this.prisma.user.create({
-      data: {
-        auth0Id,
-        email,
-        // Logique de création simplifiée grâce à vos modifications du schéma
-        candidateProfile: role === 'candidate' ? {
-          create: {
-            firstName: "Prénom",
-            lastName: "Nom",
-            // Plus besoin de fournir desiredContractTypes, il est optionnel !
-          }
-        } : undefined,
-        recruiterProfile: role === 'recruiter' ? {
-          create: {
-            firstName: "Prénom",
-            lastName: "Nom",
-          }
-        } : undefined,
-      },
-      include: {
-        candidateProfile: true,
-        recruiterProfile: true,
-      }
-    });
-
-    this.logger.log(`Successfully created user and ${role} profile.`);
-    return newUser;
   }
 }
