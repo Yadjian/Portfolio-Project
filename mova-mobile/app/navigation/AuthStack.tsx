@@ -13,6 +13,7 @@ import EditProfileScreen from '../screens/ProfileScreens/EditProfileScreen';
 import RecruiterOnboardingScreen from '../screens/ProfileScreens/RecruiterOnboardingScreen';
 import CreateCompanyScreen from '../screens/ProfileScreens/CreateCompanyScreen';
 import JoinCompanyScreen from '../screens/ProfileScreens/JoinCompanyScreen';
+import HomeButton from '@/components/ui/HomeButton';
 
 
 
@@ -126,17 +127,41 @@ export default function AuthStack() {
       <Stack.Screen
         name="RecruiterOnboarding"
         component={RecruiterOnboardingScreen}
-        options={{ title: 'Onboarding Recruteur' }}
+        options={({ navigation }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+          ),
+          headerTitle: () => null,
+        })}
       />
       <Stack.Screen
         name="CreateCompany"
         component={CreateCompanyScreen}
-        options={{ title: 'Créer une entreprise' }}
+        options={({ navigation }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+          ),
+          headerTitle: () => null,
+        })}
       />
       <Stack.Screen
         name="JoinCompany"
         component={JoinCompanyScreen}
-        options={{ title: 'Rejoindre une entreprise' }}
+        options={({ navigation }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+          ),
+          headerTitle: () => null,
+        })}
       />
     </Stack.Navigator>
   );
