@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Text, TextInput, Button, useWindowDimensions, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,7 +8,7 @@ import CandidateCard from '../../../components/ui/CandidateCard';
 import EditProfileButton from '../../../components/ui/EditProfileButton';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
-import { updateProfile } from '../../../services/api';
+import {getCurrentUser, updateProfile } from '../../../services/api';
 import * as ImagePicker from 'expo-image-picker';
 
 export default function CandidateProfileScreen() {
@@ -30,6 +30,29 @@ export default function CandidateProfileScreen() {
     contractType: 'CDI',
     presentation: "Débutant en développement front-end, mais talentueux et prêt à vous surprendre !",
   });
+
+  // Ajoute ce useEffect pour charger les vraies données
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const user = await getCurrentUser();
+        setCandidate(prev => ({
+          ...prev,
+          firstName: user.firstName || prev.firstName,
+          lastName: user.lastName || prev.lastName,
+          location: user.location || prev.location,
+          avatarUrl: user.avatarUrl || prev.avatarUrl,
+          job: user.job || prev.job,
+          experience: user.experience || prev.experience,
+          contractType: user.contractType || prev.contractType,
+          presentation: user.presentation || prev.presentation,
+        }));
+      } catch (error) {
+        console.error('Erreur chargement profil:', error);
+      }
+    }
+    fetchUser();
+  }, []);
 
   const handleToggleActive = (value: boolean) => {
     setIsActive(value);
