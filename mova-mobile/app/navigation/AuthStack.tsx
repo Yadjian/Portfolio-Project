@@ -1,22 +1,48 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
-import { AuthStackParamList } from '../types';
+import { AuthStackParamList } from '../../lib/types';
 import BackButton from '@/components/ui/BackButton';
-import RegisterCandidateScreen from '../screens/RegisterScreens/RegisterCandidateScreen';
-import RegisterRecruiterScreen from '../screens/RegisterScreens/RegisterRecruiterScreen';
-import ChooseRegisterTypeScreen from '../screens/RegisterScreens/ChooseRegisterTypeScreen';
-import HomeButton from '@/components/ui/HomeButton';
+import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
+import CandidateProfileScreen from '../screens/ProfileScreens/CandidateProfileScreen';
+import RecruiterProfileScreen from '../screens/ProfileScreens/RecruiterProfileScreen';
+import NotificationButton from '@/components/ui/NotificationButton';
+import SwipeNotificationScreen from '../screens/SwipeNotificationScreen';
+import EditProfileScreen from '../screens/ProfileScreens/EditProfileScreen';
+import RecruiterOnboardingScreen from '../screens/ProfileScreens/RecruiterOnboardingScreen';
+import CreateCompanyScreen from '../screens/ProfileScreens/CreateCompanyScreen';
+import JoinCompanyScreen from '../screens/ProfileScreens/JoinCompanyScreen';
+
+
+
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export default function AuthStack() {
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
+    // Simule la récupération du nombre de notifications depuis une API
+    const fetchNotificationCount = () => {
+      const fetchedCount = 7; // Simulation de 7 notifications
+      setNotificationCount(fetchedCount);
+    };
+    fetchNotificationCount();
+  }, []);
+
+  const handleNotificationPress = () => {
+    // Pour l'instant, on remet juste le compteur à zéro
+    setNotificationCount(0);
+    console.log('Notifications consultées');
+  };
+
   return (
     <Stack.Navigator
       initialRouteName="Welcome"
       screenOptions={{
         headerStyle: { backgroundColor: '#fff' },
+        headerShadowVisible: false,
       }}
     >
       <Stack.Screen
@@ -42,18 +68,75 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerTitle: () => null,
+        })}
+      />
+      <Stack.Screen
+        name="CandidateProfile"
+        component={CandidateProfileScreen}
+        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'CandidateProfile'> }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <NotificationButton 
+              notificationCount={notificationCount} 
+              onPress={() => {
+                setNotificationCount(0);
+                navigation.navigate('SwipeNotification', { userType: 'candidat' });
+              }}
+            />
           ),
         })}
       />
       <Stack.Screen
-        name="RegisterCandidate"
-        component={RegisterCandidateScreen}
+        name="RecruiterProfile"
+        component={RecruiterProfileScreen}
+        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'RecruiterProfile'> }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
+          headerRight: () => (
+            <NotificationButton 
+              notificationCount={notificationCount} 
+              onPress={() => {
+                setNotificationCount(0);
+                navigation.navigate('SwipeNotification', { userType: 'recruteur' });
+              }}
+            />
+          ),
+        })}
       />
       <Stack.Screen
-        name="RegisterRecruiter"
-        component={RegisterRecruiterScreen}
+        name="SwipeNotification"
+        component={SwipeNotificationScreen}
+        options={({ navigation }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerTitle: () => null,
+        })}
+      />
+      <Stack.Screen
+        name="EditProfileScreen"
+        component={EditProfileScreen}
+        options={{ title: 'Modifier mon profil' }}
+      />
+      <Stack.Screen
+        name="RecruiterOnboarding"
+        component={RecruiterOnboardingScreen}
+        options={{ title: 'Onboarding Recruteur' }}
+      />
+      <Stack.Screen
+        name="CreateCompany"
+        component={CreateCompanyScreen}
+        options={{ title: 'Créer une entreprise' }}
+      />
+      <Stack.Screen
+        name="JoinCompany"
+        component={JoinCompanyScreen}
+        options={{ title: 'Rejoindre une entreprise' }}
       />
     </Stack.Navigator>
   );
