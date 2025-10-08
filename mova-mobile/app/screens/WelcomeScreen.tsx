@@ -2,19 +2,19 @@ import React from 'react';
 import { StyleSheet, View, Text, Dimensions, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MovaLogo from '@/components/ui/MovaLogo';
-import { useAuth } from '../../contexts/AuthContext'; // ✅ Utilise le AuthProvider
+import { useAuth } from '../../contexts/AuthContext'; // Utilise le AuthProvider
 
 const { height, width } = Dimensions.get('window');
 
 export default function WelcomeScreen({ navigation }: any) {
-  // ✅ Utilise les fonctions du AuthProvider
+  // Utilise les fonctions du AuthProvider
   const { isAuthenticated, user, login, logout, loading } = useAuth();
 
   const handleAuthAction = () => {
     if (isAuthenticated) {
-      logout(); // ✅ Fonction logout du AuthProvider
+      logout(); // Fonction logout du AuthProvider
     } else {
-      login(); // ✅ Fonction login du AuthProvider  
+      login(); // Fonction login du AuthProvider  
     }
   };
 
@@ -77,11 +77,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: height * 0.08,
+    marginTop: height * 0.2,
   },
   slogan: {
     fontSize: width * 0.055,
@@ -108,9 +108,9 @@ const styles = StyleSheet.create({
     marginTop: height * 0.04,
   },
   gradientButton: {
-    borderRadius: 30,
-    width: width * 0.7,
-    height: 54,
+    borderRadius: 25,
+    width: width * 0.8,
+    height: height * 0.09,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -123,25 +123,9 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontSize: width * 0.045,
-    fontWeight: 'bold',
-    letterSpacing: 1,
-  },
-  gradientButton: {
-    width: '95%',
-    borderRadius: 25,
-    alignSelf: 'center',
-    paddingVertical: height * 0.03,
-  },
-  pressable: {
-    width: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-    color: '#fff',
     fontSize: width * 0.055,
     fontWeight: 'bold',
+    letterSpacing: 1,
     textAlign: 'center',
   },
 });
