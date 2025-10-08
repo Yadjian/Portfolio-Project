@@ -39,16 +39,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: height * 0.08,
+    justifyContent: 'flex-start',
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: height * 0.05, 
+    marginBottom: height * 0.1,
+    marginTop: height * 0.05
   },
   content: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: height * 0.04,
   },
   title: {
     fontSize: 30,
