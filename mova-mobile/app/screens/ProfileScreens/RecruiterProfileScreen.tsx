@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, useWindowDimensions } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, Button, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import ActiveToggle from '../../../components/ui/ActiveToggle';
 import RecruiterCard from '../../../components/ui/RecruiterCard';
 import EditProfileButton from '../../../components/ui/EditProfileButton';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
+import * as ImagePicker from 'expo-image-picker';
 
 export default function RecruiterProfileScreen() {
   const [isActive, setIsActive] = useState(true);
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
 
-  const userType = 'recruteur';
+  // Ajout état édition
+  const [isEditing, setIsEditing] = useState(false);
 
-  const recruiter = {
+  // Données modifiables
+  const [recruiter, setRecruiter] = useState({
     companyName: 'TechCorp Solutions',
     location: 'Lyon, France',
     avatarUrl: '',
@@ -22,15 +25,42 @@ export default function RecruiterProfileScreen() {
     experienceRequired: 'Intermédiaire',
     contractType: 'CDI',
     presentation: "Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et innovative !",
-  };
+  });
 
   const handleToggleActive = (value: boolean) => {
     setIsActive(value);
     console.log(`Statut changé: ${value ? 'Activé' : 'Désactivé'}`);
   };
 
+  // Basculer édition/lecture
   const handleEditProfile = () => {
-    console.log('Modifier le profil recruteur');
+    setIsEditing(!isEditing);
+  };
+
+  // Sauvegarder les modifications
+  const handleSave = async () => {
+    // Ajoute ici ta logique d'API si besoin
+    setIsEditing(false);
+  };
+
+  // Annuler édition
+  const handleCancel = () => {
+    setIsEditing(false);
+    // Optionnel : remettre les anciennes valeurs si tu veux
+  };
+
+  // Changer la photo
+  const handleImagePicker = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setRecruiter(prev => ({ ...prev, avatarUrl: result.assets[0].uri }));
+    }
   };
 
   const getTabsForUserType = () => [
@@ -59,7 +89,7 @@ export default function RecruiterProfileScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#fffffffb' }}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01, }]}>
+        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
           <SmallMovaLogo />
           <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035, color: '#6746a8' }]}>ID CARD</Text>
         </View>
@@ -78,6 +108,7 @@ export default function RecruiterProfileScreen() {
           </View>
         </View>
 
+        {/* RecruiterCard avec props d'édition */}
         <RecruiterCard
           avatarUrl={recruiter.avatarUrl}
           companyName={recruiter.companyName}
@@ -86,7 +117,24 @@ export default function RecruiterProfileScreen() {
           experienceRequired={recruiter.experienceRequired}
           contractType={recruiter.contractType}
           presentation={recruiter.presentation}
+          isEditing={isEditing}
+          onFieldChange={(field, value) => setRecruiter(prev => ({ ...prev, [field]: value }))}
+          onImagePicker={handleImagePicker}
         />
+
+        {/* Boutons d'action en mode édition */}
+        {isEditing && (
+          <View style={[styles.buttonContainer, { paddingHorizontal: width * 0.06 }]}>
+            <View style={styles.buttonRow}>
+              <View style={styles.buttonWrapper}>
+                <Button title="Enregistrer" onPress={handleSave} />
+              </View>
+              <View style={styles.buttonWrapper}>
+                <Button title="Annuler" onPress={handleCancel} color="#999" />
+              </View>
+            </View>
+          </View>
+        )}
 
         <View style={styles.container}>
           <View style={{ height: height * 0.08 }} />
@@ -119,5 +167,16 @@ const styles = StyleSheet.create({
   },
   toggleWrapper: {
     flex: 1,
+  },
+  buttonContainer: {
+    marginVertical: 20,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  buttonWrapper: {
+    flex: 1,
+    marginHorizontal: 5,
   },
 });
