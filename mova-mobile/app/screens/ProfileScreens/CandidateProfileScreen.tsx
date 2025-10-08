@@ -11,7 +11,6 @@ import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
 import { getCurrentUser, updateProfile } from '../../../services/api';
 import * as ImagePicker from 'expo-image-picker';
 
-// Get device width and height
 const { width, height } = Dimensions.get('window');
 
 export default function CandidateProfileScreen() {
@@ -22,19 +21,17 @@ export default function CandidateProfileScreen() {
   const [firstEdit, setFirstEdit] = useState(startEditing);
   const [isActive, setIsActive] = useState(true);
 
-  // Données modifiables (au lieu de constante)
   const [candidate, setCandidate] = useState({
-    firstName: 'Lucas',
-    lastName: 'Boyadjian',
-    location: 'Paris, France',
+    firstName: '',
+    lastName: '',
+    location: '',
     avatarUrl: '',
-    job: 'Développeur Front-end',
-    experience: 'Débutant',
-    contractType: 'CDI',
-    presentation: "Débutant en développement front-end, mais talentueux et prêt à vous surprendre !",
+    job: '',
+    experience: '',
+    contractType: '',
+    presentation: '',
   });
 
-  // Ajoute ce useEffect pour charger les vraies données
   useEffect(() => {
     async function fetchUser() {
       try {
@@ -59,17 +56,15 @@ export default function CandidateProfileScreen() {
 
   const handleToggleActive = (value: boolean) => {
     setIsActive(value);
-    console.log(`Statut changé: ${value ? 'Activé' : 'Désactivé'}`);
   };
 
-  // Basculer entre mode lecture/édition
+  // Empêche de quitter le mode édition à la première édition
   const handleEditProfile = () => {
+    if (firstEdit) return;
     setIsEditing(!isEditing);
   };
 
-  // Sauvegarder les modifications
   const handleSave = async () => {
-    // Vérifie que tous les champs sauf présentation sont remplis
     if (
       !candidate.firstName ||
       !candidate.lastName ||
@@ -84,13 +79,12 @@ export default function CandidateProfileScreen() {
     try {
       await updateProfile(candidate);
       setIsEditing(false);
-      setFirstEdit(false); // Permet d'afficher le bouton Annuler après la première édition
+      setFirstEdit(false); // Après la première sauvegarde, édition normale
     } catch (error) {
       console.error('Erreur lors de la sauvegarde:', error);
     }
   };
 
-  // Changer la photo
   const handleImagePicker = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -112,21 +106,21 @@ export default function CandidateProfileScreen() {
       iconName: 'card-outline',
       iconNameActive: 'card',
       label: 'Mon Profil',
-      onPress: () => console.log('Déjà sur Mon Profil'),
+      onPress: () => {},
     },
     {
       id: 'cv',
       iconName: 'document-text-outline',
       iconNameActive: 'document-text',
       label: 'Mon CV',
-      onPress: () => console.log('Navigation vers Mon CV'),
+      onPress: () => {},
     },
     {
       id: 'matches',
       iconName: 'heart-outline',
       iconNameActive: 'heart',
       label: 'Matchs',
-      onPress: () => console.log('Navigation vers Mes matchs'),
+      onPress: () => {},
     },
     {
       id: 'home',
@@ -140,7 +134,7 @@ export default function CandidateProfileScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: '#fffffffb' }}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01, }]}>
+        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
           <SmallMovaLogo />
           <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035, color: '#6746a8' }]}>ID CARD</Text>
         </View>
@@ -149,17 +143,21 @@ export default function CandidateProfileScreen() {
 
         <View style={[styles.container, { paddingHorizontal: width * 0.06 }]}>
           <View style={[styles.actionRow, { marginBottom: height * 0.01, paddingHorizontal: width * 0.01 }]}>
-            <View style={styles.toggleWrapper}>
-              <ActiveToggle 
-                initialValue={isActive}
-                onToggle={handleToggleActive}
-              />
-            </View>
-            <EditProfileButton onPress={handleEditProfile} />
+            {/* Masque les boutons secondaires lors de la première édition */}
+            {!firstEdit && (
+              <>
+                <View style={styles.toggleWrapper}>
+                  <ActiveToggle 
+                    initialValue={isActive}
+                    onToggle={handleToggleActive}
+                  />
+                </View>
+                <EditProfileButton onPress={handleEditProfile} />
+              </>
+            )}
           </View>
         </View>
 
-        {/* CandidateCard avec props d'édition */}
         <CandidateCard
           avatarUrl={candidate.avatarUrl}
           firstName={candidate.firstName}
@@ -174,7 +172,6 @@ export default function CandidateProfileScreen() {
           onImagePicker={handleImagePicker}
         />
 
-        {/* ✅ Boutons d'action en mode édition */}
         {isEditing && (
           <View style={styles.buttonContainer}>
             <Button title="Enregistrer" onPress={handleSave} />
@@ -186,7 +183,8 @@ export default function CandidateProfileScreen() {
           <View style={{ height: height * 0.08 }} />
         </View>
       </ScrollView>
-      <BottomTabBar tabs={getTabsForCandidate()} activeTabId="profile" />
+      {/* Masque la BottomTabBar lors de la première édition */}
+      {!firstEdit && <BottomTabBar tabs={getTabsForCandidate()} activeTabId="profile" />}
     </View>
   );
 }

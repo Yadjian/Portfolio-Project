@@ -35,11 +35,11 @@ export default function RecruiterProfileScreen() {
 
   const handleToggleActive = (value: boolean) => {
     setIsActive(value);
-    console.log(`Statut changé: ${value ? 'Activé' : 'Désactivé'}`);
   };
 
-  // Basculer édition/lecture
+  // Empêche de quitter le mode édition à la première édition
   const handleEditProfile = () => {
+    if (firstEdit) return;
     setIsEditing(!isEditing);
   };
 
@@ -115,13 +115,18 @@ export default function RecruiterProfileScreen() {
 
         <View style={[styles.container, { paddingHorizontal: width * 0.06 }]}>
           <View style={[styles.actionRow, { marginBottom: height * 0.01, paddingHorizontal: width * 0.01 }]}>
-            <View style={styles.toggleWrapper}>
-              <ActiveToggle 
-                initialValue={isActive}
-                onToggle={handleToggleActive}
-              />
-            </View>
-            <EditProfileButton onPress={handleEditProfile} />
+            {/* Masque les boutons secondaires lors de la première édition */}
+            {!firstEdit && (
+              <>
+                <View style={styles.toggleWrapper}>
+                  <ActiveToggle 
+                    initialValue={isActive}
+                    onToggle={handleToggleActive}
+                  />
+                </View>
+                <EditProfileButton onPress={handleEditProfile} />
+              </>
+            )}
           </View>
         </View>
 
@@ -151,7 +156,8 @@ export default function RecruiterProfileScreen() {
           <View style={{ height: height * 0.08 }} />
         </View>
       </ScrollView>
-      <BottomTabBar tabs={getTabsForUserType()} activeTabId="profile" />
+      {/* Masque la BottomTabBar lors de la première édition */}
+      {!firstEdit && <BottomTabBar tabs={getTabsForUserType()} activeTabId="profile" />}
     </View>
   );
 }
