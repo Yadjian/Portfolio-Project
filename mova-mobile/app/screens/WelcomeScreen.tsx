@@ -2,19 +2,19 @@ import React from 'react';
 import { StyleSheet, View, Text, Dimensions, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import MovaLogo from '@/components/ui/MovaLogo';
-import { useAuth } from '../../contexts/AuthContext'; // ✅ Utilise le AuthProvider
+import { useAuth } from '../../contexts/AuthContext'; // Utilise le AuthProvider
 
 const { height, width } = Dimensions.get('window');
 
 export default function WelcomeScreen({ navigation }: any) {
-  // ✅ Utilise les fonctions du AuthProvider
+  // Utilise les fonctions du AuthProvider
   const { isAuthenticated, user, login, logout, loading } = useAuth();
 
   const handleAuthAction = () => {
     if (isAuthenticated) {
-      logout(); // ✅ Fonction logout du AuthProvider
+      logout(); // Fonction logout du AuthProvider
     } else {
-      login(); // ✅ Fonction login du AuthProvider  
+      login(); // Fonction login du AuthProvider  
     }
   };
 
