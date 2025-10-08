@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ViewStyle, useWindowDimensions } from 'react-native';
+import { View, Text, Image, ViewStyle, TextInput, TouchableOpacity, useWindowDimensions, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-interface IdentityCardProps {
+interface CandidateCardProps {
   avatarUrl: string;
   firstName: string;
   lastName: string;
@@ -12,14 +12,13 @@ interface IdentityCardProps {
   contractType?: string;
   presentation?: string;
   style?: ViewStyle;
+  isEditing?: boolean;
+  onFieldChange?: (field: string, value: string) => void;
+  onImagePicker?: () => void;
 }
 
-// Découpe le texte pour utiliser TOUTE LA LARGEUR de l'ID card
 function splitPresentation(text: string, screenWidth: number): string[] {
   if (!text) return ['', '', ''];
-  const cardWidth = screenWidth * 0.9;
-  const cardPadding = screenWidth * 0.03;
-  const availableWidth = cardWidth - cardPadding;
   let maxCharsPerLine = 35;
   if (screenWidth > 350) maxCharsPerLine = 40;
   if (screenWidth > 400) maxCharsPerLine = 45;
@@ -42,8 +41,8 @@ function splitPresentation(text: string, screenWidth: number): string[] {
   return lines;
 }
 
-export default function IdentityCard({ 
-  avatarUrl, 
+export default function CandidateCard({
+  avatarUrl,
   firstName,
   lastName,
   location,
@@ -51,21 +50,25 @@ export default function IdentityCard({
   experience = "Intermédiaire",
   contractType = "CDI",
   presentation = "",
-  style 
-}: IdentityCardProps) {
+  style: customStyle,
+  isEditing = false,
+  onFieldChange,
+  onImagePicker,
+}: CandidateCardProps) {
   const { width, height } = useWindowDimensions();
   const lines = splitPresentation(presentation, width);
 
-  // Tailles dynamiques
   const cardPadding = width * 0.03;
   const borderRadius = 12;
   const borderWidth = 2;
   const gradientPadding = 2;
+  const photoWidth = width * 0.31;
+  const photoHeight = photoWidth * 1.2;
 
-  const dynamicStyles = {
+  const dynamicStyles = StyleSheet.create({
     gradientBorder: {
       width: width * 0.9,
-      alignSelf: 'center' as const,
+      alignSelf: 'center',
       borderRadius: borderRadius + borderWidth,
       padding: gradientPadding,
       marginVertical: height * 0.012,
@@ -82,8 +85,9 @@ export default function IdentityCard({
       flex: 1,
     },
     topSection: {
-      flexDirection: 'row' as const,
+      flexDirection: 'row',
       marginBottom: 0,
+      alignItems: 'flex-start',
     },
     photoGradientBorder: {
       borderRadius: 10,
@@ -91,23 +95,30 @@ export default function IdentityCard({
       marginRight: width * 0.04,
     },
     photoContainer: {
+      width: photoWidth,
+      height: photoHeight,
       borderRadius: 8,
-      overflow: 'hidden' as const,
+      overflow: 'hidden',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 0,
+      borderColor: 'transparent',
+      borderStyle: 'solid',
+      backgroundColor: '#f8f9fa',
     },
     photo: {
-      width: width * 0.31,
-      height: width * 0.31 * 1.2,
+      width: photoWidth,
+      height: photoHeight,
       borderRadius: 8,
       backgroundColor: '#f8f9fa',
     },
     mainInfo: {
       flex: 1,
-      justifyContent: 'flex-start' as const,
+      justifyContent: 'flex-start',
       paddingTop: 4,
     },
     name: {
       fontSize: width * 0.055,
-      fontWeight: '700' as const,
       color: '#1a1a1a',
       marginBottom: 4,
       letterSpacing: -0.3,
@@ -115,25 +126,21 @@ export default function IdentityCard({
     location: {
       fontSize: width * 0.042,
       color: '#333',
-      fontWeight: '600' as const,
       marginBottom: 4,
     },
     job: {
       fontSize: width * 0.042,
       color: '#333',
-      fontWeight: '600' as const,
       marginBottom: 4,
     },
     experience: {
       fontSize: width * 0.042,
       color: '#333',
-      fontWeight: '600' as const,
       marginBottom: 4,
     },
     contractType: {
       fontSize: width * 0.042,
       color: '#333',
-      fontWeight: '600' as const,
       marginBottom: 4,
     },
     detailsSection: {
@@ -143,15 +150,14 @@ export default function IdentityCard({
     },
     lineContainer: {
       marginBottom: height * 0.008,
-      position: 'relative' as const,
+      position: 'relative',
       minHeight: height * 0.035,
-      justifyContent: 'center' as const,
+      justifyContent: 'center',
     },
     presentationText: {
       fontSize: width * 0.042,
       color: '#333',
-      textAlign: 'left' as const,
-      fontWeight: '500' as const,
+      textAlign: 'left',
       paddingRight: 8,
       paddingLeft: 2,
       backgroundColor: 'transparent',
@@ -159,7 +165,7 @@ export default function IdentityCard({
       lineHeight: width * 0.042 * 1.5,
     },
     separator: {
-      position: 'absolute' as const,
+      position: 'absolute',
       left: 0,
       right: 0,
       bottom: 4,
@@ -168,7 +174,42 @@ export default function IdentityCard({
       zIndex: 1,
       borderRadius: 1,
     },
-  };
+    editableField: {
+      borderWidth: 0,
+      backgroundColor: 'transparent',
+      color: '#1a1a1a',
+      marginBottom: 0,
+      padding: 0,
+      fontSize: width * 0.042,
+      textAlign: 'left',
+    },
+    photoEditOverlay: {
+      position: 'absolute',
+      bottom: 8,
+      right: 8,
+      backgroundColor: '#6746a8',
+      borderRadius: 16,
+      width: 32,
+      height: 32,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 10,
+    },
+    photoEditText: {
+      color: '#fff',
+      fontSize: 18,
+    },
+  });
+
+  // Bordure dynamique pour la photo en édition
+  const photoContainerStyle = [
+    dynamicStyles.photoContainer,
+    isEditing ? {
+      borderWidth: 2,
+      borderColor: '#6746a8',
+      borderStyle: 'dashed',
+    } as ViewStyle : null,
+  ].filter(Boolean);
 
   return (
     <LinearGradient
@@ -177,7 +218,7 @@ export default function IdentityCard({
       end={{ x: 1, y: 1 }}
       style={dynamicStyles.gradientBorder}
     >
-  <View style={[dynamicStyles.container, style || {}]}>
+      <View style={[dynamicStyles.container, customStyle || {}]}>
         <View style={dynamicStyles.topSection}>
           <LinearGradient
             colors={['#6746a8', '#6b25f9', '#07b9ff']}
@@ -185,31 +226,107 @@ export default function IdentityCard({
             end={{ x: 1, y: 1 }}
             style={dynamicStyles.photoGradientBorder}
           >
-                <View style={dynamicStyles.photoContainer}>
-              <Image source={{ uri: avatarUrl }} style={dynamicStyles.photo} />
+            <View style={photoContainerStyle}>
+              <TouchableOpacity
+                onPress={isEditing ? onImagePicker : undefined}
+                activeOpacity={isEditing ? 0.7 : 1}
+                style={{ width: photoWidth, height: photoHeight, borderRadius: 8 }}
+              >
+                <Image
+                  source={avatarUrl ? { uri: avatarUrl } : require('../../assets/images/icon.png')}
+                  style={dynamicStyles.photo}
+                />
+                {isEditing && (
+                  <View style={dynamicStyles.photoEditOverlay}>
+                    <Text style={dynamicStyles.photoEditText}>📷</Text>
+                  </View>
+                )}
+              </TouchableOpacity>
             </View>
           </LinearGradient>
           <View style={dynamicStyles.mainInfo}>
-            <Text style={dynamicStyles.name}>{firstName} {lastName}</Text>
-            {location && <Text style={dynamicStyles.location}>{location}</Text>}
-            <Text style={dynamicStyles.job}>{job}</Text>
-            <Text style={dynamicStyles.experience}>{experience}</Text>
-            <Text style={dynamicStyles.contractType}>{contractType}</Text>
+            {isEditing ? (
+              <>
+                <TextInput
+                  value={firstName}
+                  onChangeText={text => onFieldChange?.('firstName', text)}
+                  style={[dynamicStyles.name, dynamicStyles.editableField, { fontWeight: 'normal' }]}
+                  placeholder="Prénom"
+                  underlineColorAndroid="transparent"
+                />
+                <TextInput
+                  value={lastName}
+                  onChangeText={text => onFieldChange?.('lastName', text)}
+                  style={[dynamicStyles.name, dynamicStyles.editableField, { fontWeight: 'normal' }]}
+                  placeholder="Nom"
+                  underlineColorAndroid="transparent"
+                />
+                <TextInput
+                  value={location}
+                  onChangeText={text => onFieldChange?.('location', text)}
+                  style={[dynamicStyles.location, dynamicStyles.editableField, { fontWeight: 'normal' }]}
+                  placeholder="Localisation"
+                  underlineColorAndroid="transparent"
+                />
+                <TextInput
+                  value={job}
+                  onChangeText={text => onFieldChange?.('job', text)}
+                  style={[dynamicStyles.job, dynamicStyles.editableField, { fontWeight: 'normal' }]}
+                  placeholder="Poste"
+                  underlineColorAndroid="transparent"
+                />
+                <TextInput
+                  value={experience}
+                  onChangeText={text => onFieldChange?.('experience', text)}
+                  style={[dynamicStyles.experience, dynamicStyles.editableField, { fontWeight: 'normal' }]}
+                  placeholder="Expérience"
+                  underlineColorAndroid="transparent"
+                />
+                <TextInput
+                  value={contractType}
+                  onChangeText={text => onFieldChange?.('contractType', text)}
+                  style={[dynamicStyles.contractType, dynamicStyles.editableField, { fontWeight: 'normal' }]}
+                  placeholder="Type de contrat"
+                  underlineColorAndroid="transparent"
+                />
+              </>
+            ) : (
+              <>
+                <Text style={[dynamicStyles.name, { fontWeight: '700' }]}>{firstName} {lastName}</Text>
+                {location && <Text style={[dynamicStyles.location, { fontWeight: '600' }]}>{location}</Text>}
+                <Text style={[dynamicStyles.job, { fontWeight: '600' }]}>{job}</Text>
+                <Text style={[dynamicStyles.experience, { fontWeight: '600' }]}>{experience}</Text>
+                <Text style={[dynamicStyles.contractType, { fontWeight: '600' }]}>{contractType}</Text>
+              </>
+            )}
           </View>
         </View>
         <View style={dynamicStyles.detailsSection}>
-          <View style={dynamicStyles.lineContainer}>
-            <Text style={dynamicStyles.presentationText}>{lines[0] || ' '}</Text>
-            <View style={dynamicStyles.separator} />
-          </View>
-          <View style={dynamicStyles.lineContainer}>
-            <Text style={dynamicStyles.presentationText}>{lines[1] || ' '}</Text>
-            <View style={dynamicStyles.separator} />
-          </View>
-          <View style={dynamicStyles.lineContainer}>
-            <Text style={dynamicStyles.presentationText}>{lines[2] || ' '}</Text>
-            <View style={dynamicStyles.separator} />
-          </View>
+          {isEditing ? (
+            <TextInput
+              value={presentation}
+              onChangeText={text => onFieldChange?.('presentation', text)}
+              style={[dynamicStyles.presentationText, dynamicStyles.editableField, { fontWeight: 'normal' }]}
+              placeholder="Présentation"
+              multiline
+              underlineColorAndroid="transparent"
+            />
+          ) : (
+            <>
+              <View style={dynamicStyles.lineContainer}>
+                <Text style={[dynamicStyles.presentationText, { fontWeight: '500' }]}>{lines[0] || ' '}</Text>
+                <View style={dynamicStyles.separator} />
+              </View>
+              <View style={dynamicStyles.lineContainer}>
+                <Text style={[dynamicStyles.presentationText, { fontWeight: '500' }]}>{lines[1] || ' '}</Text>
+                <View style={dynamicStyles.separator} />
+              </View>
+              <View style={dynamicStyles.lineContainer}>
+                <Text style={[dynamicStyles.presentationText, { fontWeight: '500' }]}>{lines[2] || ' '}</Text>
+                <View style={dynamicStyles.separator} />
+              </View>
+            </>
+          )}
         </View>
       </View>
     </LinearGradient>
