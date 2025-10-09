@@ -58,7 +58,7 @@ export default function JoinCompanyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fffffffb',
     justifyContent: 'flex-start',
   },
   logoContainer: {

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, Button, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../lib/types';
 import ActiveToggle from '../../../components/ui/ActiveToggle';
 import RecruiterCard from '../../../components/ui/RecruiterCard';
@@ -15,7 +16,7 @@ export default function RecruiterProfileScreen() {
   const startEditing = route.params?.startEditing === true;
 
   const [isActive, setIsActive] = useState(true);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { width, height } = useWindowDimensions();
 
   // Ajout état édition
@@ -124,7 +125,7 @@ export default function RecruiterProfileScreen() {
                     onToggle={handleToggleActive}
                   />
                 </View>
-                <EditProfileButton onPress={handleEditProfile} />
+                <EditProfileButton onPress={() => navigation.navigate('EditProfileScreen', { userType: 'recruteur' })} />
               </>
             )}
           </View>

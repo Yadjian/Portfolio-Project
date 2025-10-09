@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, Text, Button, Dimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, StyleSheet, ScrollView, Text, Dimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -9,17 +9,21 @@ import CandidateCard from '../../../components/ui/CandidateCard';
 import EditProfileButton from '../../../components/ui/EditProfileButton';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
-import { getCurrentUser, updateProfile } from '../../../services/api';
-import * as ImagePicker from 'expo-image-picker';
+import { getCurrentUser } from '../../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
 export default function CandidateProfileScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'CandidateProfile'>>();
-  const startEditing = route.params?.startEditing === true;
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
-  const [isEditing, setIsEditing] = useState(startEditing);
-  const [firstEdit, setFirstEdit] = useState(startEditing);
+  // Redirection automatique à la première connexion
+  useEffect(() => {
+    if (route.params?.startEditing) {
+      navigation.replace('EditProfileScreen', { userType: 'candidat' });
+    }
+  }, [route.params?.startEditing, navigation]);
+
   const [isActive, setIsActive] = useState(true);
 
   const [candidate, setCandidate] = useState({
@@ -59,42 +63,6 @@ export default function CandidateProfileScreen() {
     setIsActive(value);
   };
 
-  // Empêche de quitter le mode édition à la première édition
-  const handleEditProfile = () => {
-    if (firstEdit) return;
-    setIsEditing(!isEditing);
-  };
-
-  const handleSave = async () => {
-    // Pour les tests sans backend, on quitte juste le mode édition
-    setIsEditing(false);
-    setFirstEdit(false); // Après la première sauvegarde, édition normale
-
-    // Appel backend désactivé temporairement
-    // try {
-    //   await updateProfile(candidate);
-    //   setIsEditing(false);
-    //   setFirstEdit(false); // Après la première sauvegarde, édition normale
-    // } catch (error) {
-    //   console.error('Erreur lors de la sauvegarde:', error);
-    // }
-  };
-
-  const handleImagePicker = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setCandidate(prev => ({ ...prev, avatarUrl: result.assets[0].uri }));
-    }
-  };
-
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-
   const getTabsForCandidate = () => [
     {
       id: 'profile',
@@ -122,7 +90,7 @@ export default function CandidateProfileScreen() {
       iconName: 'home-outline',
       iconNameActive: 'home',
       label: 'Home',
-      onPress: () => navigation.navigate('Welcome'), // <-- ici, c'est bon !
+      onPress: () => navigation.navigate('Welcome'),
     }
   ];
 
@@ -131,25 +99,22 @@ export default function CandidateProfileScreen() {
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
           <SmallMovaLogo />
-          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035, color: '#6746a8' }]}>ID CARD</Text>
+          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035, color: '#6746a8' }]}>Mon Profil</Text>
         </View>
 
         <View style={{ height: height * 0.055 }} />
 
         <View style={[styles.container, { paddingHorizontal: width * 0.06 }]}>
           <View style={[styles.actionRow, { marginBottom: height * 0.01, paddingHorizontal: width * 0.01 }]}>
-            {/* Masque les boutons secondaires lors de la première édition */}
-            {!firstEdit && (
-              <>
-                <View style={styles.toggleWrapper}>
-                  <ActiveToggle 
-                    initialValue={isActive}
-                    onToggle={handleToggleActive}
-                  />
-                </View>
-                <EditProfileButton onPress={handleEditProfile} />
-              </>
-            )}
+            <View style={styles.toggleWrapper}>
+              <ActiveToggle 
+                initialValue={isActive}
+                onToggle={handleToggleActive}
+              />
+            </View>
+            <EditProfileButton
+              onPress={() => navigation.navigate('EditProfileScreen', { userType: 'candidat' })}
+            />
           </View>
         </View>
 
@@ -162,24 +127,13 @@ export default function CandidateProfileScreen() {
           experience={candidate.experience}
           contractType={candidate.contractType}
           presentation={candidate.presentation}
-          isEditing={isEditing}
-          onFieldChange={(field, value) => setCandidate(prev => ({ ...prev, [field]: value }))}
-          onImagePicker={handleImagePicker}
         />
-
-        {isEditing && (
-          <View style={styles.buttonContainer}>
-            <Button title="Enregistrer" onPress={handleSave} />
-            {!firstEdit && <Button title="Annuler" onPress={() => setIsEditing(false)} color="#999" />}
-          </View>
-        )}
 
         <View style={styles.container}>
           <View style={{ height: height * 0.08 }} />
         </View>
       </ScrollView>
-      {/* Masque la BottomTabBar lors de la première édition */}
-      {!firstEdit && <BottomTabBar tabs={getTabsForCandidate()} activeTabId="profile" />}
+      <BottomTabBar tabs={getTabsForCandidate()} activeTabId="profile" />
     </View>
   );
 }
@@ -206,16 +160,5 @@ const styles = StyleSheet.create({
   },
   toggleWrapper: {
     flex: 1,
-  },
-  buttonContainer: {
-    marginVertical: 20,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  buttonWrapper: {
-    flex: 1,
-    marginHorizontal: 5,
   },
 });

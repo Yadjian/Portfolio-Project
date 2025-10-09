@@ -1,141 +1,436 @@
 import React, { useState } from 'react';
-import { View, TextInput, Button, Alert, StyleSheet, Text } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { View, Text, TextInput, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { AuthStackParamList } from '../../../lib/types';
-import { updateProfile } from '../../../services/api';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable } from 'react-native';
+import { updateProfile } from '../../../services/api';
+import * as ImagePicker from 'expo-image-picker';
+import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
+import { MaterialIcons } from '@expo/vector-icons';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 export default function EditProfileScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'EditProfileScreen'>>();
   const { userType } = route.params;
 
-  // Champs communs
+  // Champs pour candidat
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [location, setLocation] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [job, setJob] = useState('');
+  const [jobModalVisible, setJobModalVisible] = useState(false);
+  const [experience, setExperience] = useState('');
+  const [contractType, setContractType] = useState('');
   const [presentation, setPresentation] = useState('');
+  const [experienceModalVisible, setExperienceModalVisible] = useState(false);
+  const [contractModalVisible, setContractModalVisible] = useState(false);
 
-  // Champs candidat
-  const [name, setName] = useState('');
-  const [pronoun, setPronoun] = useState('');
-
-  // Champs recruteur
-  const [company, setCompany] = useState('');
+  // Champs pour recruteur
+  const [companyName, setCompanyName] = useState('');
+  const [companyLocation, setCompanyLocation] = useState('');
+  const [companyAvatarUrl, setCompanyAvatarUrl] = useState('');
+  const [jobSeeking, setJobSeeking] = useState('');
+  const [experienceRequired, setExperienceRequired] = useState('');
+  const [companyContractType, setCompanyContractType] = useState('');
+  const [companyPresentation, setCompanyPresentation] = useState('');
   const [siret, setSiret] = useState('');
 
   const handleSubmit = async () => {
-    // Restriction désactivée pour les tests
-    // if (userType === 'candidat' && (!name || !pronoun)) {
-      // return Alert.alert('Erreur', 'Nom et pronom obligatoires');
-    // }
-    // if (userType === 'recruteur' && (!company || !siret)) {
-      // return Alert.alert('Erreur', "Nom de l'entreprise et Siret obligatoires");
+    // Restrictions désactivées pour les tests
+    // if (userType === 'candidat') {
+    //   if (!firstName || !lastName || !location || !job || !experience || !contractType) {
+    //     alert('Tous les champs sont obligatoires sauf la présentation.');
+    //     return;
+    //   }
+    //   try {
+    //     await updateProfile({
+    //       firstName,
+    //       lastName,
+    //       location,
+    //       job,
+    //       experience,
+    //       contractType,
+    //       presentation,
+    //     });
+    //     navigation.replace('CandidateProfile', { startEditing: false });
+    //   } catch (error) {
+    //     alert("Erreur lors de l'enregistrement du profil.");
+    //     console.error(error);
+    //   }
+    // } else {
+    //   if (!companyName || !companyLocation || !jobSeeking || !experienceRequired || !companyContractType || !siret) {
+    //     alert('Tous les champs sont obligatoires sauf la présentation.');
+    //     return;
+    //   }
+    //   try {
+    //     await updateProfile({
+    //       companyName,
+    //       companyLocation,
+    //       jobSeeking,
+    //       experienceRequired,
+    //       contractType: companyContractType,
+    //       presentation: companyPresentation,
+    //       siret,
+    //     });
+    //     navigation.replace('RecruiterProfile', { startEditing: false });
+    //   } catch (error) {
+    //     alert("Erreur lors de l'enregistrement du profil.");
+    //     console.error(error);
+    //   }
     // }
 
-    let profileData: any = { presentation };
+    // Navigation directe sans backend ni restriction :
     if (userType === 'candidat') {
-      profileData.name = name;
-      profileData.pronoun = pronoun;
-    } else if (userType === 'recruteur') {
-      profileData.company = company;
-      profileData.siret = siret;
-    }
-
-    try {
-      await updateProfile(profileData);
-      Alert.alert('Succès', 'Profil mis à jour !');
-    } catch (error) {
-      Alert.alert('Erreur', 'La mise à jour a échoué.');
+      navigation.replace('CandidateProfile', { startEditing: false });
+    } else {
+      navigation.replace('RecruiterProfile', { startEditing: false });
     }
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={styles.container}
+      enableOnAndroid={true}
+      extraScrollHeight={120} // augmente si besoin pour le champ présentation
+      keyboardShouldPersistTaps="handled"
+    >
+      <View style={styles.logoContainer}>
+        <SmallMovaLogo />
+      </View>
       <Text style={styles.title}>Complétez votre profil</Text>
-      {userType === 'candidat' && (
+      {userType === 'candidat' ? (
         <>
+          <View style={{ alignSelf: 'center', marginBottom: 16 }}>
+            <Pressable onPress={async () => {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [31, 37],
+                quality: 0.7,
+              });
+              if (!result.canceled && result.assets && result.assets.length > 0) {
+                setAvatarUrl(result.assets[0].uri);
+              }
+            }}>
+              <View style={{ width: 120, height: 144 }}>
+                <Image
+                  source={avatarUrl ? { uri: avatarUrl } : require('../../../assets/images/icon.png')}
+                  style={{
+                    width: 120,
+                    height: 144,
+                    borderRadius: 8,
+                    borderWidth: 2,
+                    borderColor: '#6746a8',
+                    backgroundColor: '#f8f9fa',
+                  }}
+                />
+                <View style={{
+                  position: 'absolute',
+                  right: 6,
+                  bottom: 6,
+                  backgroundColor: '#fff',
+                  borderRadius: 16,
+                  padding: 2,
+                  elevation: 2,
+                }}>
+                  <MaterialIcons name="photo-camera" size={24} color="#6746a8" />
+                </View>
+              </View>
+            </Pressable>
+          </View>
           <TextInput
             style={styles.input}
-            placeholder="Nom (obligatoire)"
-            value={name}
-            onChangeText={setName}
+            placeholder="Prénom"
+            value={firstName}
+            onChangeText={setFirstName}
           />
           <TextInput
             style={styles.input}
-            placeholder="Pronom (obligatoire)"
-            value={pronoun}
-            onChangeText={setPronoun}
+            placeholder="Nom"
+            value={lastName}
+            onChangeText={setLastName}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Localisation"
+            value={location}
+            onChangeText={setLocation}
+          />
+          {/* Picker custom pour Poste recherché */}
+          <Pressable
+            style={styles.input}
+            onPress={() => setJobModalVisible(true)}
+          >
+            <Text style={{ color: job ? '#222' : '#aaa', fontSize: 16 }}>
+              {job || 'Poste recherché'}
+            </Text>
+          </Pressable>
+          <Modal
+            visible={jobModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setJobModalVisible(false)}
+          >
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setJobModalVisible(false)}>
+              <View style={styles.modalContent}>
+                {[
+                  'Serveur(se)',
+                  'Vendeur(se) en boutique',
+                  'Animateur(trice) de colonie',
+                  'Cueilleur(se) de fruits',
+                  'Plagiste'
+                ].map(opt => (
+                  <Pressable
+                    key={opt}
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setJob(opt);
+                      setJobModalVisible(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>{opt}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+          {/* Picker custom pour Expérience */}
+          <Pressable
+            style={styles.input}
+            onPress={() => setExperienceModalVisible(true)}
+          >
+            <Text style={{ color: experience ? '#222' : '#aaa', fontSize: 16 }}>
+              {experience || 'Expérience'}
+            </Text>
+          </Pressable>
+          <Modal
+            visible={experienceModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setExperienceModalVisible(false)}
+          >
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setExperienceModalVisible(false)}>
+              <View style={styles.modalContent}>
+                {['Débutant', 'Intermédiaire', 'Senior'].map(opt => (
+                  <Pressable
+                    key={opt}
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setExperience(opt);
+                      setExperienceModalVisible(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>{opt}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+          {/* Picker custom pour Type de contrat */}
+          <Pressable
+            style={styles.input}
+            onPress={() => setContractModalVisible(true)}
+          >
+            <Text style={{ color: contractType ? '#222' : '#aaa', fontSize: 16 }}>
+              {contractType || 'Type de contrat'}
+            </Text>
+          </Pressable>
+          <Modal
+            visible={contractModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setContractModalVisible(false)}
+          >
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
+              <View style={styles.modalContent}>
+                {['CDI', 'CDD', 'STAGE', 'ALTERNANCE'].map(opt => (
+                  <Pressable
+                    key={opt}
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setContractType(opt);
+                      setContractModalVisible(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>{opt}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+          <TextInput
+            style={styles.input}
+            placeholder="Présentation (optionnel)"
+            value={presentation}
+            onChangeText={setPresentation}
+            multiline
           />
         </>
-      )}
-      {userType === 'recruteur' && (
+      ) : (
         <>
+          <Pressable
+            onPress={async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.7,
+            });
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              setCompanyAvatarUrl(result.assets[0].uri);
+            }
+          }}>
+            <Image
+              source={companyAvatarUrl ? { uri: companyAvatarUrl } : require('../../../assets/images/icon.png')}
+              style={{ width: 100, height: 100, borderRadius: 50, alignSelf: 'center', marginBottom: 8, borderWidth: 2, borderColor: '#6746a8' }}
+            />
+            <Text style={{ textAlign: 'center', color: '#6746a8', marginBottom: 16 }}>Modifier la photo</Text>
+          </Pressable>
           <TextInput
             style={styles.input}
-            placeholder="Nom de l'entreprise (obligatoire)"
-            value={company}
-            onChangeText={setCompany}
+            placeholder="Nom de l'entreprise"
+            value={companyName}
+            onChangeText={setCompanyName}
           />
           <TextInput
             style={styles.input}
-            placeholder="Numéro de Siret (obligatoire)"
+            placeholder="Localisation"
+            value={companyLocation}
+            onChangeText={setCompanyLocation}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Numéro SIRET"
             value={siret}
             onChangeText={setSiret}
             keyboardType="numeric"
           />
+          <TextInput
+            style={styles.input}
+            placeholder="Poste recherché"
+            value={jobSeeking}
+            onChangeText={setJobSeeking}
+          />
+          <Pressable
+            style={styles.input}
+            onPress={() => setExperienceModalVisible(true)}
+          >
+            <Text style={{ color: experienceRequired ? '#222' : '#aaa', fontSize: 16 }}>
+              {experienceRequired || 'Expérience'}
+            </Text>
+          </Pressable>
+          <Modal
+            visible={experienceModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setExperienceModalVisible(false)}
+          >
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setExperienceModalVisible(false)}>
+              <View style={styles.modalContent}>
+                {['Débutant', 'Intermédiaire', 'Senior'].map(opt => (
+                  <Pressable
+                    key={opt}
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setExperienceRequired(opt);
+                      setExperienceModalVisible(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>{opt}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+          <Pressable
+            style={styles.input}
+            onPress={() => setContractModalVisible(true)}
+          >
+            <Text style={{ color: companyContractType ? '#222' : '#aaa', fontSize: 16 }}>
+              {companyContractType || 'Type de contrat'}
+            </Text>
+          </Pressable>
+          <Modal
+            visible={contractModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setContractModalVisible(false)}
+          >
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
+              <View style={styles.modalContent}>
+                {['CDI', 'CDD', 'STAGE', 'ALTERNANCE'].map(opt => (
+                  <Pressable
+                    key={opt}
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setCompanyContractType(opt);
+                      setContractModalVisible(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>{opt}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+          <TextInput
+            style={styles.input}
+            placeholder="Présentation (optionnel)"
+            value={companyPresentation}
+            onChangeText={setCompanyPresentation}
+            multiline
+          />
         </>
       )}
-      <TextInput
-        style={styles.input}
-        placeholder="Présentation (optionnel)"
-        value={presentation}
-        onChangeText={setPresentation}
-        multiline
-      />
-      <LinearGradient
-        colors={['#6746a8', '#6b25f9', '#07b9ff']}
-        style={styles.button}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-      >
-        <Pressable
-          style={styles.pressable}
-          onPress={handleSubmit}
-          android_ripple={{ color: '#6b25f9' }}
+      <View style={styles.buttonRow}>
+        <LinearGradient
+          colors={['#6746a8', '#6b25f9', '#07b9ff']}
+          start={[0, 0]}
+          end={[1, 1]}
+          style={styles.gradientButton}
         >
-          <Text style={styles.buttonText}>Enregistrer</Text>
-        </Pressable>
-      </LinearGradient>
-    </View>
+          <Pressable
+            style={styles.button}
+            onPress={handleSubmit}
+          >
+            <Text style={styles.buttonText}>Enregistrer</Text>
+          </Pressable>
+        </LinearGradient>
+      </View>
+      <View style={{ height: 80 }} /> {/* marge esthétique en bas */}
+    </KeyboardAwareScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 24, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', marginBottom: 16, padding: 8, borderRadius: 6 },
-  button: {
-    width: '60%',
+  container: { 
+    flexGrow: 1, 
+    justifyContent: 'center', 
+    padding: 20, 
+    backgroundColor: '#fffffffb'
+  },
+  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 24, textAlign: 'center', color: '#6746a8' },
+  label: { marginBottom: 4, fontSize: 16, color: '#222' },
+  input: { borderWidth: 1, borderColor: '#ccc', marginBottom: 16, padding: 12, borderRadius: 6, backgroundColor: '#fff', fontSize: 16, height: 48, justifyContent: 'center' },
+  buttonRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
+  button: { borderRadius: 30, paddingVertical: 14, paddingHorizontal: 32 },
+  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
+  modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0006' },
+  modalContent: { backgroundColor: '#fff', borderRadius: 8, padding: 16, minWidth: 220 },
+  modalOption: { paddingVertical: 12, alignItems: 'center' },
+  gradientButton: {
     borderRadius: 30,
-    alignSelf: 'center',
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 3,
-    marginTop: 10,
   },
-  pressable: {
-    width: '100%',
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
+  logoContainer: {
+    alignItems: 'flex-start',
+    marginBottom: 10,
+    borderRadius: 50,
+    padding: 6,
     backgroundColor: 'transparent',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
   },
 });

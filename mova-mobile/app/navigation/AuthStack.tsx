@@ -122,7 +122,15 @@ export default function AuthStack() {
       <Stack.Screen
         name="EditProfileScreen"
         component={EditProfileScreen}
-        options={{ title: 'Modifier mon profil' }}
+        options={({ navigation }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+          ),
+          headerTitle: () => null,
+        })}
       />
       <Stack.Screen
         name="RecruiterOnboarding"

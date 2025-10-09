@@ -38,7 +38,7 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#fffffffb',
     justifyContent: 'flex-start',
   },
   logoContainer: {
