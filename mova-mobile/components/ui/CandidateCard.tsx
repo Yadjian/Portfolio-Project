@@ -101,9 +101,9 @@ export default function CandidateCard({
       overflow: 'hidden',
       justifyContent: 'center',
       alignItems: 'center',
-      borderWidth: 0,
-      borderColor: 'transparent',
-      borderStyle: 'solid',
+      borderWidth: 1,                // <-- bordure toujours visible
+      borderColor: '#6746a8',        // <-- couleur violette
+      borderStyle: 'solid',          // <-- style plein
       backgroundColor: '#f8f9fa',
     },
     photo: {
