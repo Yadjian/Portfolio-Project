@@ -455,7 +455,7 @@ export default function EditProfileScreen() {
                 justifyContent: 'space-between',
               }}>
                 <Text style={{ color: jobSeeking ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
-                  {jobSeeking || 'Poste recherché'}
+                  {jobSeeking || 'Poste'}
                 </Text>
                 <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
               </View>
