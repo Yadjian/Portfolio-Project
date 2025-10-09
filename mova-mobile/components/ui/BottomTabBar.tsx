@@ -7,9 +7,9 @@ interface TabItem {
   id: string;
   label: string;
   onPress: () => void;
-  // iconName et iconNameActive sont maintenant optionnels (pour compatibilité)
   iconName?: any;
   iconNameActive?: any;
+  badge?: number;
 }
 
 interface BottomTabBarProps {
@@ -97,10 +97,8 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
               return { iconName: 'document-text-outline', iconNameActive: 'document-text' };
             case 'matches':
               return { iconName: 'heart-outline', iconNameActive: 'heart' };
-            case 'swipe':
-              return { iconName: 'location-outline', iconNameActive: 'location' };
-            case 'home':
-              return { iconName: 'home-outline', iconNameActive: 'home' };
+            case 'notifications': // AJOUTE CE CAS
+              return { iconName: 'notifications-outline', iconNameActive: 'notifications' };
             default:
               return { iconName: tab.iconName, iconNameActive: tab.iconNameActive };
           }
@@ -140,6 +138,28 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
             ]}>
               {tab.label}
             </Text>
+            {typeof tab.badge === 'number' && tab.badge > 0 && (
+              <View style={{
+                position: 'absolute',
+                top: -4,
+                right: -8,
+                backgroundColor: 'red',
+                borderRadius: 10,
+                paddingHorizontal: 5,
+                minWidth: 18,
+                height: 18,
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 1,
+              }}>
+                <Text style={{
+                  color: '#fff',
+                  fontSize: 12,
+                  fontWeight: 'bold',
+                  textAlign: 'center',
+                }}>{tab.badge}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         );
       })}

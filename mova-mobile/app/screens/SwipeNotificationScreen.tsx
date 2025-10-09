@@ -4,6 +4,7 @@ import { useNavigation } from '@react-navigation/native';
 import CandidateCard from '@/components/ui/CandidateCard';
 import RecruiterCard from '@/components/ui/RecruiterCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
+import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
 
 export default function SwipeNotificationScreen({ route }: any) {
   const navigation = useNavigation();
@@ -38,69 +39,9 @@ export default function SwipeNotificationScreen({ route }: any) {
         },
       ];
 
-  const getTabsForUserType = () => {
-    const baseTabs = [
-      {
-        id: 'swipe',
-        iconName: 'location-outline',
-        iconNameActive: 'location',
-        label: 'Contacts',
-        onPress: () => console.log('Déjà sur Contacts géolocalisés'),
-      },
-    ];
-
-    if (userType === 'candidat') {
-      return [
-        {
-          id: 'profile',
-          iconName: 'card-outline',
-          iconNameActive: 'card',
-          label: 'Mon Profil',
-          onPress: () => navigation.navigate('CandidateProfileScreen' as never),
-        },
-        {
-          id: 'cv',
-          iconName: 'document-text-outline',
-          iconNameActive: 'document-text',
-          label: 'Mon CV',
-          onPress: () => console.log('Navigation vers Mon CV'),
-        },
-        ...baseTabs,
-        {
-          id: 'home',
-          iconName: 'home-outline',
-          iconNameActive: 'home',
-          label: 'Home',
-          onPress: () => navigation.goBack(),
-        }
-      ];
-    } else {
-      return [
-        {
-          id: 'profile',
-          iconName: 'card-outline',
-          iconNameActive: 'card',
-          label: 'Mon Profil',
-          onPress: () => navigation.navigate('RecruiterProfileScreen' as never),
-        },
-        {
-          id: 'offre',
-          iconName: 'document-text-outline',
-          iconNameActive: 'document-text',
-          label: 'Mon Offre',
-          onPress: () => console.log('Navigation vers Mon Offre'),
-        },
-        ...baseTabs,
-        {
-          id: 'home',
-          iconName: 'home-outline',
-          iconNameActive: 'home',
-          label: 'Home',
-          onPress: () => navigation.goBack(),
-        }
-      ];
-    }
-  };
+  const tabs = userType === 'candidat'
+    ? getCandidateTabs(navigation, 0)
+    : getRecruiterTabs(navigation, 0);
 
   return (
     <View style={styles.container}>
@@ -111,30 +52,30 @@ export default function SwipeNotificationScreen({ route }: any) {
         renderItem={({ item }) =>
           userType === 'candidat' ? (
             <RecruiterCard
-              companyName={item.companyName}
-              location={item.location}
-              jobSeeking={item.jobSeeking}
-              experienceRequired={item.experienceRequired}
-              contractType={item.contractType}
-              presentation={item.presentation}
-              avatarUrl={item.avatarUrl}
+              companyName={item.companyName ?? ''}
+              location={item.location ?? ''}
+              jobSeeking={item.jobSeeking ?? ''}
+              experienceRequired={item.experienceRequired ?? ''}
+              contractType={item.contractType ?? ''}
+              presentation={item.presentation ?? ''}
+              avatarUrl={item.avatarUrl ?? ''}
             />
           ) : (
             <CandidateCard
-              firstName={item.firstName}
-              lastName={item.lastName}
-              location={item.location}
-              job={item.job}
-              experience={item.experience}
-              contractType={item.contractType}
-              presentation={item.presentation}
-              avatarUrl={item.avatarUrl}
+              firstName={item.firstName ?? ''}
+              lastName={item.lastName ?? ''}
+              location={item.location ?? ''}
+              job={item.job ?? ''}
+              experience={item.experience ?? ''}
+              contractType={item.contractType ?? ''}
+              presentation={item.presentation ?? ''}
+              avatarUrl={item.avatarUrl ?? ''}
             />
           )
         }
         contentContainerStyle={styles.list}
       />
-      <BottomTabBar tabs={getTabsForUserType()} activeTabId="swipe" />
+      <BottomTabBar tabs={tabs} activeTabId="notifications" />
     </View>
   );
 }

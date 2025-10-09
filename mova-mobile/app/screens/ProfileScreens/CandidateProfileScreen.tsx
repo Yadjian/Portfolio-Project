@@ -10,6 +10,7 @@ import EditProfileButton from '../../../components/ui/EditProfileButton';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
 import { getCurrentUser } from '../../../services/api';
+import { getCandidateTabs } from '@/constants/tabsConfig';
 
 const { width, height } = Dimensions.get('window');
 
@@ -63,36 +64,7 @@ export default function CandidateProfileScreen() {
     setIsActive(value);
   };
 
-  const getTabsForCandidate = () => [
-    {
-      id: 'profile',
-      iconName: 'card-outline',
-      iconNameActive: 'card',
-      label: 'Mon Profil',
-      onPress: () => {},
-    },
-    {
-      id: 'cv',
-      iconName: 'document-text-outline',
-      iconNameActive: 'document-text',
-      label: 'Mon CV',
-      onPress: () => {},
-    },
-    {
-      id: 'matches',
-      iconName: 'heart-outline',
-      iconNameActive: 'heart',
-      label: 'Matchs',
-      onPress: () => {},
-    },
-    {
-      id: 'notifications',
-      iconName: 'notifications-outline',
-      iconNameActive: 'notifications',
-      label: 'Notifications',
-      onPress: () => navigation.navigate('SwipeNotification', { userType: 'candidat' }),
-    }
-  ];
+  const tabs = getCandidateTabs(navigation, 0);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fffffffb' }}>
@@ -133,7 +105,7 @@ export default function CandidateProfileScreen() {
           <View style={{ height: height * 0.08 }} />
         </View>
       </ScrollView>
-      <BottomTabBar tabs={getTabsForCandidate()} activeTabId="profile" />
+      <BottomTabBar tabs={tabs} activeTabId="profile" />
     </View>
   );
 }

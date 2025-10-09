@@ -10,6 +10,7 @@ import EditProfileButton from '../../../components/ui/EditProfileButton';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
 import * as ImagePicker from 'expo-image-picker';
+import { getRecruiterTabs } from '@/constants/tabsConfig';
 
 export default function RecruiterProfileScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'RecruiterProfile'>>();
@@ -81,36 +82,8 @@ export default function RecruiterProfileScreen() {
     }
   };
 
-  const getTabsForUserType = () => [
-    {
-      id: 'profile',
-      label: 'Mon Profil',
-      iconName: 'card-outline',
-      iconNameActive: 'card',
-      onPress: () => console.log('Déjà sur Mon Profil'),
-    },
-    {
-      id: 'offre',
-      label: 'Mon Offre',
-      iconName: 'document-text-outline',
-      iconNameActive: 'document-text',
-      onPress: () => console.log('Navigation vers Mon Offre Détaillée'),
-    },
-    {
-      id: 'matches',
-      label: 'Matchs',
-      iconName: 'heart-outline',
-      iconNameActive: 'heart',
-      onPress: () => console.log('Navigation vers Mes matchs'),
-    },
-    {
-      id: 'notifications', // Remplace "home" par "notifications"
-      label: 'Notifications',
-      iconName: 'notifications-outline',
-      iconNameActive: 'notifications',
-      onPress: () => navigation.navigate('SwipeNotification', { userType: 'recruteur' }),
-    }
-  ];
+  const notificationCount = 0; // À remplacer par ton vrai compteur
+  const tabs = getRecruiterTabs(navigation, notificationCount);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fffffffb' }}>
@@ -166,7 +139,7 @@ export default function RecruiterProfileScreen() {
         </View>
       </ScrollView>
       {/* Masque la BottomTabBar lors de la première édition */}
-      {!firstEdit && <BottomTabBar tabs={getTabsForUserType()} activeTabId="profile" />}
+      {!firstEdit && <BottomTabBar tabs={tabs} activeTabId="profile" />}
     </View>
   );
 }
