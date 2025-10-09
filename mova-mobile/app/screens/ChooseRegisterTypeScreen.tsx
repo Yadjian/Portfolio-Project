@@ -16,7 +16,7 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
         <MovaLogo />
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>Je suis...</Text>
+        <Text style={styles.title}>Vous êtes ?</Text>
         <Pressable
           style={[styles.button, { backgroundColor: '#07b9ff' }]}
           onPress={() => navigation.navigate('CandidateProfile', { startEditing: true })}
