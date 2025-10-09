@@ -86,11 +86,11 @@ export default function CandidateProfileScreen() {
       onPress: () => {},
     },
     {
-      id: 'home',
-      iconName: 'home-outline',
-      iconNameActive: 'home',
-      label: 'Home',
-      onPress: () => navigation.navigate('Welcome'),
+      id: 'notifications',
+      iconName: 'notifications-outline',
+      iconNameActive: 'notifications',
+      label: 'Notifications',
+      onPress: () => navigation.navigate('SwipeNotification', { userType: 'candidat' }),
     }
   ];
 

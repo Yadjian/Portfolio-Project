@@ -74,39 +74,27 @@ export default function AuthStack() {
       <Stack.Screen
         name="CandidateProfile"
         component={CandidateProfileScreen}
-        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'CandidateProfile'> }) => ({
+        options={({ navigation }) => ({
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerTitle: () => null,
           headerRight: () => (
-            <NotificationButton 
-              notificationCount={notificationCount} 
-              onPress={() => {
-                setNotificationCount(0);
-                navigation.navigate('SwipeNotification', { userType: 'candidat' });
-              }}
-            />
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
+          headerTitle: () => null,
         })}
       />
       <Stack.Screen
         name="RecruiterProfile"
         component={RecruiterProfileScreen}
-        options={({ navigation }: { navigation: NativeStackNavigationProp<AuthStackParamList, 'RecruiterProfile'> }) => ({
+        options={({ navigation }) => ({
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerTitle: () => null,
           headerRight: () => (
-            <NotificationButton 
-              notificationCount={notificationCount} 
-              onPress={() => {
-                setNotificationCount(0);
-                navigation.navigate('SwipeNotification', { userType: 'recruteur' });
-              }}
-            />
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
+          headerTitle: () => null,
         })}
       />
       <Stack.Screen
@@ -115,6 +103,9 @@ export default function AuthStack() {
         options={({ navigation }) => ({
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
           headerTitle: () => null,
         })}

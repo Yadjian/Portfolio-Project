@@ -85,22 +85,30 @@ export default function RecruiterProfileScreen() {
     {
       id: 'profile',
       label: 'Mon Profil',
+      iconName: 'card-outline',
+      iconNameActive: 'card',
       onPress: () => console.log('Déjà sur Mon Profil'),
     },
     {
       id: 'offre',
       label: 'Mon Offre',
+      iconName: 'document-text-outline',
+      iconNameActive: 'document-text',
       onPress: () => console.log('Navigation vers Mon Offre Détaillée'),
     },
     {
       id: 'matches',
       label: 'Matchs',
+      iconName: 'heart-outline',
+      iconNameActive: 'heart',
       onPress: () => console.log('Navigation vers Mes matchs'),
     },
     {
-      id: 'home',
-      label: 'Home',
-      onPress: () => navigation.goBack(),
+      id: 'notifications', // Remplace "home" par "notifications"
+      label: 'Notifications',
+      iconName: 'notifications-outline',
+      iconNameActive: 'notifications',
+      onPress: () => navigation.navigate('SwipeNotification', { userType: 'recruteur' }),
     }
   ];
 
