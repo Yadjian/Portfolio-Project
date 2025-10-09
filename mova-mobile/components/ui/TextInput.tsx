@@ -4,16 +4,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 interface GenericInputBarProps extends TextInputProps {
   style?: object;
-  rightIcon?: React.ReactNode; // Ajoute la prop ici
+  rightIcon?: React.ReactNode;
+  multiline?: boolean;
 }
 
-export default function GenericInputBar({ style, rightIcon, ...props }: GenericInputBarProps) {
+export default function GenericInputBar({ style, rightIcon, multiline, ...props }: GenericInputBarProps) {
   const { width, height } = useWindowDimensions();
-  const inputWidth = width * 0.7;
-  const inputHeight = height * 0.055;
-  const borderRadius = inputHeight * 0.2;
-  const paddingHorizontal = width * 0.03;
-  const marginVertical = height * 0.015;
+  const inputWidth = width * 0.88; // marge latérale automatique
+  const inputHeight = multiline ? height * 0.13 : height * 0.06;
+  const borderRadius = inputHeight * 0.22;
+  const paddingHorizontal = width * 0.04;
+  const marginVertical = height * 0.012;
   const borderWidth = 2;
 
   return (
@@ -26,29 +27,32 @@ export default function GenericInputBar({ style, rightIcon, ...props }: GenericI
         borderRadius: borderRadius,
         marginVertical: marginVertical,
         padding: borderWidth,
+        alignSelf: 'center', // <-- centre le champ, marge à gauche et à droite
       }}
     >
       <View style={{
         backgroundColor: '#fff',
         borderRadius: borderRadius,
         width: inputWidth - borderWidth * 2,
-        height: inputHeight,
-        flexDirection: 'row', // Pour placer l'input et l'icône sur la même ligne
+        minHeight: inputHeight,
+        flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        paddingRight: 8, // Un peu d'espace à droite
+        paddingRight: 8,
       }}>
         <TextInput
           style={[
             styles.input,
             {
-              flex: 1, // L'input prend la largeur restante
-              height: inputHeight,
+              flex: 1,
+              minHeight: inputHeight,
               borderRadius: borderRadius,
               paddingHorizontal: paddingHorizontal,
+              textAlignVertical: multiline ? 'top' : 'center',
             },
             style,
           ]}
+          multiline={multiline}
           {...props}
         />
         {rightIcon ? (
@@ -64,5 +68,7 @@ export default function GenericInputBar({ style, rightIcon, ...props }: GenericI
 const styles = StyleSheet.create({
   input: {
     backgroundColor: '#fff',
+    fontSize: 16,
+    color: '#222',
   },
 });

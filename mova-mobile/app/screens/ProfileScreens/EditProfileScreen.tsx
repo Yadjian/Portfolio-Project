@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import * as ImagePicker from 'expo-image-picker';
 import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
 import { MaterialIcons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import GenericInputBar from '../../../components/ui/TextInput';
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -116,58 +117,92 @@ export default function EditProfileScreen() {
                 setAvatarUrl(result.assets[0].uri);
               }
             }}>
-              <View style={{ width: 120, height: 144 }}>
-                <Image
-                  source={avatarUrl ? { uri: avatarUrl } : require('../../../assets/images/icon.png')}
-                  style={{
-                    width: 120,
-                    height: 144,
-                    borderRadius: 8,
-                    borderWidth: 2,
-                    borderColor: '#6746a8',
-                    backgroundColor: '#f8f9fa',
-                  }}
-                />
-                <View style={{
-                  position: 'absolute',
-                  right: 6,
-                  bottom: 6,
-                  backgroundColor: '#fff',
-                  borderRadius: 16,
+              <LinearGradient
+                colors={['#6746a8', '#6b25f9', '#07b9ff']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  width: 124, // 120 + 2*border
+                  height: 148, // 144 + 2*border
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   padding: 2,
-                  elevation: 2,
-                }}>
-                  <MaterialIcons name="photo-camera" size={24} color="#6746a8" />
+                }}
+              >
+                <View style={{ position: 'relative' }}>
+                  <Image
+                    source={avatarUrl ? { uri: avatarUrl } : require('../../../assets/images/icon.png')}
+                    style={{
+                      width: 120,
+                      height: 144,
+                      borderRadius: 8,
+                      backgroundColor: '#f8f9fa',
+                    }}
+                  />
+                  <View style={{
+                    position: 'absolute',
+                    right: 6,
+                    bottom: 6,
+                    backgroundColor: '#fff',
+                    borderRadius: 16,
+                    padding: 2,
+                    elevation: 2,
+                  }}>
+                    <MaterialIcons name="photo-camera" size={24} color="#6746a8" />
+                  </View>
                 </View>
-              </View>
+              </LinearGradient>
             </Pressable>
           </View>
-          <TextInput
-            style={styles.input}
+          <GenericInputBar
             placeholder="Prénom"
             value={firstName}
             onChangeText={setFirstName}
           />
-          <TextInput
-            style={styles.input}
+          <GenericInputBar
             placeholder="Nom"
             value={lastName}
             onChangeText={setLastName}
           />
-          <TextInput
-            style={styles.input}
+          <GenericInputBar
             placeholder="Localisation"
             value={location}
             onChangeText={setLocation}
           />
           {/* Picker custom pour Poste recherché */}
           <Pressable
-            style={styles.input}
+            style={{
+              width: '88%',
+              alignSelf: 'center',
+              marginVertical: 8,
+            }}
             onPress={() => setJobModalVisible(true)}
           >
-            <Text style={{ color: job ? '#222' : '#aaa', fontSize: 16 }}>
-              {job || 'Poste recherché'}
-            </Text>
+            <LinearGradient
+              colors={['#6746a8', '#6b25f9', '#07b9ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 8,
+                padding: 2,
+              }}
+            >
+              <View style={{
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                minHeight: 48,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                justifyContent: 'space-between',
+              }}>
+                <Text style={{ color: job ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
+                  {job || 'Poste recherché'}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
+              </View>
+            </LinearGradient>
           </Pressable>
           <Modal
             visible={jobModalVisible}
@@ -198,14 +233,39 @@ export default function EditProfileScreen() {
               </View>
             </TouchableOpacity>
           </Modal>
-          {/* Picker custom pour Expérience */}
+          {/* Picker Expérience */}
           <Pressable
-            style={styles.input}
+            style={{
+              width: '88%',
+              alignSelf: 'center',
+              marginVertical: 8,
+            }}
             onPress={() => setExperienceModalVisible(true)}
           >
-            <Text style={{ color: experience ? '#222' : '#aaa', fontSize: 16 }}>
-              {experience || 'Expérience'}
-            </Text>
+            <LinearGradient
+              colors={['#6746a8', '#6b25f9', '#07b9ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 8,
+                padding: 2,
+              }}
+            >
+              <View style={{
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                minHeight: 48,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                justifyContent: 'space-between',
+              }}>
+                <Text style={{ color: experience ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
+                  {experience || 'Expérience'}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
+              </View>
+            </LinearGradient>
           </Pressable>
           <Modal
             visible={experienceModalVisible}
@@ -230,14 +290,39 @@ export default function EditProfileScreen() {
               </View>
             </TouchableOpacity>
           </Modal>
-          {/* Picker custom pour Type de contrat */}
+          {/* Picker Type de contrat */}
           <Pressable
-            style={styles.input}
+            style={{
+              width: '88%',
+              alignSelf: 'center',
+              marginVertical: 8,
+            }}
             onPress={() => setContractModalVisible(true)}
           >
-            <Text style={{ color: contractType ? '#222' : '#aaa', fontSize: 16 }}>
-              {contractType || 'Type de contrat'}
-            </Text>
+            <LinearGradient
+              colors={['#6746a8', '#6b25f9', '#07b9ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 8,
+                padding: 2,
+              }}
+            >
+              <View style={{
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                minHeight: 48,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                justifyContent: 'space-between',
+              }}>
+                <Text style={{ color: contractType ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
+                  {contractType || 'Type de contrat'}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
+              </View>
+            </LinearGradient>
           </Pressable>
           <Modal
             visible={contractModalVisible}
@@ -262,8 +347,7 @@ export default function EditProfileScreen() {
               </View>
             </TouchableOpacity>
           </Modal>
-          <TextInput
-            style={styles.input}
+          <GenericInputBar
             placeholder="Présentation (optionnel)"
             value={presentation}
             onChangeText={setPresentation}
@@ -290,27 +374,23 @@ export default function EditProfileScreen() {
             />
             <Text style={{ textAlign: 'center', color: '#6746a8', marginBottom: 16 }}>Modifier la photo</Text>
           </Pressable>
-          <TextInput
-            style={styles.input}
+          <GenericInputBar
             placeholder="Nom de l'entreprise"
             value={companyName}
             onChangeText={setCompanyName}
           />
-          <TextInput
-            style={styles.input}
+          <GenericInputBar
             placeholder="Localisation"
             value={companyLocation}
             onChangeText={setCompanyLocation}
           />
-          <TextInput
-            style={styles.input}
+          <GenericInputBar
             placeholder="Numéro SIRET"
             value={siret}
             onChangeText={setSiret}
             keyboardType="numeric"
           />
-          <TextInput
-            style={styles.input}
+          <GenericInputBar
             placeholder="Poste recherché"
             value={jobSeeking}
             onChangeText={setJobSeeking}
@@ -377,8 +457,7 @@ export default function EditProfileScreen() {
               </View>
             </TouchableOpacity>
           </Modal>
-          <TextInput
-            style={styles.input}
+          <GenericInputBar
             placeholder="Présentation (optionnel)"
             value={companyPresentation}
             onChangeText={setCompanyPresentation}
@@ -387,19 +466,18 @@ export default function EditProfileScreen() {
         </>
       )}
       <View style={styles.buttonRow}>
-        <LinearGradient
-          colors={['#6746a8', '#6b25f9', '#07b9ff']}
-          start={[0, 0]}
-          end={[1, 1]}
-          style={styles.gradientButton}
+        <Pressable
+          style={[styles.button, { backgroundColor: '#07b9ff' }]}
+          onPress={handleSubmit}
         >
-          <Pressable
-            style={styles.button}
-            onPress={handleSubmit}
-          >
-            <Text style={styles.buttonText}>Enregistrer</Text>
-          </Pressable>
-        </LinearGradient>
+          <Text style={styles.buttonText}>Enregistrer</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.button, { backgroundColor: '#6b25f9', marginLeft: 12 }]}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.buttonText}>Annuler</Text>
+        </Pressable>
       </View>
       <View style={{ height: 80 }} /> {/* marge esthétique en bas */}
     </KeyboardAwareScrollView>
@@ -410,7 +488,7 @@ const styles = StyleSheet.create({
   container: { 
     flexGrow: 1, 
     justifyContent: 'center', 
-    padding: 20, 
+    paddingBottom: 20,   // marge en bas
     backgroundColor: '#fffffffb'
   },
   title: { fontSize: 22, fontWeight: 'bold', marginBottom: 24, textAlign: 'center', color: '#6746a8' },
@@ -428,9 +506,6 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'flex-start',
-    marginBottom: 10,
-    borderRadius: 50,
-    padding: 6,
-    backgroundColor: 'transparent',
+    marginBottom: 24,
   },
 });
