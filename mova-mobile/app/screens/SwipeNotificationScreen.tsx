@@ -5,6 +5,7 @@ import CandidateCard from '@/components/ui/CandidateCard';
 import RecruiterCard from '@/components/ui/RecruiterCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
+import SmallMovaLogo from '@/components/ui/SmallMovaLogo';
 
 export default function SwipeNotificationScreen({ route }: any) {
   const navigation = useNavigation();
@@ -45,7 +46,10 @@ export default function SwipeNotificationScreen({ route }: any) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Contacts géolocalisés</Text>
+      <View style={styles.logoRow}>
+        <SmallMovaLogo />
+      </View>
+      <Text style={styles.title}>Faites votre choix</Text>
       <FlatList
         data={contacts}
         keyExtractor={item => item.id}
@@ -83,8 +87,11 @@ export default function SwipeNotificationScreen({ route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingTop: 32,
+    backgroundColor: '#f2f2f2', // gris clair
+  },
+  logoRow: {
+    alignItems: 'flex-start',
+    marginBottom: 24,
   },
   title: {
     fontSize: 24,
