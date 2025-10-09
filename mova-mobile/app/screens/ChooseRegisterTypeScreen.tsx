@@ -58,9 +58,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    width: '80%',
+    width: width * 0.8,
+    height: height * 0.09,
     borderRadius: 25,
     alignSelf: 'center',
+    justifyContent: 'center',
     paddingVertical: height * 0.03,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
