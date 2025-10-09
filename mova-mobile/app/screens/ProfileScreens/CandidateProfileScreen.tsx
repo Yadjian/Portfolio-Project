@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, Text, Button, Dimensions } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../lib/types';
 import ActiveToggle from '../../../components/ui/ActiveToggle';
 import CandidateCard from '../../../components/ui/CandidateCard';
@@ -65,24 +66,18 @@ export default function CandidateProfileScreen() {
   };
 
   const handleSave = async () => {
-    if (
-      !candidate.firstName ||
-      !candidate.lastName ||
-      !candidate.location ||
-      !candidate.job ||
-      !candidate.experience ||
-      !candidate.contractType
-    ) {
-      alert('Tous les champs sont obligatoires sauf la présentation.');
-      return;
-    }
-    try {
-      await updateProfile(candidate);
-      setIsEditing(false);
-      setFirstEdit(false); // Après la première sauvegarde, édition normale
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde:', error);
-    }
+    // Pour les tests sans backend, on quitte juste le mode édition
+    setIsEditing(false);
+    setFirstEdit(false); // Après la première sauvegarde, édition normale
+
+    // Appel backend désactivé temporairement
+    // try {
+    //   await updateProfile(candidate);
+    //   setIsEditing(false);
+    //   setFirstEdit(false); // Après la première sauvegarde, édition normale
+    // } catch (error) {
+    //   console.error('Erreur lors de la sauvegarde:', error);
+    // }
   };
 
   const handleImagePicker = async () => {
@@ -98,7 +93,7 @@ export default function CandidateProfileScreen() {
     }
   };
 
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   const getTabsForCandidate = () => [
     {
@@ -127,7 +122,7 @@ export default function CandidateProfileScreen() {
       iconName: 'home-outline',
       iconNameActive: 'home',
       label: 'Home',
-      onPress: () => navigation.goBack(),
+      onPress: () => navigation.navigate('Welcome'), // <-- ici, c'est bon !
     }
   ];
 

@@ -58,7 +58,7 @@ export default function ActiveToggle({
   const labelStyle = {
     fontSize: fontSize,
     fontWeight: '600' as const,
-    color: '#6b25f9', // Texte violet
+    color: isActive ? '#6b25f9' : '#7e7e7e', // Violet si actif, gris si inactif
   };
 
   const switchBackgroundStyle = {
