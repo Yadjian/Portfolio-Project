@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#e0e0e0',
     marginHorizontal: width * 0.12,
-    marginVertical: height * 0.04,
+    marginVertical: height * 0.03,
   },
   buttonContainer: {
     alignItems: 'center',

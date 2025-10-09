@@ -23,7 +23,7 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
         >
           <Text style={styles.buttonText}>Candidat</Text>
         </Pressable>
-        <View style={{ marginVertical: 20 }} />
+        <View style={{ marginVertical: height * 0.03 }} />
         <Pressable
           style={[styles.button, { backgroundColor: '#6b25f9' }]}
           onPress={() => navigation.navigate('CreateCompany')}
@@ -58,9 +58,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   button: {
-    width: '80%',
+    width: width * 0.8,
+    height: height * 0.09,
     borderRadius: 25,
     alignSelf: 'center',
+    justifyContent: 'center',
     paddingVertical: height * 0.03,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
