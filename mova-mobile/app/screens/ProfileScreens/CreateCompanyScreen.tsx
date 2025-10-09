@@ -16,7 +16,7 @@ export default function CreateCompanyScreen() {
 
   const handleSubmit = async () => {
     if (!companyName || !siret) {
-      alert("Nom de l'entreprise et numéro de Siret obligatoires.");
+      alert("Les champs Raison Sociale et Numéro SIRET sont obligatoires.");
       return;
     }
     try {
@@ -34,7 +34,7 @@ export default function CreateCompanyScreen() {
         <MovaLogo />
       </View>
       <View style={styles.content}>
-        <Text style={styles.title}>Indiquez la Raison Sociale et le Numéro SIRET</Text>
+        <Text style={styles.title}>Inscription</Text>
         <TextInput
           style={styles.input}
           placeholder="Raison Sociale"

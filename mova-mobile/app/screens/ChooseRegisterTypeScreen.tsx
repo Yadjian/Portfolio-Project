@@ -26,7 +26,7 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
         <View style={{ marginVertical: 20 }} />
         <Pressable
           style={[styles.button, { backgroundColor: '#6b25f9' }]}
-          onPress={() => navigation.navigate('RecruiterOnboarding')}
+          onPress={() => navigation.navigate('CreateCompany')}
         >
           <Text style={styles.buttonText}>Recruteur</Text>
         </Pressable>
