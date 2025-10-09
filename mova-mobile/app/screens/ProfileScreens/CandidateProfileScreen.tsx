@@ -67,7 +67,7 @@ export default function CandidateProfileScreen() {
   const tabs = getCandidateTabs(navigation, 0);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fffffffb' }}>
+    <View style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
         <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
           <SmallMovaLogo />
