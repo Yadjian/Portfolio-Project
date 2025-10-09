@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Dimensions, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Pressable } from 'react-native';
 import { createCompany } from '../../../services/api';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../lib/types';
 import MovaLogo from '../../../components/ui/MovaLogo';
 import { LinearGradient } from 'expo-linear-gradient';
+import GenericInputBar from '../../../components/ui/TextInput';
 
 const { height, width } = Dimensions.get('window');
 
@@ -15,16 +16,12 @@ export default function CreateCompanyScreen() {
   const [siret, setSiret] = useState('');
 
   const handleSubmit = async () => {
-    if (!companyName || !siret) {
-      alert("Les champs Raison Sociale et Numéro SIRET sont obligatoires.");
-      return;
-    }
     try {
-      await createCompany({ companyName, siret });
-      navigation.navigate('RecruiterProfile', { startEditing: true });
+      // await createCompany({ companyName, siret });
+      navigation.navigate('EditProfileScreen', { userType: 'recruteur' });
     } catch (error) {
       console.error(error);
-      alert("Erreur lors de la création de l'entreprise.");
+      // alert("Erreur lors de la création de l'entreprise.");
     }
   };
 
@@ -35,14 +32,13 @@ export default function CreateCompanyScreen() {
       </View>
       <View style={styles.content}>
         <Text style={styles.title}>Inscription</Text>
-        <TextInput
-          style={styles.input}
+        <GenericInputBar
           placeholder="Raison Sociale"
           value={companyName}
           onChangeText={setCompanyName}
+          style={{ width: width * 0.7 }} 
         />
-        <TextInput
-          style={styles.input}
+        <GenericInputBar
           placeholder="Numéro SIRET"
           value={siret}
           onChangeText={setSiret}
@@ -109,7 +105,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.10,
     shadowRadius: 6,
     elevation: 3,
-    marginTop: 10,
+    marginTop: 50,
   },
   pressable: {
     width: '100%',

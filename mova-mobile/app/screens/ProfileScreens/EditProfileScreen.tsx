@@ -356,52 +356,173 @@ export default function EditProfileScreen() {
         </>
       ) : (
         <>
-          <Pressable
-            onPress={async () => {
-            const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: [1, 1],
-              quality: 0.7,
-            });
-            if (!result.canceled && result.assets && result.assets.length > 0) {
-              setCompanyAvatarUrl(result.assets[0].uri);
-            }
-          }}>
-            <Image
-              source={companyAvatarUrl ? { uri: companyAvatarUrl } : require('../../../assets/images/icon.png')}
-              style={{ width: 100, height: 100, borderRadius: 50, alignSelf: 'center', marginBottom: 8, borderWidth: 2, borderColor: '#6746a8' }}
-            />
-            <Text style={{ textAlign: 'center', color: '#6746a8', marginBottom: 16 }}>Modifier la photo</Text>
-          </Pressable>
+          {/* Photo recruteur avec encadrement dégradé */}
+          <View style={{ alignSelf: 'center', marginBottom: 16 }}>
+            <Pressable onPress={async () => {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.7,
+              });
+              if (!result.canceled && result.assets && result.assets.length > 0) {
+                setCompanyAvatarUrl(result.assets[0].uri);
+              }
+            }}>
+              <LinearGradient
+                colors={['#6746a8', '#6b25f9', '#07b9ff']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+                style={{
+                  width: 124, // 120 + 2*border
+                  height: 148, // 144 + 2*border
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 2,
+                }}
+              >
+                <View style={{ position: 'relative' }}>
+                  <Image
+                    source={companyAvatarUrl ? { uri: companyAvatarUrl } : require('../../../assets/images/icon.png')}
+                    style={{
+                      width: 120,
+                      height: 144,
+                      borderRadius: 8,
+                      backgroundColor: '#f8f9fa',
+                    }}
+                  />
+                  <View style={{
+                    position: 'absolute',
+                    right: 6,
+                    bottom: 6,
+                    backgroundColor: '#fff',
+                    borderRadius: 16,
+                    padding: 2,
+                    elevation: 2,
+                  }}>
+                    <MaterialIcons name="photo-camera" size={24} color="#6746a8" />
+                  </View>
+                </View>
+              </LinearGradient>
+            </Pressable>
+          </View>
           <GenericInputBar
-            placeholder="Nom de l'entreprise"
+            placeholder="Raison Sociale"
             value={companyName}
             onChangeText={setCompanyName}
+          />
+          <GenericInputBar
+            placeholder="Prénom"
+            value={firstName}
+            onChangeText={setFirstName}
+          />
+          <GenericInputBar
+            placeholder="Nom"
+            value={lastName}
+            onChangeText={setLastName}
           />
           <GenericInputBar
             placeholder="Localisation"
             value={companyLocation}
             onChangeText={setCompanyLocation}
           />
-          <GenericInputBar
-            placeholder="Numéro SIRET"
-            value={siret}
-            onChangeText={setSiret}
-            keyboardType="numeric"
-          />
-          <GenericInputBar
-            placeholder="Poste recherché"
-            value={jobSeeking}
-            onChangeText={setJobSeeking}
-          />
+          {/* Picker Poste recherché */}
           <Pressable
-            style={styles.input}
+            style={{
+              width: '88%',
+              alignSelf: 'center',
+              marginVertical: 8,
+            }}
+            onPress={() => setJobModalVisible(true)}
+          >
+            <LinearGradient
+              colors={['#6746a8', '#6b25f9', '#07b9ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 8,
+                padding: 2,
+              }}
+            >
+              <View style={{
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                minHeight: 48,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                justifyContent: 'space-between',
+              }}>
+                <Text style={{ color: jobSeeking ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
+                  {jobSeeking || 'Poste recherché'}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
+              </View>
+            </LinearGradient>
+          </Pressable>
+          <Modal
+            visible={jobModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setJobModalVisible(false)}
+          >
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setJobModalVisible(false)}>
+              <View style={styles.modalContent}>
+                {[
+                  'Serveur(se)',
+                  'Vendeur(se) en boutique',
+                  'Animateur(trice) de colonie',
+                  'Cueilleur(se) de fruits',
+                  'Plagiste'
+                ].map(opt => (
+                  <Pressable
+                    key={opt}
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setJobSeeking(opt);
+                      setJobModalVisible(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>{opt}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+          {/* Picker Expérience */}
+          <Pressable
+            style={{
+              width: '88%',
+              alignSelf: 'center',
+              marginVertical: 8,
+            }}
             onPress={() => setExperienceModalVisible(true)}
           >
-            <Text style={{ color: experienceRequired ? '#222' : '#aaa', fontSize: 16 }}>
-              {experienceRequired || 'Expérience'}
-            </Text>
+            <LinearGradient
+              colors={['#6746a8', '#6b25f9', '#07b9ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 8,
+                padding: 2,
+              }}
+            >
+              <View style={{
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                minHeight: 48,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                justifyContent: 'space-between',
+              }}>
+                <Text style={{ color: experienceRequired ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
+                  {experienceRequired || 'Expérience'}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
+              </View>
+            </LinearGradient>
           </Pressable>
           <Modal
             visible={experienceModalVisible}
@@ -426,13 +547,39 @@ export default function EditProfileScreen() {
               </View>
             </TouchableOpacity>
           </Modal>
+          {/* Picker Type de contrat */}
           <Pressable
-            style={styles.input}
+            style={{
+              width: '88%',
+              alignSelf: 'center',
+              marginVertical: 8,
+            }}
             onPress={() => setContractModalVisible(true)}
           >
-            <Text style={{ color: companyContractType ? '#222' : '#aaa', fontSize: 16 }}>
-              {companyContractType || 'Type de contrat'}
-            </Text>
+            <LinearGradient
+              colors={['#6746a8', '#6b25f9', '#07b9ff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={{
+                borderRadius: 8,
+                padding: 2,
+              }}
+            >
+              <View style={{
+                backgroundColor: '#fff',
+                borderRadius: 8,
+                minHeight: 48,
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: 16,
+                justifyContent: 'space-between',
+              }}>
+                <Text style={{ color: companyContractType ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
+                  {companyContractType || 'Type de contrat'}
+                </Text>
+                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
+              </View>
+            </LinearGradient>
           </Pressable>
           <Modal
             visible={contractModalVisible}
@@ -462,6 +609,7 @@ export default function EditProfileScreen() {
             value={companyPresentation}
             onChangeText={setCompanyPresentation}
             multiline
+            maxLength={300}
           />
         </>
       )}
@@ -491,7 +639,10 @@ const styles = StyleSheet.create({
     paddingBottom: 20,   // marge en bas
     backgroundColor: '#fffffffb'
   },
-  title: { fontSize: 22, fontWeight: 'bold', marginBottom: 24, textAlign: 'center', color: '#6746a8' },
+  title: { 
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 24, textAlign: 'center', color: '#6746a8' },
   label: { marginBottom: 4, fontSize: 16, color: '#222' },
   input: { borderWidth: 1, borderColor: '#ccc', marginBottom: 16, padding: 12, borderRadius: 6, backgroundColor: '#fff', fontSize: 16, height: 48, justifyContent: 'center' },
   buttonRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
