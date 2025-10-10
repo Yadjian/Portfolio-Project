@@ -166,7 +166,7 @@ const styles = StyleSheet.create({
     fontSize: width * 0.045,
   },
   cvButton: {
-    width: width * 0.5,
+    width: width * 0.4,
     alignSelf: 'center',
     height: height * 0.055,
     borderRadius: height * 0.027,
