@@ -13,6 +13,7 @@ export type AuthStackParamList = {
   CreateCompany: undefined;
   JoinCompany: undefined;
   CandidateCVScreen: undefined;
+  RecruiterJobOfferScreen: undefined;
 };
 
 // Définir les props pour chaque écran

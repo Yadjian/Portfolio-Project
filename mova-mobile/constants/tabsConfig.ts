@@ -45,7 +45,7 @@ export const getRecruiterTabs = (navigation: any, notificationCount: number = 0)
     label: 'Mon Offre',
     iconName: 'document-text-outline',
     iconNameActive: 'document-text',
-    onPress: () => navigation.navigate('EditProfileScreen', { userType: 'recruteur' }),
+    onPress: () => navigation.navigate('RecruiterJobOfferScreen'),
   },
   {
     id: 'matches',

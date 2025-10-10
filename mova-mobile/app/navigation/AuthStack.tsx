@@ -15,6 +15,7 @@ import CreateCompanyScreen from '../screens/ProfileScreens/CreateCompanyScreen';
 import JoinCompanyScreen from '../screens/ProfileScreens/JoinCompanyScreen';
 import HomeButton from '@/components/ui/HomeButton';
 import CandidateCVScreen from '../screens/CandidateCVScreen';
+import RecruiterJobOfferScreen from '../screens/RecruiterJobOfferScreen';
 
 
 
@@ -166,6 +167,19 @@ export default function AuthStack() {
       <Stack.Screen
         name="CandidateCVScreen"
         component={CandidateCVScreen}
+        options={({ navigation }) => ({
+          headerLeft: () => (
+            <BackButton onPress={() => navigation.goBack()} />
+          ),
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+          ),
+          headerTitle: () => null,
+        })}
+      />
+      <Stack.Screen
+        name="RecruiterJobOfferScreen"
+        component={RecruiterJobOfferScreen}
         options={({ navigation }) => ({
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
