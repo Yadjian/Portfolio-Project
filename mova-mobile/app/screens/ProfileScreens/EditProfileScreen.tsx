@@ -96,7 +96,6 @@ export default function EditProfileScreen() {
     <KeyboardAwareScrollView
       contentContainerStyle={styles.container}
       enableOnAndroid={true}
-      extraScrollHeight={120} // augmente si besoin pour le champ présentation
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.logoContainer}>
