@@ -7,7 +7,6 @@ import BackButton from '@/components/ui/BackButton';
 import ChooseRegisterTypeScreen from '../screens/ChooseRegisterTypeScreen';
 import CandidateProfileScreen from '../screens/ProfileScreens/CandidateProfileScreen';
 import RecruiterProfileScreen from '../screens/ProfileScreens/RecruiterProfileScreen';
-import NotificationButton from '@/components/ui/NotificationButton';
 import SwipeNotificationScreen from '../screens/SwipeNotificationScreen';
 import EditProfileScreen from '../screens/ProfileScreens/EditProfileScreen';
 import RecruiterOnboardingScreen from '../screens/ProfileScreens/RecruiterOnboardingScreen';
@@ -16,9 +15,6 @@ import JoinCompanyScreen from '../screens/ProfileScreens/JoinCompanyScreen';
 import HomeButton from '@/components/ui/HomeButton';
 import CandidateCVScreen from '../screens/CandidateCVScreen';
 import RecruiterJobOfferScreen from '../screens/RecruiterJobOfferScreen';
-
-
-
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -35,7 +31,6 @@ export default function AuthStack() {
   }, []);
 
   const handleNotificationPress = () => {
-    // Pour l'instant, on remet juste le compteur à zéro
     setNotificationCount(0);
     console.log('Notifications consultées');
   };
@@ -46,6 +41,7 @@ export default function AuthStack() {
       screenOptions={{
         headerStyle: { backgroundColor: '#fff' },
         headerShadowVisible: false,
+        headerTitle: '', // force le header à être vide partout
       }}
     >
       <Stack.Screen
@@ -60,7 +56,7 @@ export default function AuthStack() {
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -70,7 +66,7 @@ export default function AuthStack() {
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -83,7 +79,7 @@ export default function AuthStack() {
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -96,7 +92,7 @@ export default function AuthStack() {
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -109,7 +105,7 @@ export default function AuthStack() {
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -122,7 +118,7 @@ export default function AuthStack() {
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -135,7 +131,7 @@ export default function AuthStack() {
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -148,7 +144,7 @@ export default function AuthStack() {
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -161,7 +157,7 @@ export default function AuthStack() {
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -174,7 +170,7 @@ export default function AuthStack() {
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
       <Stack.Screen
@@ -187,7 +183,7 @@ export default function AuthStack() {
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Welcome')} />
           ),
-          headerTitle: () => null,
+          headerBackTitleVisible: false,
         })}
       />
     </Stack.Navigator>
