@@ -26,26 +26,34 @@ export class ProfileService {
   }
 
   async updateUserProfile(auth0Id: string, data: UpdateProfileDto) {
-    // D'abord, on récupère l'utilisateur pour savoir quel profil mettre à jour
     const user = await this.prisma.user.findUnique({
       where: { auth0Id },
       include: { candidateProfile: true, recruiterProfile: true },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found.');
-    }
+    if (!user) throw new NotFoundException('User not found.');
+    
+    // Séparez les IDs de catégories du reste des données du profil
+    const { interestedInCategoryIds, ...profileData } = data;
 
-    // On met à jour le profil approprié
     if (user.candidateProfile) {
       return this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
-        data: data, // Le DTO correspond aux champs du profil
+        data: {
+          ...profileData, // Met à jour les champs simples (firstName, lastName, etc.)
+          
+          // Syntaxe Prisma pour mettre à jour une relation plusieurs-à-plusieurs
+          interestedInCategories: {
+            // "set" remplace la liste existante par cette nouvelle liste
+            set: interestedInCategoryIds?.map((id) => ({ id: id })) || [],
+          },
+        },
       });
     } else if (user.recruiterProfile) {
+      // Pour l'instant, on ne met à jour que les champs simples pour le recruteur
       return this.prisma.recruiterProfile.update({
         where: { id: user.recruiterProfile.id },
-        data: data,
+        data: profileData,
       });
     } else {
       throw new NotFoundException('No profile found to update.');
