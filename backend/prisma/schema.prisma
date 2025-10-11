@@ -21,6 +21,12 @@ enum ContractType {
   AUTRE
 }
 
+enum ExperienceLevel {
+  DEBUTANT
+  INTERMEDIAIRE
+  CONFIRME
+}
+
 enum ApplicationStatus {
   ENVOYE
   VU
@@ -72,6 +78,9 @@ model CandidateProfile {
   searchRadiusKm       Int?
   isActive             Boolean    @default(true)
   notificationsEnabled Boolean    @default(true)
+
+  experienceLevel      ExperienceLevel? // <-- Niveau d'expérience (optionnel)
+  interestedInCategories JobCategory[] @relation("CandidateInterestedCategories")
 
   // Relation vers le User (un profil candidat appartient à un seul user)
   user   User @relation(fields: [userId], references: [id])
@@ -137,6 +146,8 @@ model JobCategory {
   updatedAt DateTime   @updatedAt
   name      String     @unique
   jobOffers JobOffer[]
+
+  interestedCandidates CandidateProfile[] @relation("CandidateInterestedCategories")
 }
 
 model JobOffer {
