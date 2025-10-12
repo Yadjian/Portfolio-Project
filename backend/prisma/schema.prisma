@@ -103,6 +103,13 @@ model RecruiterProfile {
   matchWindowStart  DateTime?
   matchesTodayCount Int       @default(0)
   dailyMatchLimit   Int       @default(100)
+
+  // NOUVEAUX CHAMPS POUR LES CRITÈRES DE RECHERCHE
+  locationWKT          String?          // La zone où le recruteur recherche
+  searchDescription    String?          // Petite phrase d'accroche du recruteur
+  desiredExperienceLevel ExperienceLevel? // Le niveau d'expérience recherché
+  desiredContractTypes ContractType[]   @default([]) // Les types de contrats recherchés
+  searchedCategories   JobCategory[]    @relation("RecruiterSearchedCategories") // Catégories recherchées
   
   // Relation vers le User (un profil recruteur appartient à un seul user)
   user   User @relation(fields: [userId], references: [id])
@@ -148,6 +155,7 @@ model JobCategory {
   jobOffers JobOffer[]
 
   interestedCandidates CandidateProfile[] @relation("CandidateInterestedCategories")
+  searchingRecruiters  RecruiterProfile[] @relation("RecruiterSearchedCategories")
 }
 
 model JobOffer {

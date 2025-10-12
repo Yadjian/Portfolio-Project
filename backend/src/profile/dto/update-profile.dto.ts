@@ -4,6 +4,7 @@ import { IsString, IsOptional, IsNotEmpty, IsArray, IsEnum, IsUUID } from 'class
 import { ContractType, ExperienceLevel } from '@prisma/client';
 
 export class UpdateProfileDto {
+  // --- Champs Communs ---
   @IsString()
   @IsNotEmpty()
   firstName: string;
@@ -17,22 +18,34 @@ export class UpdateProfileDto {
   locationWKT?: string;
 
   @IsOptional()
-  @IsEnum(ExperienceLevel)
-  experienceLevel?: ExperienceLevel;
-
-  @IsOptional()
-  @IsArray()
-  @IsEnum(ContractType, { each: true }) // Valide que chaque élément du tableau est un ContractType valide
-  desiredContractTypes?: ContractType[];
-
-  @IsOptional()
   @IsArray()
   @IsUUID('4', { each: true }) // Valide que chaque élément est un UUID v4
   interestedInCategoryIds?: string[];
 
-  // Ajoutez d'autres champs que l'utilisateur peut modifier.
-  // @IsOptional() signifie que le champ n'est pas obligatoire.
+  // --- Champs Spécifiques au Candidat ---
+  @IsOptional() @IsString()
+  coverLetterText?: string;
+
   @IsOptional()
   @IsString()
   desiredJobTitle?: string;
+
+  // --- Champs pour les Préférences (Candidat ET Recruteur) ---
+  @IsOptional() 
+  @IsEnum(ExperienceLevel)
+  experienceLevel?: ExperienceLevel; // Pour le candidat
+
+  @IsOptional()
+  @IsEnum(ExperienceLevel)
+  desiredExperienceLevel?: ExperienceLevel; // Pour le recruteur (alias)
+
+  @IsOptional() 
+  @IsArray() 
+  @IsEnum(ContractType, { each: true })
+  desiredContractTypes?: ContractType[];
+
+  // --- Champs Spécifiques au Recruteur ---
+  @IsOptional() @IsString()
+  searchDescription?: string;
+
 }

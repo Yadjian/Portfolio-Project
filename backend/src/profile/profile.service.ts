@@ -30,31 +30,34 @@ export class ProfileService {
       where: { auth0Id },
       include: { candidateProfile: true, recruiterProfile: true },
     });
-
     if (!user) throw new NotFoundException('User not found.');
-    
-    // Séparez les IDs de catégories du reste des données du profil
-    const { interestedInCategoryIds, ...profileData } = data;
 
     if (user.candidateProfile) {
+      const { interestedInCategoryIds, ...profileData } = data;
       return this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
         data: {
-          ...profileData, // Met à jour les champs simples (firstName, lastName, etc.)
-          
-          // Syntaxe Prisma pour mettre à jour une relation plusieurs-à-plusieurs
+          ...profileData,
           interestedInCategories: {
-            // "set" remplace la liste existante par cette nouvelle liste
-            set: interestedInCategoryIds?.map((id) => ({ id: id })) || [],
+            set: interestedInCategoryIds?.map((id) => ({ id })) || [],
           },
         },
       });
+
     } else if (user.recruiterProfile) {
-      // Pour l'instant, on ne met à jour que les champs simples pour le recruteur
+      const { interestedInCategoryIds, ...profileData } = data; // On réutilise le même champ du DTO
       return this.prisma.recruiterProfile.update({
         where: { id: user.recruiterProfile.id },
-        data: profileData,
+        data: {
+          ...profileData,
+          // On mappe les champs du DTO vers les bons champs du modèle RecruiterProfile
+          desiredExperienceLevel: data.experienceLevel, 
+          searchedCategories: {
+            set: interestedInCategoryIds?.map((id) => ({ id })) || [],
+          },
+        },
       });
+
     } else {
       throw new NotFoundException('No profile found to update.');
     }
