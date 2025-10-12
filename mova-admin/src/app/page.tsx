@@ -13,9 +13,21 @@ type User = {
   role: string;
 };
 
+type Offer = {
+  id: string;
+  title: string;
+  description: string;
+  contractType: string;
+  hoursPerWeek: string;
+  location: string;
+  salaryMin: string;
+  salaryMax: string;
+};
+
 export default function AdminUsersPage() {
   const { getAccessTokenSilently, isAuthenticated, loginWithRedirect } = useAuth0();
   const [users, setUsers] = useState<User[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,10 +40,20 @@ export default function AdminUsersPage() {
   const [location, setLocation] = useState('');
   const [salaryMin, setSalaryMin] = useState('');
   const [salaryMax, setSalaryMax] = useState('');
+  const [foundUser, setFoundUser] = useState<User | null>(null);
+  const [foundOffer, setFoundOffer] = useState<Offer | null>(null);
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const [userFilter, setUserFilter] = useState<string>('all');
+  // States pour édition utilisateur
+  const [editUserId, setEditUserId] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editRole, setEditRole] = useState('');
 
-  // Fonction pour récupérer les utilisateurs (quand le backend sera prêt)
+  // Fonction pour récupérer les utilisateurs
   const fetchUsers = async () => {
     setError('');
+    // Backend only
+    /*
     try {
       const token = await getAccessTokenSilently();
       const res = await fetch(`${API_BASE_URL}/v1/admin/users`, {
@@ -43,6 +65,8 @@ export default function AdminUsersPage() {
     } catch (err: any) {
       setError(err.message);
     }
+    */
+    // Simulation locale : NE RIEN FAIRE, juste afficher le state actuel
   };
 
   //if (!isAuthenticated) {
@@ -52,41 +76,78 @@ export default function AdminUsersPage() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <div style={styles.title}>Services Admin</div>
-        {!selectedService && (
+        <div style={styles.title}>Portail Admin</div>
+        {selectedSection && (
+          <button
+            style={styles.backButton}
+            onClick={() => {
+              setSelectedSection(null);
+              setSelectedService(null);
+              setError('');
+              setFoundUser(null);
+              setFoundOffer(null);
+            }}
+          >
+            Retour au menu principal
+          </button>
+        )}
+        {/* Menu principal */}
+        {!selectedSection && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <button style={styles.button} onClick={() => setSelectedSection('users')}>Utilisateurs</button>
+            <button style={styles.button} onClick={() => setSelectedSection('jobOffers')}>Offres</button>
+            <button style={styles.button} onClick={() => setSelectedSection('cvs')}>CVs</button>
+            <button style={styles.button} onClick={() => setSelectedSection('matches')}>Matchs</button>
+            <button style={styles.button} onClick={() => setSelectedSection('swipes')}>Swipes</button>
+          </div>
+        )}
+
+        {/* Section Utilisateurs */}
+        {selectedSection === 'users' && (
           <>
-            <button
-              style={styles.button}
-              onClick={() => { setSelectedService('list'); fetchUsers(); }}
-            >
-              Afficher les utilisateurs
-            </button>
-            <button
-              style={{ ...styles.button, ...styles.buttonPurple }}
-              onClick={() => setSelectedService('create')}
-            >
-              Créer un utilisateur
-            </button>
-            <button
-              style={{ ...styles.button, ...styles.buttonPurple }}
-              onClick={() => setSelectedService('createOffer')}
-            >
-              Créer une offre
-            </button>
+            <div style={styles.title}>Services Utilisateurs</div>
+            <button style={styles.button} onClick={() => { setSelectedService('list'); }}>Afficher tous les utilisateurs</button>
+            <button style={styles.button} onClick={() => setSelectedService('create')}>Créer un utilisateur</button>
+            <button style={styles.button} onClick={() => setSelectedService('findUser')}>Trouver un utilisateur par ID</button>
+            <button style={styles.button} onClick={() => setSelectedService('editUser')}>Modifier un utilisateur</button>
           </>
         )}
 
+        {/* Section Offres */}
+        {selectedSection === 'jobOffers' && (
+          <>
+            <div style={styles.title}>Services Offres</div>
+            <button style={styles.button} onClick={() => setSelectedService('createOffer')}>Créer une offre</button>
+            <button style={styles.button} onClick={() => setSelectedService('findOffer')}>Trouver une offre par ID</button>
+          </>
+        )}
+
+        {/* Ajoute ici les sections CVs, Matches, Swipes selon le même modèle */}
+
+        {/* Affichage des services selon selectedService */}
         {selectedService === 'list' && (
           <>
             <div style={styles.title}>Liste des utilisateurs</div>
+            <select
+              value={userFilter}
+              onChange={e => setUserFilter(e.target.value)}
+              style={styles.select}
+            >
+              <option value="all">Tous</option>
+              <option value="admin">Admins</option>
+              <option value="recruiter">Recruteurs</option>
+              <option value="candidate">Candidats</option>
+            </select>
             {error && <div style={styles.error}>{error}</div>}
             <ul style={styles.userList}>
-              {users.map((user: User) => (
-                <li key={user.user_id || user.id || user._id} style={styles.userItem}>
-                  <span>{user.email}</span>
-                  <span style={{ fontWeight: 600, color: '#6746a8' }}>{user.role}</span>
-                </li>
-              ))}
+              {users
+                .filter(user => userFilter === 'all' || user.role === userFilter)
+                .map((user: User) => (
+                  <li key={user.user_id || user.id || user._id} style={styles.userItem}>
+                    <span>{user.email}</span>
+                    <span style={{ fontWeight: 600, color: '#6746a8' }}>{user.role}</span>
+                  </li>
+                ))}
             </ul>
             <button style={styles.backButton} onClick={() => setSelectedService(null)}>
               Retour
@@ -102,6 +163,8 @@ export default function AdminUsersPage() {
                 e.preventDefault();
                 setError('');
                 const formData = { email, password, role };
+                // Backend only
+                /*
                 try {
                   const token = await getAccessTokenSilently();
                   const res = await fetch(`${API_BASE_URL}/v1/users`, {
@@ -121,6 +184,15 @@ export default function AdminUsersPage() {
                 } catch (err: any) {
                   setError(err.message);
                 }
+                */
+                // Simulation locale
+                setUsers(users => [
+                  ...users,
+                  { ...formData, id: Date.now().toString() }
+                ]);
+                setEmail('');
+                setPassword('');
+                setRole('');
               }}
               style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
             >
@@ -165,6 +237,87 @@ export default function AdminUsersPage() {
           </>
         )}
 
+        {selectedService === 'editUser' && (
+          <>
+            <div style={styles.title}>Modifier un utilisateur</div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setError('');
+                // Backend only
+                /*
+                try {
+                  const token = await getAccessTokenSilently();
+                  const res = await fetch(`${API_BASE_URL}/v1/users/${editUserId}`, {
+                    method: 'PUT',
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email: editEmail, role: editRole }),
+                  });
+                  if (!res.ok) throw new Error('Erreur modification utilisateur');
+                  const updatedUser = await res.json();
+                  setUsers(users => users.map(u => u.id === editUserId ? updatedUser : u));
+                } catch (err: any) {
+                  setError(err.message);
+                }
+                */
+                // Simulation locale
+                setUsers(users =>
+                  users.map(u =>
+                    u.id === editUserId
+                      ? { ...u, email: editEmail, role: editRole }
+                      : u
+                  )
+                );
+                setEditUserId('');
+                setEditEmail('');
+                setEditRole('');
+              }}
+              style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
+              <input
+                name="editUserId"
+                type="text"
+                placeholder="ID utilisateur"
+                required
+                value={editUserId}
+                onChange={e => setEditUserId(e.target.value)}
+                style={styles.input}
+              />
+              <input
+                name="editEmail"
+                type="email"
+                placeholder="Nouvel email"
+                required
+                value={editEmail}
+                onChange={e => setEditEmail(e.target.value)}
+                style={styles.input}
+              />
+              <select
+                name="editRole"
+                required
+                value={editRole}
+                onChange={e => setEditRole(e.target.value)}
+                style={styles.select}
+              >
+                <option value="">Nouveau rôle</option>
+                <option value="candidate">Candidat</option>
+                <option value="recruiter">Recruteur</option>
+                <option value="admin">Admin</option>
+              </select>
+              <button type="submit" style={{ ...styles.button, width: '100%' }}>
+                Modifier
+              </button>
+            </form>
+            {error && <div style={styles.error}>{error}</div>}
+            <button style={styles.backButton} onClick={() => setSelectedService(null)}>
+              Retour
+            </button>
+          </>
+        )}
+
         {selectedService === 'createOffer' && (
           <>
             <div style={styles.title}>Créer une offre</div>
@@ -172,6 +325,8 @@ export default function AdminUsersPage() {
               onSubmit={async (e) => {
                 e.preventDefault();
                 setError('');
+                // Backend only
+                /*
                 try {
                   const token = await getAccessTokenSilently();
                   const res = await fetch(`${API_BASE_URL}/v1/job_offers`, {
@@ -191,7 +346,6 @@ export default function AdminUsersPage() {
                     }),
                   });
                   if (!res.ok) throw new Error('Erreur création offre');
-                  // Optionnel : afficher un message ou vider le formulaire
                   setTitle('');
                   setDescription('');
                   setContractType('');
@@ -202,6 +356,28 @@ export default function AdminUsersPage() {
                 } catch (err: any) {
                   setError(err.message);
                 }
+                */
+                // Simulation locale
+                setOffers(offers => [
+                  ...offers,
+                  {
+                    id: Date.now().toString(),
+                    title,
+                    description,
+                    contractType,
+                    hoursPerWeek,
+                    location,
+                    salaryMin,
+                    salaryMax,
+                  }
+                ]);
+                setTitle('');
+                setDescription('');
+                setContractType('');
+                setHoursPerWeek('');
+                setLocation('');
+                setSalaryMin('');
+                setSalaryMax('');
               }}
               style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
             >
@@ -276,7 +452,141 @@ export default function AdminUsersPage() {
               </button>
             </form>
             {error && <div style={styles.error}>{error}</div>}
+            {/* Affiche la liste des offres simulées */}
+            <div style={{ marginTop: 32, width: '100%' }}>
+              <div style={styles.title}>Offres simulées</div>
+              <ul style={styles.userList}>
+                {offers.map(offer => (
+                  <li key={offer.id} style={styles.userItem}>
+                    <span>
+                      <strong>{offer.title}</strong> ({offer.contractType})<br />
+                      {offer.location} - {offer.hoursPerWeek}h<br />
+                      {offer.salaryMin}€ - {offer.salaryMax}€
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <button style={styles.backButton} onClick={() => setSelectedService(null)}>
+              Retour
+            </button>
+          </>
+        )}
+
+        {selectedService === 'findUser' && (
+          <>
+            <div style={styles.title}>Trouver un utilisateur par ID</div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setError('');
+                const id = e.currentTarget.userId.value;
+                // Backend only
+                /*
+                try {
+                  const token = await getAccessTokenSilently();
+                  const res = await fetch(`${API_BASE_URL}/v1/users/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
+                  if (!res.ok) throw new Error('Utilisateur introuvable');
+                  const user = await res.json();
+                  setFoundUser(user);
+                } catch (err: any) {
+                  setError(err.message);
+                }
+                */
+                // Simulation locale
+                const user = users.find(u => u.id === id || u.user_id === id || u._id === id);
+                if (user) {
+                  setFoundUser(user);
+                  setError('');
+                } else {
+                  setFoundUser(null);
+                  setError("Utilisateur introuvable");
+                }
+              }}
+              style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
+              <input
+                name="userId"
+                type="text"
+                placeholder="ID utilisateur"
+                required
+                style={styles.input}
+              />
+              <button type="submit" style={{ ...styles.button, width: '100%' }}>
+                Rechercher
+              </button>
+            </form>
+            {error && <div style={styles.error}>{error}</div>}
+            {foundUser && (
+              <div style={{ marginTop: 24 }}>
+                <strong>Email :</strong> {foundUser.email}<br />
+                <strong>Rôle :</strong> {foundUser.role}
+              </div>
+            )}
+            <button style={styles.backButton} onClick={() => { setSelectedService(null); setFoundUser(null); setError(''); }}>
+              Retour
+            </button>
+          </>
+        )}
+
+        {selectedService === 'findOffer' && (
+          <>
+            <div style={styles.title}>Trouver une offre par ID</div>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setError('');
+                const id = e.currentTarget.offerId.value;
+                // Backend only
+                /*
+                try {
+                  const token = await getAccessTokenSilently();
+                  const res = await fetch(`${API_BASE_URL}/v1/job_offers/${id}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                  });
+                  if (!res.ok) throw new Error('Offre introuvable');
+                  const offer = await res.json();
+                  setFoundOffer(offer);
+                } catch (err: any) {
+                  setError(err.message);
+                }
+                */
+                // Simulation locale
+                const offer = offers.find(o => o.id === id);
+                if (offer) {
+                  setFoundOffer(offer);
+                  setError('');
+                } else {
+                  setFoundOffer(null);
+                  setError("Offre introuvable");
+                }
+              }}
+              style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+            >
+              <input
+                name="offerId"
+                type="text"
+                placeholder="ID de l'offre"
+                required
+                style={styles.input}
+              />
+              <button type="submit" style={{ ...styles.button, width: '100%' }}>
+                Rechercher
+              </button>
+            </form>
+            {error && <div style={styles.error}>{error}</div>}
+            {foundOffer && (
+              <div style={{ marginTop: 24 }}>
+                <strong>Titre :</strong> {foundOffer.title}<br />
+                <strong>Type :</strong> {foundOffer.contractType}<br />
+                <strong>Lieu :</strong> {foundOffer.location}<br />
+                <strong>Heures/semaine :</strong> {foundOffer.hoursPerWeek}<br />
+                <strong>Salaire :</strong> {foundOffer.salaryMin}€ - {foundOffer.salaryMax}€
+              </div>
+            )}
+            <button style={styles.backButton} onClick={() => { setSelectedService(null); setFoundOffer(null); setError(''); }}>
               Retour
             </button>
           </>
