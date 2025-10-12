@@ -46,8 +46,16 @@ export default function AdminUsersPage() {
   const [userFilter, setUserFilter] = useState<string>('all');
   // States pour édition utilisateur
   const [editUserId, setEditUserId] = useState('');
-  const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
+  const [editEmail, setEditEmail] = useState('');
+  const [editFirstName, setEditFirstName] = useState('');
+  const [editLastName, setEditLastName] = useState('');
+  const [editLocation, setEditLocation] = useState('');
+  const [editCompanyName, setEditCompanyName] = useState('');
+  const [editJobSeeking, setEditJobSeeking] = useState('');
+  const [editExperienceRequired, setEditExperienceRequired] = useState('');
+  const [editContractType, setEditContractType] = useState('');
+  const [editPresentation, setEditPresentation] = useState('');
 
   // Fonction pour récupérer les utilisateurs
   const fetchUsers = async () => {
@@ -240,79 +248,209 @@ export default function AdminUsersPage() {
         {selectedService === 'editUser' && (
           <>
             <div style={styles.title}>Modifier un utilisateur</div>
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                setError('');
-                // Backend only
-                /*
-                try {
-                  const token = await getAccessTokenSilently();
-                  const res = await fetch(`${API_BASE_URL}/v1/users/${editUserId}`, {
-                    method: 'PUT',
-                    headers: {
-                      Authorization: `Bearer ${token}`,
-                      'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email: editEmail, role: editRole }),
-                  });
-                  if (!res.ok) throw new Error('Erreur modification utilisateur');
-                  const updatedUser = await res.json();
-                  setUsers(users => users.map(u => u.id === editUserId ? updatedUser : u));
-                } catch (err: any) {
-                  setError(err.message);
-                }
-                */
-                // Simulation locale
-                setUsers(users =>
-                  users.map(u =>
-                    u.id === editUserId
-                      ? { ...u, email: editEmail, role: editRole }
-                      : u
-                  )
-                );
-                setEditUserId('');
-                setEditEmail('');
-                setEditRole('');
-              }}
-              style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-            >
-              <input
-                name="editUserId"
-                type="text"
-                placeholder="ID utilisateur"
-                required
-                value={editUserId}
-                onChange={e => setEditUserId(e.target.value)}
-                style={styles.input}
-              />
-              <input
-                name="editEmail"
-                type="email"
-                placeholder="Nouvel email"
-                required
-                value={editEmail}
-                onChange={e => setEditEmail(e.target.value)}
-                style={styles.input}
-              />
-              <select
-                name="editRole"
-                required
-                value={editRole}
-                onChange={e => setEditRole(e.target.value)}
-                style={styles.select}
+            {/* Étape 1 : Saisie de l'ID et récupération du user */}
+            {!foundUser && (
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  setError('');
+                  const id = e.currentTarget.editUserId.value;
+                  // Backend only
+                  /*
+                  try {
+                    const token = await getAccessTokenSilently();
+                    const res = await fetch(`${API_BASE_URL}/v1/users/${id}`, {
+                      headers: { Authorization: `Bearer ${token}` },
+                    });
+                    if (!res.ok) throw new Error('Utilisateur introuvable');
+                    const user = await res.json();
+                    setFoundUser(user);
+                    setEditEmail(user.email || '');
+                    setEditFirstName(user.firstName || '');
+                    setEditLastName(user.lastName || '');
+                    setEditLocation(user.location || '');
+                    setEditCompanyName(user.companyName || '');
+                    setEditJobSeeking(user.jobSeeking || '');
+                    setEditExperienceRequired(user.experienceRequired || '');
+                    setEditContractType(user.contractType || '');
+                    setEditPresentation(user.presentation || '');
+                  } catch (err: any) {
+                    setError(err.message);
+                  }
+                  */
+                  // Simulation locale
+                  const user = users.find(u => u.id === id || u.user_id === id || u._id === id);
+                  if (user) {
+                    setFoundUser(user);
+                    setEditEmail(user.email || '');
+                    setEditFirstName(user.firstName || '');
+                    setEditLastName(user.lastName || '');
+                    setEditLocation(user.location || '');
+                    setEditCompanyName(user.companyName || '');
+                    setEditJobSeeking(user.jobSeeking || '');
+                    setEditExperienceRequired(user.experienceRequired || '');
+                    setEditContractType(user.contractType || '');
+                    setEditPresentation(user.presentation || '');
+                    setError('');
+                  } else {
+                    setError("Utilisateur introuvable");
+                  }
+                }}
+                style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
               >
-                <option value="">Nouveau rôle</option>
-                <option value="candidate">Candidat</option>
-                <option value="recruiter">Recruteur</option>
-                <option value="admin">Admin</option>
-              </select>
-              <button type="submit" style={{ ...styles.button, width: '100%' }}>
-                Modifier
-              </button>
-            </form>
+                <input
+                  name="editUserId"
+                  type="text"
+                  placeholder="ID utilisateur"
+                  required
+                  value={editUserId}
+                  onChange={e => setEditUserId(e.target.value)}
+                  style={styles.input}
+                />
+                <button type="submit" style={{ ...styles.button, width: '100%' }}>
+                  Charger le profil
+                </button>
+              </form>
+            )}
+
+            {/* Étape 2 : Formulaire d'édition selon le rôle */}
+            {foundUser && (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  setError('');
+                  // Backend only
+                  /*
+                  try {
+                    const token = await getAccessTokenSilently();
+                    const res = await fetch(`${API_BASE_URL}/v1/users/${foundUser.id}`, {
+                      method: 'PUT',
+                      headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        email: editEmail,
+                        ...(foundUser.role === 'candidate' && {
+                          firstName: editFirstName,
+                          lastName: editLastName,
+                          location: editLocation,
+                          presentation: editPresentation,
+                        }),
+                        ...(foundUser.role === 'recruiter' && {
+                          companyName: editCompanyName,
+                          jobSeeking: editJobSeeking,
+                          experienceRequired: editExperienceRequired,
+                          contractType: editContractType,
+                          location: editLocation,
+                          presentation: editPresentation,
+                        }),
+                      }),
+                    });
+                    if (!res.ok) throw new Error('Erreur modification utilisateur');
+                    const updatedUser = await res.json();
+                    setUsers(users => users.map(u => u.id === foundUser.id ? updatedUser : u));
+                  } catch (err: any) {
+                    setError(err.message);
+                  }
+                  */
+                  // Simulation locale
+                  setUsers(users =>
+                    users.map(u =>
+                      u.id === foundUser.id
+                        ? {
+                            ...u,
+                            email: editEmail,
+                            ...(foundUser.role === 'candidate' && {
+                              firstName: editFirstName,
+                              lastName: editLastName,
+                              location: editLocation,
+                              presentation: editPresentation,
+                            }),
+                            ...(foundUser.role === 'recruiter' && {
+                              companyName: editCompanyName,
+                              jobSeeking: editJobSeeking,
+                              experienceRequired: editExperienceRequired,
+                              contractType: editContractType,
+                              location: editLocation,
+                              presentation: editPresentation,
+                            }),
+                          }
+                        : u
+                    )
+                  );
+                  setFoundUser(null);
+                  setEditUserId('');
+                  setEditEmail('');
+                  setEditFirstName('');
+                  setEditLastName('');
+                  setEditLocation('');
+                  setEditCompanyName('');
+                  setEditJobSeeking('');
+                  setEditExperienceRequired('');
+                  setEditContractType('');
+                  setEditPresentation('');
+                }}
+                style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: 24 }}
+              >
+                <div style={{ marginBottom: 12, fontWeight: 600 }}>
+                  Rôle : <span style={{ color: '#6746a8' }}>{foundUser.role}</span>
+                </div>
+                <input
+                  name="editEmail"
+                  type="email"
+                  placeholder="Email"
+                  required
+                  value={editEmail}
+                  onChange={e => setEditEmail(e.target.value)}
+                  style={styles.input}
+                />
+                {/* Champs spécifiques */}
+                {foundUser.role === 'candidate' && (
+                  <>
+                    <input name="editFirstName" type="text" placeholder="Prénom" value={editFirstName} onChange={e => setEditFirstName(e.target.value)} style={styles.input} />
+                    <input name="editLastName" type="text" placeholder="Nom" value={editLastName} onChange={e => setEditLastName(e.target.value)} style={styles.input} />
+                    <input name="editLocation" type="text" placeholder="Localisation" value={editLocation} onChange={e => setEditLocation(e.target.value)} style={styles.input} />
+                    <input name="editPresentation" type="text" placeholder="Présentation" value={editPresentation} onChange={e => setEditPresentation(e.target.value)} style={styles.input} />
+                  </>
+                )}
+                {foundUser.role === 'recruiter' && (
+                  <>
+                    <input name="editCompanyName" type="text" placeholder="Entreprise" value={editCompanyName} onChange={e => setEditCompanyName(e.target.value)} style={styles.input} />
+                    <input name="editJobSeeking" type="text" placeholder="Poste recherché" value={editJobSeeking} onChange={e => setEditJobSeeking(e.target.value)} style={styles.input} />
+                    <input name="editExperienceRequired" type="text" placeholder="Expérience requise" value={editExperienceRequired} onChange={e => setEditExperienceRequired(e.target.value)} style={styles.input} />
+                    <input name="editContractType" type="text" placeholder="Type de contrat" value={editContractType} onChange={e => setEditContractType(e.target.value)} style={styles.input} />
+                    <input name="editLocation" type="text" placeholder="Localisation" value={editLocation} onChange={e => setEditLocation(e.target.value)} style={styles.input} />
+                    <input name="editPresentation" type="text" placeholder="Présentation" value={editPresentation} onChange={e => setEditPresentation(e.target.value)} style={styles.input} />
+                  </>
+                )}
+                <button type="submit" style={{ ...styles.button, width: '100%' }}>
+                  Enregistrer les modifications
+                </button>
+                <button
+                  type="button"
+                  style={styles.backButton}
+                  onClick={() => {
+                    setFoundUser(null);
+                    setEditUserId('');
+                    setEditEmail('');
+                    setEditFirstName('');
+                    setEditLastName('');
+                    setEditLocation('');
+                    setEditCompanyName('');
+                    setEditJobSeeking('');
+                    setEditExperienceRequired('');
+                    setEditContractType('');
+                    setEditPresentation('');
+                    setError('');
+                  }}
+                >
+                  Annuler
+                </button>
+              </form>
+            )}
             {error && <div style={styles.error}>{error}</div>}
-            <button style={styles.backButton} onClick={() => setSelectedService(null)}>
+            <button style={styles.backButton} onClick={() => { setSelectedService(null); setFoundUser(null); setError(''); }}>
               Retour
             </button>
           </>
