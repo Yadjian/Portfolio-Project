@@ -20,7 +20,7 @@ export class ProfileController {
     return this.profileService.getUserProfile(auth0Id);
   }
 
-    @Put('me') // Définit la route PUT /profile/me
+  @Put('me') // Définit la route PUT /profile/me
   @UseGuards(AuthGuard('jwt'))
   updateProfile(@Req() req: Request, @Body() updateProfileDto: UpdateProfileDto) {
     const auth0Id = req.user.sub;
