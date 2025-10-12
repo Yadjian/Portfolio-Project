@@ -16,6 +16,7 @@ type User = {
   experienceRequired?: string;
   contractType?: string;
   presentation?: string;
+  siret?: string;
 };
 
 export default function UsersServices() {
@@ -36,6 +37,8 @@ export default function UsersServices() {
       id: '2',
       email: 'recruteur@mail.com',
       role: 'recruiter',
+      firstName: 'Jean',           
+      lastName: 'Dupont',        
       companyName: 'TechCorp',
       jobSeeking: 'Développeur',
       experienceRequired: 'Senior',
@@ -43,6 +46,7 @@ export default function UsersServices() {
       location: 'Lyon',
       presentation: 'Nous recrutons...',
       avatarUrl: 'https://randomuser.me/api/portraits/men/2.jpg',
+      siret: '123 456 789 00012',
     },
   ]);
   const [error, setError] = useState('');
@@ -87,6 +91,19 @@ export default function UsersServices() {
     setSelectedService(selectedService === service ? null : service);
   };
 
+  function getRoleLabel(role: string) {
+    switch (role) {
+      case 'candidate':
+        return 'Candidat';
+      case 'recruiter':
+        return 'Recruteur';
+      case 'admin':
+        return 'Admin';
+      default:
+        return role;
+    }
+  }
+
   return (
     <div style={{
       width: '100vw',
@@ -112,18 +129,7 @@ export default function UsersServices() {
         <div style={{ fontSize: 28, fontWeight: 700, color: '#6746a8', marginBottom: 32, textAlign: 'center' }}>
           Services Utilisateurs
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginBottom: 12 }}>
-          <button
-            style={{
-              ...styles.button,
-              background: selectedService === 'list' ? '#6746a8' : '#07b9ff',
-              color: '#fff',
-              boxShadow: selectedService === 'list' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
-            }}
-            onClick={() => toggleService('list')}
-          >
-            Afficher tous les utilisateurs
-          </button>
+        <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 16, justifyContent: 'center', marginBottom: 12, overflowX: 'auto' }}>
           <button
             style={{
               ...styles.button,
@@ -138,24 +144,24 @@ export default function UsersServices() {
           <button
             style={{
               ...styles.button,
+              background: selectedService === 'list' ? '#6746a8' : '#07b9ff',
+              color: '#fff',
+              boxShadow: selectedService === 'list' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
+            }}
+            onClick={() => toggleService('list')}
+          >
+            Afficher les utilisateurs
+          </button>
+          <button
+            style={{
+              ...styles.button,
               background: selectedService === 'findUser' ? '#6746a8' : '#07b9ff',
               color: '#fff',
               boxShadow: selectedService === 'findUser' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
             }}
             onClick={() => toggleService('findUser')}
           >
-            Trouver un utilisateur par ID
-          </button>
-          <button
-            style={{
-              ...styles.button,
-              background: selectedService === 'editUser' ? '#6746a8' : '#07b9ff',
-              color: '#fff',
-              boxShadow: selectedService === 'editUser' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
-            }}
-            onClick={() => toggleService('editUser')}
-          >
-            Modifier un utilisateur
+            Identifier un utilisateur
           </button>
         </div>
 
@@ -174,16 +180,28 @@ export default function UsersServices() {
               <option value="candidate">Candidats</option>
             </select>
             {error && <div style={styles.error}>{error}</div>}
-            <ul style={styles.userList}>
-              {users
-                .filter(user => userFilter === 'all' || user.role === userFilter)
-                .map((user: User) => (
-                  <li key={user.id} style={styles.userItem}>
-                    <span>{user.email}</span>
-                    <span style={{ fontWeight: 600, color: '#6746a8' }}>{user.role}</span>
-                  </li>
-                ))}
-            </ul>
+            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 16 }}>
+              <thead>
+                <tr style={{ background: '#eaeaea' }}>
+                  <th style={tableStyles.th}>ID</th>
+                  <th style={tableStyles.th}>Email</th>
+                  <th style={tableStyles.th}>Rôle</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users
+                  .filter(user => userFilter === 'all' || user.role === userFilter)
+                  .map((user: User) => (
+                    <tr key={user.id} style={{ background: '#fff' }}>
+                      <td style={tableStyles.td}>{user.id}</td>
+                      <td style={tableStyles.td}>{user.email}</td>
+                      <td style={{ ...tableStyles.td, color: '#222', fontWeight: 'normal' }}>
+                        {getRoleLabel(user.role)}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
           </div>
         )}
 
@@ -279,7 +297,45 @@ export default function UsersServices() {
             {foundUser && (
               <div style={{ marginTop: 24 }}>
                 <strong>Email :</strong> {foundUser.email}<br />
-                <strong>Rôle :</strong> {foundUser.role}
+                <strong>Rôle :</strong> {getRoleLabel(foundUser.role)}<br />
+                {foundUser.role === 'candidate' && (
+                  <>
+                    <strong>Prénom :</strong> {foundUser.firstName}<br />
+                    <strong>Nom :</strong> {foundUser.lastName}<br />
+                  </>
+                )}
+                {foundUser.role === 'recruiter' && (
+                  <>
+                    <strong>Prénom :</strong> {foundUser.firstName}<br />
+                    <strong>Nom :</strong> {foundUser.lastName}<br />
+                    <strong>Entreprise :</strong> {foundUser.companyName}<br />
+                    <strong>SIRET :</strong> {foundUser.siret}<br />
+                  </>
+                )}
+                <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
+                  <button
+                    style={styles.smallButton}
+                    onClick={() => {
+                      if (foundUser.role === 'candidate') {
+                        window.location.href = `/candidate-profile/${foundUser.id}`;
+                      } else if (foundUser.role === 'recruiter') {
+                        window.location.href = `/recruiter-profile/${foundUser.id}`;
+                      }
+                    }}
+                  >
+                    Voir le profil
+                  </button>
+                  <button
+                    style={{ ...styles.smallButton, background: '#e53935' }}
+                    onClick={() => {
+                      setUsers(users.filter(u => u.id !== foundUser.id));
+                      setFoundUser(null);
+                      setError('');
+                    }}
+                  >
+                    Supprimer
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -442,7 +498,13 @@ export default function UsersServices() {
                       <option value="Intermédiaire">Intermédiaire</option>
                       <option value="Confirmé">Confirmé</option>
                     </select>
-                    <input name="editPresentation" type="text" placeholder="Présentation" value={editPresentation} onChange={e => setEditPresentation(e.target.value)} style={styles.input} />
+                    <textarea
+                      name="editPresentation"
+                      placeholder="Présentation"
+                      value={editPresentation}
+                      onChange={e => setEditPresentation(e.target.value)}
+                      style={{ ...styles.input, height: 80, resize: 'vertical' }}
+                    />
                   </>
                 )}
                 {foundUser.role === 'recruiter' && (
@@ -584,5 +646,21 @@ const styles = {
     color: '#6746a8',
     marginBottom: 18,
     textAlign: 'center' as const,
+  },
+};
+
+const tableStyles = {
+  th: {
+    padding: '10px 8px',
+    textAlign: 'left' as const,
+    fontWeight: 700,
+    color: '#6746a8',
+    fontSize: 16,
+    borderBottom: '2px solid #d1d5db',
+  },
+  td: {
+    padding: '8px 8px',
+    fontSize: 15,
+    borderBottom: '1px solid #f3f4fa',
   },
 };

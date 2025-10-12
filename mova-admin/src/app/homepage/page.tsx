@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import UsersServices from '../services/users';
+import UsersServices from '../services/users/page';
 
 export default function HomePage() {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
