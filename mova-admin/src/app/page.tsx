@@ -11,6 +11,16 @@ type User = {
   _id?: string;
   email: string;
   role: string;
+  avatarUrl?: string;
+  firstName?: string;
+  lastName?: string;
+  location?: string;
+  companyName?: string;
+  jobSeeking?: string;
+  experience?: string;
+  experienceRequired?: string;
+  contractType?: string;
+  presentation?: string;
 };
 
 type Offer = {
@@ -26,7 +36,28 @@ type Offer = {
 
 export default function AdminUsersPage() {
   const { getAccessTokenSilently, isAuthenticated, loginWithRedirect } = useAuth0();
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([
+    {
+      id: '1',
+      email: 'candidat@mail.com',
+      role: 'candidate',
+      firstName: 'Lucas',
+      lastName: 'Martin',
+      location: 'Paris',
+      presentation: 'Je suis motivé...',
+    },
+    {
+      id: '2',
+      email: 'recruteur@mail.com',
+      role: 'recruiter',
+      companyName: 'TechCorp',
+      jobSeeking: 'Développeur',
+      experienceRequired: 'Senior',
+      contractType: 'CDI',
+      location: 'Lyon',
+      presentation: 'Nous recrutons...',
+    },
+  ]);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
@@ -48,6 +79,7 @@ export default function AdminUsersPage() {
   const [editUserId, setEditUserId] = useState('');
   const [editRole, setEditRole] = useState('');
   const [editEmail, setEditEmail] = useState('');
+  const [editAvatarUrl, setEditAvatarUrl] = useState('');
   const [editFirstName, setEditFirstName] = useState('');
   const [editLastName, setEditLastName] = useState('');
   const [editLocation, setEditLocation] = useState('');
@@ -248,47 +280,25 @@ export default function AdminUsersPage() {
         {selectedService === 'editUser' && (
           <>
             <div style={styles.title}>Modifier un utilisateur</div>
-            {/* Étape 1 : Saisie de l'ID et récupération du user */}
+            {/* Étape 1 : Saisie de l'ID */}
             {!foundUser && (
               <form
                 onSubmit={e => {
                   e.preventDefault();
                   setError('');
                   const id = e.currentTarget.editUserId.value;
-                  // Backend only
-                  /*
-                  try {
-                    const token = await getAccessTokenSilently();
-                    const res = await fetch(`${API_BASE_URL}/v1/users/${id}`, {
-                      headers: { Authorization: `Bearer ${token}` },
-                    });
-                    if (!res.ok) throw new Error('Utilisateur introuvable');
-                    const user = await res.json();
-                    setFoundUser(user);
-                    setEditEmail(user.email || '');
-                    setEditFirstName(user.firstName || '');
-                    setEditLastName(user.lastName || '');
-                    setEditLocation(user.location || '');
-                    setEditCompanyName(user.companyName || '');
-                    setEditJobSeeking(user.jobSeeking || '');
-                    setEditExperienceRequired(user.experienceRequired || '');
-                    setEditContractType(user.contractType || '');
-                    setEditPresentation(user.presentation || '');
-                  } catch (err: any) {
-                    setError(err.message);
-                  }
-                  */
                   // Simulation locale
                   const user = users.find(u => u.id === id || u.user_id === id || u._id === id);
                   if (user) {
                     setFoundUser(user);
                     setEditEmail(user.email || '');
+                    setEditAvatarUrl(user.avatarUrl || '');
                     setEditFirstName(user.firstName || '');
                     setEditLastName(user.lastName || '');
                     setEditLocation(user.location || '');
                     setEditCompanyName(user.companyName || '');
                     setEditJobSeeking(user.jobSeeking || '');
-                    setEditExperienceRequired(user.experienceRequired || '');
+                    setEditExperienceRequired(user.experience || user.experienceRequired || '');
                     setEditContractType(user.contractType || '');
                     setEditPresentation(user.presentation || '');
                     setError('');
@@ -313,47 +323,12 @@ export default function AdminUsersPage() {
               </form>
             )}
 
-            {/* Étape 2 : Formulaire d'édition selon le rôle */}
+            {/* Étape 2 : Affichage et édition du profil complet */}
             {foundUser && (
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
                   setError('');
-                  // Backend only
-                  /*
-                  try {
-                    const token = await getAccessTokenSilently();
-                    const res = await fetch(`${API_BASE_URL}/v1/users/${foundUser.id}`, {
-                      method: 'PUT',
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify({
-                        email: editEmail,
-                        ...(foundUser.role === 'candidate' && {
-                          firstName: editFirstName,
-                          lastName: editLastName,
-                          location: editLocation,
-                          presentation: editPresentation,
-                        }),
-                        ...(foundUser.role === 'recruiter' && {
-                          companyName: editCompanyName,
-                          jobSeeking: editJobSeeking,
-                          experienceRequired: editExperienceRequired,
-                          contractType: editContractType,
-                          location: editLocation,
-                          presentation: editPresentation,
-                        }),
-                      }),
-                    });
-                    if (!res.ok) throw new Error('Erreur modification utilisateur');
-                    const updatedUser = await res.json();
-                    setUsers(users => users.map(u => u.id === foundUser.id ? updatedUser : u));
-                  } catch (err: any) {
-                    setError(err.message);
-                  }
-                  */
                   // Simulation locale
                   setUsers(users =>
                     users.map(u =>
@@ -361,10 +336,13 @@ export default function AdminUsersPage() {
                         ? {
                             ...u,
                             email: editEmail,
+                            avatarUrl: editAvatarUrl,
                             ...(foundUser.role === 'candidate' && {
                               firstName: editFirstName,
                               lastName: editLastName,
                               location: editLocation,
+                              contractType: editContractType,
+                              experience: editExperienceRequired,
                               presentation: editPresentation,
                             }),
                             ...(foundUser.role === 'recruiter' && {
@@ -382,6 +360,7 @@ export default function AdminUsersPage() {
                   setFoundUser(null);
                   setEditUserId('');
                   setEditEmail('');
+                  setEditAvatarUrl('');
                   setEditFirstName('');
                   setEditLastName('');
                   setEditLocation('');
@@ -395,6 +374,28 @@ export default function AdminUsersPage() {
               >
                 <div style={{ marginBottom: 12, fontWeight: 600 }}>
                   Rôle : <span style={{ color: '#6746a8' }}>{foundUser.role}</span>
+                </div>
+                {/* Photo */}
+                <div style={{ marginBottom: 18 }}>
+                  {editAvatarUrl && (
+                    <div style={{ marginBottom: 8 }}>
+                      <img src={editAvatarUrl} alt="Photo de profil" style={{ width: 80, height: 80, borderRadius: '50%' }} />
+                      <button
+                        type="button"
+                        style={{ ...styles.button, background: '#e53935', marginLeft: 12 }}
+                        onClick={() => setEditAvatarUrl('')}
+                      >
+                        Supprimer la photo
+                      </button>
+                    </div>
+                  )}
+                  <input
+                    type="text"
+                    placeholder="URL de la photo"
+                    value={editAvatarUrl}
+                    onChange={e => setEditAvatarUrl(e.target.value)}
+                    style={styles.input}
+                  />
                 </div>
                 <input
                   name="editEmail"
@@ -411,6 +412,29 @@ export default function AdminUsersPage() {
                     <input name="editFirstName" type="text" placeholder="Prénom" value={editFirstName} onChange={e => setEditFirstName(e.target.value)} style={styles.input} />
                     <input name="editLastName" type="text" placeholder="Nom" value={editLastName} onChange={e => setEditLastName(e.target.value)} style={styles.input} />
                     <input name="editLocation" type="text" placeholder="Localisation" value={editLocation} onChange={e => setEditLocation(e.target.value)} style={styles.input} />
+                    <select
+                      name="editContractType"
+                      value={editContractType}
+                      onChange={e => setEditContractType(e.target.value)}
+                      style={styles.select}
+                    >
+                      <option value="">Type de contrat</option>
+                      <option value="CDI">CDI</option>
+                      <option value="CDD">CDD</option>
+                      <option value="Stage">Stage</option>
+                      <option value="Alternance">Alternance</option>
+                    </select>
+                    <select
+                      name="editExperience"
+                      value={editExperienceRequired}
+                      onChange={e => setEditExperienceRequired(e.target.value)}
+                      style={styles.select}
+                    >
+                      <option value="">Expérience</option>
+                      <option value="Débutant">Débutant</option>
+                      <option value="Intermédiaire">Intermédiaire</option>
+                      <option value="Confirmé">Confirmé</option>
+                    </select>
                     <input name="editPresentation" type="text" placeholder="Présentation" value={editPresentation} onChange={e => setEditPresentation(e.target.value)} style={styles.input} />
                   </>
                 )}
@@ -434,6 +458,7 @@ export default function AdminUsersPage() {
                     setFoundUser(null);
                     setEditUserId('');
                     setEditEmail('');
+                    setEditAvatarUrl('');
                     setEditFirstName('');
                     setEditLastName('');
                     setEditLocation('');
