@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: width * 0.03,
     elevation: 4,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   content: {
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#6746a8',
     marginBottom: 40,
-    marginTop: 40, // espace sous le logo réduit
+    marginTop: 60, // espace sous le logo réduit
     textAlign: 'center',
   },
   input: {
@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 3,
     marginTop: 40,
-    marginBottom: 45, // <-- ajoute ou augmente cette ligne pour plus d'espace sous le bouton
   },
   pressable: {
     width: '100%',
