@@ -23,12 +23,19 @@ export default function HomePage() {
           </button>
         )}
         {!selectedSection && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <button style={buttonStyle} onClick={() => router.push('/services/users')}>Utilisateurs</button>
-            <button style={buttonStyle} onClick={() => router.push('/services/joboffers')}>Offres</button>
-            <button style={buttonStyle} onClick={() => router.push('/services/cvs')}>CVs</button>
-            <button style={buttonStyle} onClick={() => router.push('/services/matches')}>Matchs</button>
-            <button style={buttonStyle} onClick={() => router.push('/services/swipes')}>Swipes</button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 260 }}>
+            {/* Boutons actifs */}
+            <div style={{ marginBottom: 24 }}>
+              <button style={buttonStyle} onClick={() => router.push('/services/users')}>Utilisateurs</button>
+              <button style={buttonStyle} onClick={() => router.push('/services/joboffers')}>Offres</button>
+            </div>
+            {/* Titre et boutons floutés */}
+            <div style={{ marginBottom: 8, fontWeight: 600, color: '#6746a8', fontSize: 18, textAlign: 'center' }}>
+              Prochainement
+            </div>
+            <button style={{ ...buttonStyle, filter: 'blur(2px)', pointerEvents: 'none', opacity: 0.6 }}>CVs</button>
+            <button style={{ ...buttonStyle, filter: 'blur(2px)', pointerEvents: 'none', opacity: 0.6 }}>Matchs</button>
+            <button style={{ ...buttonStyle, filter: 'blur(2px)', pointerEvents: 'none', opacity: 0.6 }}>Swipes</button>
           </div>
         )}
 
