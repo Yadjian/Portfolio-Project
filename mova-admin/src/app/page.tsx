@@ -8,13 +8,24 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     if (!email || !password) {
       setError('Email et mot de passe requis');
       return;
     }
-    window.location.href = '/homepage';
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      if (!res.ok) throw new Error('Identifiants invalides');
+      window.location.href = '/homepage';
+    } catch (err) {
+      setError('Identifiants invalides');
+    }
   };
 
   return (

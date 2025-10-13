@@ -184,25 +184,33 @@ export default function JobOffersServices() {
           <div style={styles.section}>
             <div style={styles.title}>Créer une offre</div>
             <form
-              onSubmit={e => {
+              onSubmit={async e => {
                 e.preventDefault();
                 setError('');
-                const newOffer = {
-                  id: Date.now().toString(),
-                  title,
-                  description,
-                  contractType,
-                  location,
-                  salaryMin,
-                  salaryMax,
-                };
-                setOffers(offers => [...offers, newOffer]);
-                setTitle('');
-                setDescription('');
-                setContractType('');
-                setLocation('');
-                setSalaryMin('');
-                setSalaryMax('');
+                try {
+                  const res = await fetch('/job-offers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      title,
+                      description,
+                      contractType,
+                      location,
+                      salaryMin,
+                      salaryMax,
+                    }),
+                  });
+                  if (!res.ok) throw new Error('Erreur lors de la création');
+                  // Optionnel: recharge la liste ou affiche un message de succès
+                  setTitle('');
+                  setDescription('');
+                  setContractType('');
+                  setLocation('');
+                  setSalaryMin('');
+                  setSalaryMax('');
+                } catch (err) {
+                  setError('Erreur lors de la création');
+                }
               }}
               style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
             >
