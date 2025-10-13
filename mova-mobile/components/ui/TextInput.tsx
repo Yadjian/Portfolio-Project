@@ -10,7 +10,7 @@ interface GenericInputBarProps extends TextInputProps {
 
 export default function GenericInputBar({ style, rightIcon, multiline, ...props }: GenericInputBarProps) {
   const { width, height } = useWindowDimensions();
-  const inputWidth = width * 0.88; // marge latérale automatique
+  const inputWidth = width * 0.8; // marge latérale automatique
   const inputHeight = multiline ? height * 0.13 : height * 0.06;
   const borderRadius = inputHeight * 0.22;
   const paddingHorizontal = width * 0.04;
