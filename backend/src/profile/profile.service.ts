@@ -11,64 +11,75 @@ export class ProfileService {
   async getUserProfile(auth0Id: string) {
     const user = await this.prisma.user.findUnique({
       where: { auth0Id },
-      // On utilise 'include' pour récupérer en même temps les profils liés
       include: {
+        // Pour un candidat, on inclut son profil simple
         candidateProfile: true,
-        recruiterProfile: true,
+
+        // Pour un recruteur, on va plus en profondeur pour récupérer l'entreprise
+        recruiterProfile: { // <-- MODIFICATION 1 : Include imbriqué
+          include: {
+            memberships: { // Inclure les adhésions du recruteur
+              include: {
+                company: true, // Pour chaque adhésion, inclure l'entreprise
+              },
+            },
+          },
+        },
       },
-      });
-          // AJOUTEZ CES LIGNES :
+    });
+
     if (!user) {
       throw new NotFoundException('User not found.');
     }
 
-    return user; // <-- LA LIGNE "RETURN" MANQUANTE
+    return user;
   }
 
   async updateUserProfile(auth0Id: string, data: UpdateProfileDto) {
+    // On récupère l'utilisateur pour savoir quel profil mettre à jour.
+    // L'include ici est juste pour la condition, pas pour la réponse finale.
     const user = await this.prisma.user.findUnique({
       where: { auth0Id },
       include: { candidateProfile: true, recruiterProfile: true },
     });
     if (!user) throw new NotFoundException('User not found.');
 
+    // --- MODIFICATION 2 : Logique de mise à jour ---
+
     if (user.candidateProfile) {
       const { interestedInCategoryIds, ...profileData } = data;
-      return this.prisma.candidateProfile.update({
+      // On attend la fin de la mise à jour, sans retourner son résultat
+      await this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
         data: {
           ...profileData,
           interestedInCategories: {
-            set: interestedInCategoryIds?.map((id) => ({ id })) || [],
+            set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
       });
 
     } else if (user.recruiterProfile) {
-      // --- Logique CORRIGÉE pour le RECRUTEUR ---
-      
-      // On destructure tous les champs spécifiques pour les traiter séparément
-      const { 
-        interestedInCategoryIds, 
-        experienceLevel, // Le champ du DTO qui posait problème
-        ...profileData    // Le reste (firstName, lastName, etc.)
-      } = data;
-
-      return this.prisma.recruiterProfile.update({
+      const { interestedInCategoryIds, experienceLevel, ...profileData } = data;
+      // On attend la fin de la mise à jour, sans retourner son résultat
+      await this.prisma.recruiterProfile.update({
         where: { id: user.recruiterProfile.id },
         data: {
-          ...profileData, // Met à jour les champs simples (firstName, lastName, locationWKT...)
-          
-          // On mappe explicitement le champ du DTO vers le bon champ du modèle
+          ...profileData,
           desiredExperienceLevel: experienceLevel,
-          
           searchedCategories: {
             set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
       });
+      
     } else {
       throw new NotFoundException('No profile found to update.');
     }
+
+    // --- MODIFICATION 3 : La réponse unifiée ---
+
+    // Après la mise à jour, on appelle notre méthode getUserProfile pour renvoyer l'objet complet.
+    return this.getUserProfile(auth0Id);
   }
 }
