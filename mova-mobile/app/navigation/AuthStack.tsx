@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
-import WelcomeScreen from '../screens/WelcomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import { AuthStackParamList } from '../../lib/types';
 import BackButton from '@/components/ui/BackButton';
@@ -15,6 +14,7 @@ import JoinCompanyScreen from '../screens/ProfileScreens/JoinCompanyScreen';
 import HomeButton from '@/components/ui/HomeButton';
 import CandidateCVScreen from '../screens/CandidateCVScreen';
 import RecruiterJobOfferScreen from '../screens/RecruiterJobOfferScreen';
+import HomeScreen from '../screens/HomeScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -37,7 +37,7 @@ export default function AuthStack() {
 
   return (
     <Stack.Navigator
-      initialRouteName="Welcome"
+      initialRouteName="Home"
       screenOptions={{
         headerStyle: { backgroundColor: '#fff' },
         headerShadowVisible: false,
@@ -45,8 +45,8 @@ export default function AuthStack() {
       }}
     >
       <Stack.Screen
-        name="Welcome"
-        component={WelcomeScreen}
+        name="Home"
+        component={HomeScreen}
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -77,7 +77,7 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
           headerBackTitleVisible: false,
         })}
@@ -90,7 +90,7 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
           headerBackTitleVisible: false,
         })}
@@ -103,7 +103,7 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
           headerBackTitleVisible: false,
         })}
@@ -116,7 +116,7 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
           headerBackTitleVisible: false,
         })}
@@ -129,7 +129,7 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
           headerBackTitleVisible: false,
         })}
@@ -142,7 +142,7 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
           headerBackTitleVisible: false,
         })}
@@ -155,7 +155,7 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
           headerBackTitleVisible: false,
         })}
@@ -168,7 +168,7 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
           headerBackTitleVisible: false,
         })}
@@ -181,7 +181,7 @@ export default function AuthStack() {
             <BackButton onPress={() => navigation.goBack()} />
           ),
           headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Welcome')} />
+            <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
           headerBackTitleVisible: false,
         })}
