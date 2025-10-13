@@ -21,7 +21,7 @@ export class CompaniesService {
     }
 
     // On exécute toutes les créations dans une seule transaction
-    return this.prisma.$transaction(async (tx) => {
+    const newProfileId = await this.prisma.$transaction(async (tx) => {
       const company = await tx.company.create({
         data: {
           name: dto.companyName,
@@ -47,7 +47,23 @@ export class CompaniesService {
         },
       });
 
-      return recruiterProfile;
+      return recruiterProfile.id;
     });
+
+    // On va chercher le profil complet
+    const completeProfile = await this.prisma.recruiterProfile.findUnique({
+      where: { id: newProfileId },
+      include: {
+        memberships: { include: { company: true } },
+      },
+    });
+
+    // On prépare une réponse personnalisée pour le frontend
+    const company = completeProfile.memberships[0]?.company;
+
+    return {
+      profile: completeProfile,
+      company: company,
+    };
   }
 }

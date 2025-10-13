@@ -45,19 +45,28 @@ export class ProfileService {
       });
 
     } else if (user.recruiterProfile) {
-      const { interestedInCategoryIds, ...profileData } = data; // On réutilise le même champ du DTO
+      // --- Logique CORRIGÉE pour le RECRUTEUR ---
+      
+      // On destructure tous les champs spécifiques pour les traiter séparément
+      const { 
+        interestedInCategoryIds, 
+        experienceLevel, // Le champ du DTO qui posait problème
+        ...profileData    // Le reste (firstName, lastName, etc.)
+      } = data;
+
       return this.prisma.recruiterProfile.update({
         where: { id: user.recruiterProfile.id },
         data: {
-          ...profileData,
-          // On mappe les champs du DTO vers les bons champs du modèle RecruiterProfile
-          desiredExperienceLevel: data.experienceLevel, 
+          ...profileData, // Met à jour les champs simples (firstName, lastName, locationWKT...)
+          
+          // On mappe explicitement le champ du DTO vers le bon champ du modèle
+          desiredExperienceLevel: experienceLevel,
+          
           searchedCategories: {
-            set: interestedInCategoryIds?.map((id) => ({ id })) || [],
+            set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
       });
-
     } else {
       throw new NotFoundException('No profile found to update.');
     }
