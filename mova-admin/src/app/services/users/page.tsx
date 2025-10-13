@@ -115,17 +115,29 @@ export default function UsersServices() {
       padding: '40px 0'
     }}>
       <div style={{
-        maxWidth: 800,
-        width: '100%',
         background: '#fff',
         borderRadius: 24,
         boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
         padding: '32px 24px',
+        minWidth: 350,
+        marginTop: 24,
         marginBottom: 24,
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center'
       }}>
+        {/* AJOUT DU TITRE ET DU BOUTON */}
+        <div style={{ fontSize: 32, fontWeight: 700, color: '#6746a8', marginBottom: 32, textAlign: 'center' }}>
+          Portail Admin
+        </div>
+        <button
+          style={{ marginTop: 0, background: '#eaeaea', color: '#6746a8', border: 'none', borderRadius: 18, padding: '10px 32px', fontWeight: 600, cursor: 'pointer' }}
+          onClick={() => window.location.href = '/homepage'}
+        >
+          Retour au menu principal
+        </button>
+        {/* FIN AJOUT */}
+
         <div style={{ fontSize: 28, fontWeight: 700, color: '#6746a8', marginBottom: 32, textAlign: 'center' }}>
           Services Utilisateurs
         </div>

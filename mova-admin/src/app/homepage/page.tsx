@@ -1,15 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import UsersServices from '../services/users/page';
 
 export default function HomePage() {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
+  const router = useRouter();
 
   return (
     <div style={{ minHeight: '100vh', background: '#f8f9ff', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 40 }}>
       <div style={{ background: '#fff', borderRadius: 24, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', padding: '32px 24px', minWidth: 350, marginTop: 24, marginBottom: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ fontSize: 32, fontWeight: 700, color: '#6746a8', marginBottom: 32, textAlign: 'center' }}>Portail Admin</div>
+        <div style={{ fontSize: 32, fontWeight: 700, color: '#6746a8', marginBottom: 32, textAlign: 'center' }}>
+          Portail Admin
+        </div>
         {selectedSection && (
           <button
             style={{ marginTop: 24, background: '#eaeaea', color: '#6746a8', border: 'none', borderRadius: 18, padding: '10px 32px', fontWeight: 600, cursor: 'pointer' }}
@@ -20,11 +24,11 @@ export default function HomePage() {
         )}
         {!selectedSection && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <button style={buttonStyle} onClick={() => setSelectedSection('users')}>Utilisateurs</button>
-            <button style={buttonStyle} onClick={() => setSelectedSection('jobOffers')}>Offres</button>
-            <button style={buttonStyle} onClick={() => setSelectedSection('cvs')}>CVs</button>
-            <button style={buttonStyle} onClick={() => setSelectedSection('matches')}>Matchs</button>
-            <button style={buttonStyle} onClick={() => setSelectedSection('swipes')}>Swipes</button>
+            <button style={buttonStyle} onClick={() => router.push('/services/users')}>Utilisateurs</button>
+            <button style={buttonStyle} onClick={() => router.push('/services/jobOffers')}>Offres</button>
+            <button style={buttonStyle} onClick={() => router.push('/services/cvs')}>CVs</button>
+            <button style={buttonStyle} onClick={() => router.push('/services/matches')}>Matchs</button>
+            <button style={buttonStyle} onClick={() => router.push('/services/swipes')}>Swipes</button>
           </div>
         )}
 
