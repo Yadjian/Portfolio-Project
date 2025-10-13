@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 type JobOffer = {
   id: string;
@@ -71,6 +71,13 @@ export default function JobOffersServices() {
     setSalaryMax('');
     setSelectedService(selectedService === service ? null : service);
   };
+
+  useEffect(() => {
+    fetch('/api/joboffers') // adapte l’URL à ton backend
+      .then(res => res.json())
+      .then(data => setOffers(data))
+      .catch(() => setError('Erreur de chargement'));
+  }, []);
 
   return (
     <div style={{
