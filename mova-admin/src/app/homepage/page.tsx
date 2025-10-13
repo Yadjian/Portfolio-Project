@@ -25,7 +25,7 @@ export default function HomePage() {
         {!selectedSection && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <button style={buttonStyle} onClick={() => router.push('/services/users')}>Utilisateurs</button>
-            <button style={buttonStyle} onClick={() => router.push('/services/jobOffers')}>Offres</button>
+            <button style={buttonStyle} onClick={() => router.push('/services/joboffers')}>Offres</button>
             <button style={buttonStyle} onClick={() => router.push('/services/cvs')}>CVs</button>
             <button style={buttonStyle} onClick={() => router.push('/services/matches')}>Matchs</button>
             <button style={buttonStyle} onClick={() => router.push('/services/swipes')}>Swipes</button>
