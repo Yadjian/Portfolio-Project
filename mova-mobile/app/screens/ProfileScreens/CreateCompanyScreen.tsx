@@ -27,37 +27,38 @@ export default function CreateCompanyScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <MovaLogo />
-      </View>
-      <View style={styles.content}>
-        <Text style={styles.title}>Inscription</Text>
-        <GenericInputBar
-          placeholder="Raison Sociale"
-          value={companyName}
-          onChangeText={setCompanyName}
-          style={{ width: width * 0.7 }} 
-        />
-        <GenericInputBar
-          placeholder="Numéro SIRET"
-          value={siret}
-          onChangeText={setSiret}
-          keyboardType="numeric"
-        />
-        <LinearGradient
-          colors={['#6746a8', '#6b25f9', '#07b9ff']}
-          style={styles.button}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-        >
-          <Pressable
-            style={styles.pressable}
-            onPress={handleSubmit}
-            android_ripple={{ color: '#6b25f9' }}
+      <View style={styles.card}>
+        <View style={styles.content}>
+          <MovaLogo sizeProp={60} />
+          <Text style={styles.title}>Inscription</Text>
+          <GenericInputBar
+            placeholder="Raison Sociale"
+            value={companyName}
+            onChangeText={setCompanyName}
+            style={{ width: width * 0.55 }} 
+          />
+          <GenericInputBar
+            placeholder="Numéro SIRET"
+            value={siret}
+            onChangeText={setSiret}
+            keyboardType="numeric"
+            style={{ width: width * 0.55 }}
+          />
+          <LinearGradient
+            colors={['#6746a8', '#6b25f9', '#07b9ff']}
+            style={styles.button}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
           >
-            <Text style={styles.buttonText}>Créer</Text>
-          </Pressable>
-        </LinearGradient>
+            <Pressable
+              style={styles.pressable}
+              onPress={handleSubmit}
+              android_ripple={{ color: '#6b25f9' }}
+            >
+              <Text style={styles.buttonText}>Créer</Text>
+            </Pressable>
+          </LinearGradient>
+        </View>
       </View>
     </View>
   );
@@ -66,13 +67,23 @@ export default function CreateCompanyScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fffffffb',
+    backgroundColor: '#f2f2f2',
     justifyContent: 'flex-start',
   },
-  logoContainer: {
+  card: {
+    flex: 1, // la card prend toute la hauteur dispo
+    backgroundColor: '#fff',
+    borderRadius: width * 0.045,
+    paddingVertical: height * 0.04,
+    paddingHorizontal: width * 0.06,
+    marginVertical: height * 0.02, // même marge en haut et en bas
+    marginHorizontal: width * 0.03,
+    shadowColor: '#6746a8',
+    shadowOpacity: 0.08,
+    shadowRadius: width * 0.03,
+    elevation: 4,
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    marginBottom: height * 0.1,
-    marginTop: height * 0.05,
   },
   content: {
     alignItems: 'center',
@@ -83,6 +94,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#6746a8',
     marginBottom: 40,
+    marginTop: 60, // espace sous le logo réduit
     textAlign: 'center',
   },
   input: {
@@ -96,8 +108,8 @@ const styles = StyleSheet.create({
     fontSize: width * 0.045,
   },
   button: {
-    width: '60%',
-    borderRadius: 30,
+    width: width * 0.55,
+    borderRadius: 25,
     alignSelf: 'center',
     overflow: 'hidden',
     shadowColor: '#000',
@@ -105,7 +117,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.10,
     shadowRadius: 6,
     elevation: 3,
-    marginTop: 50,
+    marginTop: 40,
   },
   pressable: {
     width: '100%',

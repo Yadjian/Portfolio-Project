@@ -1,19 +1,21 @@
 import React from 'react';
 import { Pressable, StyleSheet, useWindowDimensions } from 'react-native';
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg';
+import { Platform } from 'react-native';
 
 interface BackButtonProps {
   onPress: () => void;
 }
 
 export default function BackButton({ onPress }: BackButtonProps) {
-  const { width, height } = useWindowDimensions();
-  const buttonSize = Math.min(width, height) * 0.09; // 9% de la plus petite dimension
-  const padding = buttonSize * 0.3;
-  const marginLeft = -buttonSize * 0.25;
+  const buttonSize = 35;
 
   return (
-    <Pressable style={[styles.button, { padding, marginLeft }]} onPress={onPress}>
+    <Pressable
+      style={styles.button}
+      onPress={onPress}
+      android_ripple={{ color: '#eee', borderless: true }}
+    >
       <Svg width={buttonSize} height={buttonSize} viewBox="0 0 32 32" fill="none">
         <Defs>
           <LinearGradient id="grad" x1="0" y1="0" x2="1" y2="1">
@@ -36,6 +38,11 @@ export default function BackButton({ onPress }: BackButtonProps) {
 
 const styles = StyleSheet.create({
   button: {
-    // Les valeurs sont maintenant dynamiques via le composant
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    backgroundColor: 'transparent',
+    marginTop: Platform.OS === 'ios' ? 6 : 0, // décale vers le haut sur iOS
   },
 });

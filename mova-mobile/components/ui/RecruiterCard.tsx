@@ -99,8 +99,8 @@ export default function RecruiterCard({
       overflow: 'hidden',
       justifyContent: 'center',
       alignItems: 'center',
-      borderWidth: 0,
-      borderColor: 'transparent',
+      borderWidth: 1,           // <--- bordure toujours visible
+      borderColor: '#6746a8',   // <--- couleur violette
       borderStyle: 'solid',
       backgroundColor: '#f8f9fa',
     },

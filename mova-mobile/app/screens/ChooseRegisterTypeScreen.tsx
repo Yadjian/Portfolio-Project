@@ -5,31 +5,26 @@ import MovaLogo from '@/components/ui/MovaLogo';
 const { height, width } = Dimensions.get('window');
 
 export default function ChooseRegisterTypeScreen({ navigation }: any) {
-  const handleRegister = async (role: 'candidat' | 'recruteur') => {
-    // ... logique d'inscription ...
-    navigation.navigate('EditProfileScreen', { userType: 'candidat' }); // ou 'recruteur'
-  };
-
   return (
     <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <MovaLogo />
-      </View>
-      <View style={styles.content}>
-        <Text style={styles.title}>Vous êtes ?</Text>
-        <Pressable
-          style={[styles.button, { backgroundColor: '#07b9ff' }]}
-          onPress={() => navigation.navigate('CandidateProfile', { startEditing: true })}
-        >
-          <Text style={styles.buttonText}>Candidat</Text>
-        </Pressable>
-        <View style={{ marginVertical: 20 }} />
-        <Pressable
-          style={[styles.button, { backgroundColor: '#6b25f9' }]}
-          onPress={() => navigation.navigate('CreateCompany')}
-        >
-          <Text style={styles.buttonText}>Recruteur</Text>
-        </Pressable>
+      <View style={styles.card}>
+        <View style={styles.content}>
+          <MovaLogo sizeProp={60} />
+          <Text style={styles.title}>Vous êtes ?</Text>
+          <Pressable
+            style={[styles.button, { backgroundColor: '#07b9ff' }]}
+            onPress={() => navigation.navigate('CandidateProfile', { startEditing: true })}
+          >
+            <Text style={styles.buttonText}>Candidat</Text>
+          </Pressable>
+          <View style={{ marginVertical: height * 0.03 }} />
+          <Pressable
+            style={[styles.button, { backgroundColor: '#6b25f9' }]}
+            onPress={() => navigation.navigate('CreateCompany')}
+          >
+            <Text style={styles.buttonText}>Recruteur</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -38,13 +33,23 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fffffffb',
+    backgroundColor: '#f2f2f2', // même fond que CreateCompanyScreen
     justifyContent: 'flex-start',
   },
-  logoContainer: {
+  card: {
+    flex: 1,
+    backgroundColor: '#fff',
+    borderRadius: width * 0.045,
+    paddingVertical: height * 0.04,
+    paddingHorizontal: width * 0.06,
+    marginVertical: height * 0.02,
+    marginHorizontal: width * 0.03,
+    shadowColor: '#6746a8',
+    shadowOpacity: 0.08,
+    shadowRadius: width * 0.03,
+    elevation: 4,
+    justifyContent: 'flex-start', // <-- le logo remonte dans la card
     alignItems: 'center',
-    marginBottom: height * 0.1,
-    marginTop: height * 0.05
   },
   content: {
     alignItems: 'center',
@@ -54,13 +59,16 @@ const styles = StyleSheet.create({
     fontSize: 30,
     fontWeight: 'bold',
     color: '#6746a8',
-    marginBottom: 40,
+    marginBottom: 60,
+    marginTop: 70, // <-- espace augmenté sous le logo
     textAlign: 'center',
   },
   button: {
-    width: '80%',
+    width: width * 0.8,
+    height: height * 0.09,
     borderRadius: 25,
     alignSelf: 'center',
+    justifyContent: 'center',
     paddingVertical: height * 0.03,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },

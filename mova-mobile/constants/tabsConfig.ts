@@ -13,7 +13,7 @@ export const getCandidateTabs = (navigation: any, notificationCount: number = 0)
     label: 'Mon CV',
     iconName: 'document-text-outline',
     iconNameActive: 'document-text',
-    onPress: () => navigation.navigate('EditProfileScreen', { userType: 'candidat' }),
+    onPress: () => navigation.navigate('CandidateCVScreen'),
   },
   {
     id: 'matches',
@@ -45,7 +45,7 @@ export const getRecruiterTabs = (navigation: any, notificationCount: number = 0)
     label: 'Mon Offre',
     iconName: 'document-text-outline',
     iconNameActive: 'document-text',
-    onPress: () => navigation.navigate('EditProfileScreen', { userType: 'recruteur' }),
+    onPress: () => navigation.navigate('RecruiterJobOfferScreen'),
   },
   {
     id: 'matches',
