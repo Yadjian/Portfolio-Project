@@ -75,3 +75,11 @@ export async function sendLocationToBackend(coords: { latitude: number; longitud
   //   body: JSON.stringify(coords),
   // });
 }
+
+export async function getGoogleGeolocation(latitude: number, longitude: number) {
+  // Remplace 'YOUR_API_KEY' par ta vraie clé Google
+  const response = await fetch(
+    `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_API_KEY`
+  );
+  return await response.json();
+}
