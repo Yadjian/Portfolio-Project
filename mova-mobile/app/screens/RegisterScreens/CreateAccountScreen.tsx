@@ -62,10 +62,9 @@ export default function CreateAccountScreen() {
   
   return (
     <KeyboardAwareScrollView
-      contentContainerStyle={[styles.container, { flexGrow: 1 }]}
+      contentContainerStyle={styles.container}
       enableOnAndroid={true}
       keyboardShouldPersistTaps="handled"
-      scrollEnabled={isKeyboardVisible}
     >
       <View style={styles.card}>
         <View style={styles.content}>
@@ -119,7 +118,8 @@ export default function CreateAccountScreen() {
           </LinearGradient>
         </View>
       </View>
-      <View style={{ height: 15 }} /> {/* marge en bas pour le clavier */}
+      <View style={{ height: 15 }} />
+      {/* marge en bas pour le clavier */}
     </KeyboardAwareScrollView>
   );
 }
