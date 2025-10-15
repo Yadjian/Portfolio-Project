@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useRoute } from '@react-navigation/native';
-import { View, Text, StyleSheet, Dimensions, Pressable } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity } from 'react-native';
 import { register } from '../../../services/api';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,6 +8,8 @@ import type { AuthStackParamList } from '../../../lib/types';
 import MovaLogo from '../../../components/ui/MovaLogo';
 import { LinearGradient } from 'expo-linear-gradient';
 import GenericInputBar from '../../../components/ui/TextInput';
+import { Ionicons } from '@expo/vector-icons';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const { height, width } = Dimensions.get('window');
 
@@ -17,7 +19,9 @@ export default function CreateAccountScreen() {
   const userType = route.params?.userType || 'candidate';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pseudo, setPseudo] = useState('');
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -39,7 +43,11 @@ export default function CreateAccountScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAwareScrollView
+      contentContainerStyle={[styles.container, { flexGrow: 1 }]}
+      enableOnAndroid={true}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.card}>
         <View style={styles.content}>
           <MovaLogo sizeProp={60} />
@@ -48,15 +56,57 @@ export default function CreateAccountScreen() {
             placeholder="Email"
             value={email}
             onChangeText={setEmail}
-            keyboardType="email-address"
-            style={{ width: width * 0.55 }}
+            placeholderTextColor="#6746a8"
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 10,
+              paddingHorizontal: 16,
+              fontSize: 16,
+              width: '100%',
+              height: 40,
+              minHeight: 40,
+              marginVertical: 10,
+            }}
           />
           <GenericInputBar
             placeholder="Mot de passe"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
-            style={{ width: width * 0.55 }}
+            secureTextEntry={!showPassword}
+            placeholderTextColor="#6746a8"
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 10,
+              paddingHorizontal: 16,
+              fontSize: 16,
+              width: '100%',
+              height: 40,
+              minHeight: 40,
+              marginVertical: 10,
+              paddingRight: 44,
+            }}
+            rightIcon={
+              <TouchableOpacity onPress={() => setShowPassword(s => !s)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={22} color="#6746a8" />
+              </TouchableOpacity>
+            }
+          />
+          <GenericInputBar
+            placeholder="Confirmer mot de passe"
+            value={pseudo}
+            onChangeText={setPseudo}
+            secureTextEntry={true}
+            placeholderTextColor="#6746a8"
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: 10,
+              paddingHorizontal: 16,
+              fontSize: 16,
+              width: '100%',
+              height: 40,
+              minHeight: 40,
+              marginVertical: 10,
+            }}
           />
           <LinearGradient
             colors={['#6746a8', '#6b25f9', '#07b9ff']}
@@ -77,18 +127,17 @@ export default function CreateAccountScreen() {
           </LinearGradient>
         </View>
       </View>
-    </View>
+      <View style={{ height: 15 }} /> {/* marge en bas pour le clavier */}
+    </KeyboardAwareScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#f2f2f2',
     justifyContent: 'flex-start',
   },
   card: {
-    flex: 1,
     backgroundColor: '#fff',
     borderRadius: 16,
     paddingVertical: 32,
@@ -103,6 +152,7 @@ const styles = StyleSheet.create({
   content: {
     alignItems: 'center',
     justifyContent: 'center',
+    width: '100%',
   },
   title: {
     fontSize: 30,
@@ -112,6 +162,12 @@ const styles = StyleSheet.create({
     marginTop: 60,
     textAlign: 'center',
   },
+  inputItem: {
+    width: '80%',
+    alignSelf: 'center',
+    marginVertical: 10,
+    minHeight: 40,
+  },
   button: {
     width: '100%',
     borderRadius: 24,
@@ -119,6 +175,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   pressable: {
+    width: '100%',
     paddingVertical: 16,
     alignItems: 'center',
   },
