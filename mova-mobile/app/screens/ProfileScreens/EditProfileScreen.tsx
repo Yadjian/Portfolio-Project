@@ -85,7 +85,7 @@ export default function EditProfileScreen() {
     // }
 
     // Navigation directe sans backend ni restriction :
-    if (userType === 'candidat') {
+    if (userType === 'candidate') {
       navigation.replace('CandidateProfile', { startEditing: false });
     } else {
       navigation.replace('RecruiterProfile', { startEditing: false });
@@ -102,7 +102,7 @@ export default function EditProfileScreen() {
         <SmallMovaLogo />
       </View>
       <Text style={styles.title}>Complétez votre profil</Text>
-      {userType === 'candidat' ? (
+      {userType === 'candidate' ? (
         <>
           <View style={{ alignSelf: 'center', marginBottom: 16 }}>
             <Pressable onPress={async () => {

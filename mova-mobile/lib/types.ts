@@ -8,12 +8,13 @@ export type AuthStackParamList = {
   CandidateProfile: { startEditing?: boolean };
   RecruiterProfile: { startEditing?: boolean };
   SwipeNotification: { userType: string };
-  EditProfileScreen: { userType: 'candidat' | 'recruteur' };
+  EditProfileScreen: { userType: 'candidate' | 'recruiter'; startEditing?: boolean };
   RecruiterOnboarding: undefined;
-  CreateCompany: undefined;
+  CreateCompany: { startEditing?: boolean };
   JoinCompany: undefined;
   CandidateCVScreen: undefined;
   RecruiterJobOfferScreen: undefined;
+  CreateAccount: { userType: 'candidate' | 'recruiter' };
 };
 
 // Définir les props pour chaque écran

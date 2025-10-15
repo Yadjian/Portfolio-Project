@@ -22,13 +22,12 @@ export default function CreateAccountScreen() {
   const handleSubmit = async () => {
     setLoading(true);
     try {
-      // Si tu veux utiliser le type dans register, adapte la fonction dans api.ts
       const res = await register(email, password);
       if (res.success) {
         if (userType === 'candidate') {
-          navigation.navigate('CandidateProfile' as never);
+          navigation.navigate('EditProfileScreen', { userType: 'candidate', startEditing: true } as never);
         } else {
-          navigation.navigate('RecruiterProfile' as never);
+          navigation.navigate('CreateCompany', { startEditing: true } as never);
         }
       } else {
         alert(res.message || 'Erreur lors de la création du compte.');

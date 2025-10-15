@@ -18,7 +18,7 @@ export default function CreateCompanyScreen() {
   const handleSubmit = async () => {
     try {
       // await createCompany({ companyName, siret });
-      navigation.navigate('EditProfileScreen', { userType: 'recruteur' });
+      navigation.navigate('EditProfileScreen', { userType: 'recruiter', startEditing: true });
     } catch (error) {
       console.error(error);
       // alert("Erreur lors de la création de l'entreprise.");
