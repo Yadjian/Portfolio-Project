@@ -34,8 +34,14 @@ export default function CreateAccountScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [pseudo, setPseudo] = useState('');
+  const [confirmTouched, setConfirmTouched] = useState(false);
+  const [submitAttempted, setSubmitAttempted] = useState(false);
 
   const handleSubmit = async () => {
+    setSubmitAttempted(true);
+    if (password !== pseudo) {
+      return;
+    }
     setLoading(true);
     try {
       const res = await register(email, password);
@@ -107,7 +113,10 @@ export default function CreateAccountScreen() {
           <GenericInputBar
             placeholder="Confirmer mot de passe"
             value={pseudo}
-            onChangeText={setPseudo}
+            onChangeText={text => {
+              setPseudo(text);
+              if (!confirmTouched) setConfirmTouched(true);
+            }}
             secureTextEntry={true}
             placeholderTextColor="#6746a8"
             style={{
@@ -121,7 +130,7 @@ export default function CreateAccountScreen() {
               marginVertical: 10,
             }}
           />
-          {password !== pseudo && (
+          {submitAttempted && password !== pseudo && (
             <Text style={styles.error}>Les mots de passe ne correspondent pas.</Text>
           )}
           <LinearGradient
@@ -134,7 +143,7 @@ export default function CreateAccountScreen() {
               style={styles.pressable}
               onPress={handleSubmit}
               android_ripple={{ color: '#6b25f9' }}
-              disabled={loading}
+              disabled={loading || (submitAttempted && password !== pseudo)}
             >
               <Text style={styles.buttonText}>
                 {loading ? 'Création...' : 'Créer mon compte'}
