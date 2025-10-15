@@ -55,7 +55,7 @@ export default function CreateCompanyScreen() {
               onPress={handleSubmit}
               android_ripple={{ color: '#6b25f9' }}
             >
-              <Text style={styles.buttonText}>Créer</Text>
+              <Text style={styles.buttonText}>Valider</Text>
             </Pressable>
           </LinearGradient>
         </View>

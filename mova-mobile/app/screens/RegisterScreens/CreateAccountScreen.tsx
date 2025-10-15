@@ -114,9 +114,7 @@ export default function CreateAccountScreen() {
               android_ripple={{ color: '#6b25f9' }}
               disabled={loading || (submitAttempted && password !== pseudo)}
             >
-              <Text style={styles.buttonText}>
-                {loading ? 'Création...' : 'Créer mon compte'}
-              </Text>
+              <Text style={styles.buttonText}>Créer</Text>
             </Pressable>
           </LinearGradient>
         </View>
@@ -163,20 +161,29 @@ const styles = StyleSheet.create({
     minHeight: 40,
   },
   button: {
-    width: '100%',
-    borderRadius: 24,
+    width: width * 0.55,
+    borderRadius: 25,
+    alignSelf: 'center',
     overflow: 'hidden',
-    marginTop: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.10,
+    shadowRadius: 6,
+    elevation: 3,
+    marginTop: 40,
   },
   pressable: {
     width: '100%',
-    paddingVertical: 16,
+    paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   buttonText: {
     color: '#fff',
+    fontSize: width * 0.055,
     fontWeight: 'bold',
-    fontSize: 16,
+    textAlign: 'center',
   },
   error: {
     color: 'red',
