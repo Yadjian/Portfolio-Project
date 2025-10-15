@@ -1,19 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import * as dotenv from 'dotenv';
-import * as fs from 'fs';
-
-// Chargement conditionnel du fichier d'environnement
-if (fs.existsSync('.env.local') && !process.env.DATABASE_URL) {
-  dotenv.config({ path: '.env.local' });
-  console.log('✅ Loaded environment from .env.local');
-} else if (fs.existsSync('.env') && !process.env.DATABASE_URL) {
-  dotenv.config({ path: '.env' });
-  console.log('✅ Loaded environment from .env');
-}
 
 // Imports pour Swagger
 import { SwaggerModule, OpenAPIObject } from '@nestjs/swagger';
+import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path'; // <- L'import crucial qui manquait
 

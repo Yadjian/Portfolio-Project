@@ -1,6 +1,6 @@
 // Fichier: backend/src/job-offer/job-offer.service.ts
 
-import { Injectable, NotFoundException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobOfferDto } from './dto/create-job-offer.dto';
 
@@ -90,5 +90,42 @@ export class JobOfferService {
     }
 
     return jobOffer;
+  }
+
+  async findNearby(auth0Id: string, radiusInMeters: number = 20000) {
+    const candidateProfile = await this.prisma.candidateProfile.findFirst({
+      where: { user: { auth0Id } },
+    });
+
+    if (!candidateProfile) {
+      throw new NotFoundException('Candidate profile not found.');
+    }
+
+    if (!candidateProfile.locationWKT) {
+      throw new NotFoundException('Candidate location must be set before searching for nearby jobs.');
+    }
+
+    // ✅ AJOUT: Gestion des erreurs de conversion
+    try {
+      return await this.prisma.$queryRaw`
+        SELECT
+          "id", "title", "contractType", "locationWKT",
+          ST_Distance(
+            ST_GeomFromText("locationWKT", 4326),
+            ST_GeomFromText(${candidateProfile.locationWKT}, 4326)
+          ) as "distanceInMeters"
+        FROM "JobOffer"
+        WHERE "locationWKT" IS NOT NULL
+        AND "isActive" = true
+        AND ST_DWithin(
+          ST_GeomFromText("locationWKT", 4326),
+          ST_GeomFromText(${candidateProfile.locationWKT}, 4326),
+          ${radiusInMeters}
+        )
+        ORDER BY "distanceInMeters" ASC;
+      `;
+    } catch (error) {
+      throw new BadRequestException('Error processing geographic data');
+    }
   }
 }
