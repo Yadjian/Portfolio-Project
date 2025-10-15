@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { login } from '../../services/api';
 import { View, StyleSheet, Text, Pressable, TextInput, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import GradientBackground from '@/components/ui/ColorBackground';
@@ -9,6 +10,30 @@ export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { height, width } = useWindowDimensions();
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setLoading(true);
+    try {
+      const res = await login(email, password);
+      if (res.success) {
+        // Navigation selon le type d'utilisateur
+        // Ici, on suppose que res.user.type existe et vaut 'candidate' ou 'recruiter'
+        if (res.user && res.user.type === 'candidate') {
+          navigation.navigate('CandidateProfile');
+        } else if (res.user && res.user.type === 'recruiter') {
+          navigation.navigate('RecruiterProfile');
+        } else {
+          alert('Type utilisateur inconnu, connexion réussie !');
+        }
+      } else {
+        alert(res.message || 'Erreur de connexion');
+      }
+    } catch (err) {
+      alert('Erreur de connexion');
+    }
+    setLoading(false);
+  };
 
   return (
     <GradientBackground>
@@ -132,13 +157,14 @@ export default function LoginScreen({ navigation }: any) {
             }}
           >
             <Pressable
-              onPress={() => console.log('Login pressed')}
+              onPress={handleLogin}
               style={{
                 borderRadius: 10,
                 width: '100%',
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
+              disabled={loading}
             >
               <Text
                 style={{
@@ -148,7 +174,7 @@ export default function LoginScreen({ navigation }: any) {
                   textAlign: 'center',
                 }}
               >
-                Se connecter
+                {loading ? 'Connexion...' : 'Se connecter'}
               </Text>
             </Pressable>
           </LinearGradient>

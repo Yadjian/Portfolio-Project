@@ -39,7 +39,7 @@ export default function WelcomeScreen({ navigation }: any) {
     if (isAuthenticated) {
       logout();
     } else {
-      login();
+      navigation.navigate('Login'); // <-- redirige vers l'écran de login
     }
   };
 
