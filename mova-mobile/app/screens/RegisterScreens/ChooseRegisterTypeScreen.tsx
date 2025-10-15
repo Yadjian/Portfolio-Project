@@ -13,14 +13,14 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
           <Text style={styles.title}>Vous êtes ?</Text>
           <Pressable
             style={[styles.button, { backgroundColor: '#07b9ff' }]}
-            onPress={() => navigation.navigate('CandidateProfile', { startEditing: true })}
+            onPress={() => navigation.navigate('CreateAccount', { userType: 'candidate' })}
           >
             <Text style={styles.buttonText}>Candidat</Text>
           </Pressable>
           <View style={{ marginVertical: height * 0.03 }} />
           <Pressable
             style={[styles.button, { backgroundColor: '#6b25f9' }]}
-            onPress={() => navigation.navigate('CreateCompany')}
+            onPress={() => navigation.navigate('CreateAccount', { userType: 'recruiter' })}
           >
             <Text style={styles.buttonText}>Recruteur</Text>
           </Pressable>

@@ -42,7 +42,6 @@ export default function GenericInputBar({ style, rightIcon, multiline, ...props 
       }}>
         <TextInput
           style={[
-            styles.input,
             {
               flex: 1,
               minHeight: inputHeight,
@@ -50,7 +49,8 @@ export default function GenericInputBar({ style, rightIcon, multiline, ...props 
               paddingHorizontal: paddingHorizontal,
               textAlignVertical: multiline ? 'top' : 'center',
             },
-            style,
+            styles.input,
+            style, // <-- place 'style' en dernier pour qu'il écrase les valeurs par défaut
           ]}
           multiline={multiline}
           {...props}

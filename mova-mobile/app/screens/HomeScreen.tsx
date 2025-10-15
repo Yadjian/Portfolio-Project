@@ -8,7 +8,7 @@ import { sendLocationToBackend } from '../../services/api';
 
 const { height, width } = Dimensions.get('window');
 
-export default function WelcomeScreen({ navigation }: any) {
+export default function HomeScreen({ navigation }: any) {
   // Géolocalisation : demande la permission et envoie périodiquement
   useEffect(() => {
     let interval: number;
@@ -33,15 +33,7 @@ export default function WelcomeScreen({ navigation }: any) {
   }, []);
 
   // AuthProvider
-  const { isAuthenticated, user, login, logout, loading } = useAuth();
-
-  const handleAuthAction = () => {
-    if (isAuthenticated) {
-      logout();
-    } else {
-      login();
-    }
-  };
+  const { loading } = useAuth();
 
   return (
     <View style={styles.container}>
@@ -50,11 +42,6 @@ export default function WelcomeScreen({ navigation }: any) {
         <Text style={styles.slogan}>
           Votre prochain emploi{'\n'}commence par une rencontre !
         </Text>
-        {isAuthenticated && user && (
-          <Text style={styles.welcomeText}>
-            Bonjour {user.name || user.email} !
-          </Text>
-        )}
       </View>
       <View style={styles.separator} />
       <View style={styles.buttonContainer}>
@@ -66,33 +53,28 @@ export default function WelcomeScreen({ navigation }: any) {
         >
           <Pressable
             style={styles.pressable}
-            onPress={handleAuthAction}
+            onPress={() => navigation.navigate('Login')}
             disabled={loading}
           >
             <Text style={styles.buttonText}>
-              {loading ? 'Chargement...' : isAuthenticated ? 'Déconnexion' : 'Connexion'}
+              {loading ? 'Chargement...' : 'Connexion'}
             </Text>
           </Pressable>
         </LinearGradient>
-
-        {!isAuthenticated && (
-          <>
-            <View style={{ marginVertical: 20 }} />
-            <LinearGradient
-              colors={['#6746a8', '#6b25f9', '#07b9ff']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={styles.gradientButton}
-            >
-              <Pressable
-                style={styles.pressable}
-                onPress={() => navigation.navigate('ChooseRegisterType')}
-              >
-                <Text style={styles.buttonText}>Créer mon compte</Text>
-              </Pressable>
-            </LinearGradient>
-          </>
-        )}
+        <View style={{ marginVertical: 20 }} />
+        <LinearGradient
+          colors={['#6746a8', '#6b25f9', '#07b9ff']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.gradientButton}
+        >
+          <Pressable
+            style={styles.pressable}
+            onPress={() => navigation.navigate('ChooseRegisterType')}
+          >
+            <Text style={styles.buttonText}>Créer mon compte</Text>
+          </Pressable>
+        </LinearGradient>
       </View>
     </View>
   );
@@ -115,12 +97,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 18,
     marginBottom: 8,
-  },
-  welcomeText: {
-    fontSize: width * 0.04,
-    color: '#6746a8',
-    textAlign: 'center',
-    marginTop: 10,
   },
   separator: {
     height: 1,

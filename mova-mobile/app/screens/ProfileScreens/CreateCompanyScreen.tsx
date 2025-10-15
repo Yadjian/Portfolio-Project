@@ -18,7 +18,7 @@ export default function CreateCompanyScreen() {
   const handleSubmit = async () => {
     try {
       // await createCompany({ companyName, siret });
-      navigation.navigate('EditProfileScreen', { userType: 'recruteur' });
+      navigation.navigate('EditProfileScreen', { userType: 'recruiter', startEditing: true });
     } catch (error) {
       console.error(error);
       // alert("Erreur lors de la création de l'entreprise.");
@@ -55,7 +55,7 @@ export default function CreateCompanyScreen() {
               onPress={handleSubmit}
               android_ripple={{ color: '#6b25f9' }}
             >
-              <Text style={styles.buttonText}>Créer</Text>
+              <Text style={styles.buttonText}>Valider</Text>
             </Pressable>
           </LinearGradient>
         </View>
