@@ -59,7 +59,7 @@ export default function CreateAccountScreen() {
     }
     setLoading(false);
   };
-
+  
   return (
     <KeyboardAwareScrollView
       contentContainerStyle={[styles.container, { flexGrow: 1 }]}
@@ -75,35 +75,14 @@ export default function CreateAccountScreen() {
             placeholder="Email"
             value={email}
             onChangeText={setEmail}
-            placeholderTextColor="#6746a8"
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: 10,
-              paddingHorizontal: 16,
-              fontSize: 16,
-              width: '100%',
-              height: 40,
-              minHeight: 40,
-              marginVertical: 10,
-            }}
+            style={{ width: width * 0.55 }}
           />
           <GenericInputBar
             placeholder="Mot de passe"
             value={password}
             onChangeText={setPassword}
             secureTextEntry={!showPassword}
-            placeholderTextColor="#6746a8"
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: 10,
-              paddingHorizontal: 16,
-              fontSize: 16,
-              width: '100%',
-              height: 40,
-              minHeight: 40,
-              marginVertical: 10,
-              paddingRight: 44,
-            }}
+            style={{ width: width * 0.55, paddingRight: 44 }}
             rightIcon={
               <TouchableOpacity onPress={() => setShowPassword(s => !s)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
                 <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={22} color="#6746a8" />
@@ -118,17 +97,7 @@ export default function CreateAccountScreen() {
               if (!confirmTouched) setConfirmTouched(true);
             }}
             secureTextEntry={true}
-            placeholderTextColor="#6746a8"
-            style={{
-              backgroundColor: '#fff',
-              borderRadius: 10,
-              paddingHorizontal: 16,
-              fontSize: 16,
-              width: '100%',
-              height: 40,
-              minHeight: 40,
-              marginVertical: 10,
-            }}
+            style={{ width: width * 0.55 }}
           />
           {submitAttempted && password !== pseudo && (
             <Text style={styles.error}>Les mots de passe ne correspondent pas.</Text>
