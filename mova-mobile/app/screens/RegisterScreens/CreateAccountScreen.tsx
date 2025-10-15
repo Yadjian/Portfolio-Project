@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
+import { Keyboard } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity } from 'react-native';
 import { register } from '../../../services/api';
@@ -14,6 +16,16 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 const { height, width } = Dimensions.get('window');
 
 export default function CreateAccountScreen() {
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<any>();
   const userType = route.params?.userType || 'candidate';
@@ -47,6 +59,7 @@ export default function CreateAccountScreen() {
       contentContainerStyle={[styles.container, { flexGrow: 1 }]}
       enableOnAndroid={true}
       keyboardShouldPersistTaps="handled"
+      scrollEnabled={isKeyboardVisible}
     >
       <View style={styles.card}>
         <View style={styles.content}>
@@ -108,6 +121,9 @@ export default function CreateAccountScreen() {
               marginVertical: 10,
             }}
           />
+          {password !== pseudo && (
+            <Text style={styles.error}>Les mots de passe ne correspondent pas.</Text>
+          )}
           <LinearGradient
             colors={['#6746a8', '#6b25f9', '#07b9ff']}
             style={styles.button}
@@ -183,5 +199,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     fontSize: 16,
+  },
+  error: {
+    color: 'red',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
