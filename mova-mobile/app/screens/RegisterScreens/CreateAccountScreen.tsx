@@ -1,193 +1,250 @@
 import React, { useState } from 'react';
-import { useEffect } from 'react';
-import { Keyboard } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import { View, Text, StyleSheet, Dimensions, Pressable, TouchableOpacity } from 'react-native';
-import { register } from '../../../services/api';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { AuthStackParamList } from '../../../lib/types';
-import MovaLogo from '../../../components/ui/MovaLogo';
-import { LinearGradient } from 'expo-linear-gradient';
-import GenericInputBar from '../../../components/ui/TextInput';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, KeyboardAvoidingView, Platform, ScrollView, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import MovaLogo from '@/components/ui/MovaLogo';
 
-const { height, width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
 
-export default function CreateAccountScreen() {
-  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+export default function CreateAccountScreen({ route, navigation }: any) {
+  const userType = route?.params?.userType ?? 'candidate';
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+  React.useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
     return () => {
-      showSub.remove();
-      hideSub.remove();
+      showSubscription.remove();
+      hideSubscription.remove();
     };
   }, []);
-  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const route = useRoute<any>();
-  const userType = route.params?.userType || 'candidate';
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [pseudo, setPseudo] = useState('');
-  const [confirmTouched, setConfirmTouched] = useState(false);
-  const [submitAttempted, setSubmitAttempted] = useState(false);
 
-  const handleSubmit = async () => {
-    setSubmitAttempted(true);
-    if (password !== pseudo) {
-      return;
+  const handleSubmit = () => {
+    console.log('Création compte:', formData, userType);
+    if (userType === 'recruiter') {
+      navigation.navigate('RecruiterOnboardingScreen');
+    } else {
+      navigation.navigate('Home');
     }
-    setLoading(true);
-    try {
-      const res = await register(email, password);
-      if (res.success) {
-        if (userType === 'candidate') {
-          navigation.navigate('EditProfileScreen', { userType: 'candidate', startEditing: true } as never);
-        } else {
-          navigation.navigate('CreateCompany', { startEditing: true } as never);
-        }
-      } else {
-        alert(res.message || 'Erreur lors de la création du compte.');
-      }
-    } catch (error) {
-      alert('Erreur lors de la création du compte.');
-    }
-    setLoading(false);
   };
-  
+
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={styles.container}
-      enableOnAndroid={true}
-      keyboardShouldPersistTaps="handled"
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={styles.card}>
-        <View style={styles.content}>
+      <ScrollView 
+        contentContainerStyle={keyboardVisible ? styles.scrollContent : styles.content}
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={keyboardVisible}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Header avec logo */}
+        <View style={styles.header}>
           <MovaLogo sizeProp={60} />
-          <Text style={styles.title}>Inscription</Text>
-          <GenericInputBar
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            style={{ width: width * 0.55 }}
-          />
-          <GenericInputBar
-            placeholder="Mot de passe"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-            style={{ width: width * 0.55, paddingRight: 44 }}
-            rightIcon={
-              <TouchableOpacity onPress={() => setShowPassword(s => !s)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Ionicons name={showPassword ? 'eye' : 'eye-off'} size={22} color="#6746a8" />
-              </TouchableOpacity>
-            }
-          />
-          <GenericInputBar
-            placeholder="Confirmer mot de passe"
-            value={pseudo}
-            onChangeText={text => {
-              setPseudo(text);
-              if (!confirmTouched) setConfirmTouched(true);
-            }}
-            secureTextEntry={true}
-            style={{ width: width * 0.55 }}
-          />
-          {submitAttempted && password !== pseudo && (
-            <Text style={styles.error}>Les mots de passe ne correspondent pas.</Text>
-          )}
-          <LinearGradient
-            colors={['#6746a8', '#6b25f9', '#07b9ff']}
-            style={styles.button}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Pressable
-              style={styles.pressable}
-              onPress={handleSubmit}
-              android_ripple={{ color: '#6b25f9' }}
-              disabled={loading || (submitAttempted && password !== pseudo)}
-            >
-              <Text style={styles.buttonText}>Créer</Text>
-            </Pressable>
-          </LinearGradient>
+          <Text style={styles.title}>Créez un compte</Text>
+          <Text style={styles.subtitle}>
+            {userType === 'candidate' ? 'Candidat' : 'Recruteur'}
+          </Text>
         </View>
-      </View>
-      <View style={{ height: 15 }} />
-      {/* marge en bas pour le clavier */}
-    </KeyboardAwareScrollView>
+
+        {/* Formulaire dans une card */}
+        <View style={styles.formCard}>
+          {/* Email */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Email</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="mail-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="exemple@email.com"
+                placeholderTextColor="#999"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                value={formData.email}
+                onChangeText={(text) => setFormData({ ...formData, email: text })}
+              />
+            </View>
+          </View>
+
+          {/* Mot de passe */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Mot de passe</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Créez un mot de passe"
+                placeholderTextColor="#999"
+                secureTextEntry={!showPassword}
+                value={formData.password}
+                onChangeText={(text) => setFormData({ ...formData, password: text })}
+              />
+              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                <Ionicons 
+                  name={showPassword ? "eye-outline" : "eye-off-outline"} 
+                  size={20} 
+                  color="#999" 
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Confirmation mot de passe */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Confirmer le mot de passe</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Confirmez votre mot de passe"
+                placeholderTextColor="#999"
+                secureTextEntry={!showConfirmPassword}
+                value={formData.confirmPassword}
+                onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
+              />
+              <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
+                <Ionicons 
+                  name={showConfirmPassword ? "eye-outline" : "eye-off-outline"} 
+                  size={20} 
+                  color="#999" 
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Bouton Créer */}
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Créer mon compte</Text>
+          </TouchableOpacity>
+
+          {/* Lien connexion */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Vous avez déjà un compte ? </Text>
+            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+              <Text style={styles.footerLink}>Se connecter</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f2f2f2',
-    justifyContent: 'flex-start',
-  },
-  card: {
+    flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 16,
-    paddingVertical: 32,
-    paddingHorizontal: 24,
-    margin: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    alignItems: 'center',
   },
   content: {
-    alignItems: 'center',
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
     justifyContent: 'center',
-    width: '100%',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
   },
   title: {
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#6746a8',
-    marginBottom: 40,
-    marginTop: 60,
-    textAlign: 'center',
+    color: '#4930a3',
+    marginTop: 16,
+    marginBottom: 4,
   },
-  inputItem: {
-    width: '80%',
-    alignSelf: 'center',
-    marginVertical: 10,
-    minHeight: 40,
-  },
-  button: {
-    width: width * 0.55,
-    borderRadius: 25,
-    alignSelf: 'center',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 3,
-    marginTop: 40,
-  },
-  pressable: {
-    width: '100%',
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'transparent',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: width * 0.055,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  error: {
-    color: 'red',
+  subtitle: {
     fontSize: 16,
-    textAlign: 'center',
+    color: '#666',
+    fontWeight: '500',
+  },
+  formCard: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 20,
+    padding: 28,
+    shadowColor: '#4930a3',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 14,
+    height: 52,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: '#333',
+  },
+  submitButton: {
+    backgroundColor: '#4930a3',
+    borderRadius: 14,
+    height: 54,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 24,
+    shadowColor: '#4930a3',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: 'bold',
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#666',
+  },
+  footerLink: {
+    fontSize: 14,
+    color: '#4930a3',
+    fontWeight: '600',
   },
 });
