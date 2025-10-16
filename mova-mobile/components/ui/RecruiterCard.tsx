@@ -14,6 +14,34 @@ interface RecruiterCardProps {
   presentation?: string;
 }
 
+function splitPresentationIntoLines(text: string, numLines: number, charsPerLine: number): string[] {
+  if (!text) return Array(numLines).fill('');
+  
+  const words = text.replace(/\n/g, ' ').replace(/ +/g, ' ').trim().split(' ');
+  const lines: string[] = Array(numLines).fill('');
+  let currentLineIndex = 0;
+  let wordIndex = 0;
+
+  while (wordIndex < words.length && currentLineIndex < numLines) {
+    const word = words[wordIndex];
+    const testLine = lines[currentLineIndex] ? `${lines[currentLineIndex]} ${word}` : word;
+
+    if (testLine.length <= charsPerLine) {
+      lines[currentLineIndex] = testLine;
+      wordIndex++;
+    } else {
+      currentLineIndex++;
+    }
+  }
+
+  if (wordIndex < words.length) {
+    lines[numLines - 1] = lines[numLines - 1].slice(0, charsPerLine - 3) + '...';
+  }
+
+  return lines;
+}
+
+
 export default function RecruiterCard({
   avatarUrl,
   companyName,
@@ -25,11 +53,11 @@ export default function RecruiterCard({
   contractType = "",
   presentation = "",
 }: RecruiterCardProps) {
-  const { width, height } = useWindowDimensions();
+  const { width } = useWindowDimensions();
   const cardPadding = width * 0.04;
-  // Agrandir la photo : passer à 30% de la largeur
   const photoWidth = width * 0.34;
   const photoHeight = photoWidth * 1.25;
+  const presentationLines = splitPresentationIntoLines(presentation, 4, 35);
 
   return (
     <>
@@ -110,14 +138,11 @@ export default function RecruiterCard({
             <View style={styles.bottomBlock}>
               <Text style={[styles.label, { fontSize: width * 0.042 }]}>Présentation :</Text>
               <View style={{ height: 8 }} />
-              {(() => {
-                const maxChars = 225;
-                const cleanText = (presentation || '').replace(/\n/g, ' ').replace(/ +/g, ' ');
-                const limitedText = cleanText.length > maxChars ? cleanText.slice(0, maxChars) : cleanText;
-                return (
-                  <Text style={[styles.value, { fontSize: width * 0.04 }]}>{limitedText}</Text>
-                );
-              })()}
+              {presentationLines.map((line, index) => (
+                <Text key={index} style={[styles.value, { fontSize: width * 0.04, minHeight: 22 }]} numberOfLines={1}>
+                  {line || ' '}
+                </Text>
+              ))}
             </View>
           </View>
         </View>
@@ -127,7 +152,6 @@ export default function RecruiterCard({
 }
 
 const styles = StyleSheet.create({
-  // Carte globale
   card: {
     backgroundColor: '#fff',
     borderRadius: 14,
@@ -139,28 +163,16 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'flex-start',
   },
-  // Ligne du haut : photo + infos principales
   topRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     marginBottom: 10,
     width: '100%',
   },
-  avatar: {
-    borderRadius: 14,
-    backgroundColor: '#f8f9fa',
-    marginRight: 22,
-  },
   mainInfo: {
     flex: 1,
     justifyContent: 'flex-start',
     marginLeft: 18,
-  },
-  companyName: {
-    fontWeight: 'bold',
-    color: '#6746a8',
-    marginBottom: 2,
-    textAlign: 'left',
   },
   location: {
     color: '#333',
@@ -182,7 +194,6 @@ const styles = StyleSheet.create({
     color: '#222',
     lineHeight: 22,
   },
-  // Bloc du bas : présentation
   bottomBlock: {
     marginTop: 8,
     width: '100%',
