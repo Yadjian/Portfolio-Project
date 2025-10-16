@@ -103,7 +103,7 @@ export default function CreateAccountScreen({ route, navigation }: any) {
 
           {/* Confirmation mot de passe */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Confirmer le mot de passe</Text>
+            <Text style={styles.label}>Confirmation</Text>
             <View style={styles.inputContainer}>
               <Ionicons name="lock-closed-outline" size={20} color='#4930a3' style={styles.inputIcon} />
               <TextInput
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 40,
     paddingBottom: 40,
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
   },
   scrollContent: {
     paddingHorizontal: 20,
