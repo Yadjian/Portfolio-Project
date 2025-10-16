@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 
 type JobOffer = {
   id: string;
@@ -12,72 +12,88 @@ type JobOffer = {
   salaryMax?: string;
 };
 
+type State = {
+  offers: JobOffer[];
+  error: string | null;
+  selectedService: 'list' | 'create' | 'findOffer' | 'editOffer' | null;
+  foundOffer: JobOffer | null;
+  form: Omit<JobOffer, 'id'> & { id?: string };
+};
+
+type Action =
+  | { type: 'SET_OFFERS'; payload: JobOffer[] }
+  | { type: 'SET_ERROR'; payload: string | null }
+  | { type: 'TOGGLE_SERVICE'; payload: State['selectedService'] }
+  | { type: 'SET_FOUND_OFFER'; payload: JobOffer | null }
+  | { type: 'START_EDIT'; payload: JobOffer }
+  | { type: 'UPDATE_FORM'; payload: { field: keyof State['form']; value: string } }
+  | { type: 'RESET' };
+
+const initialState: State = {
+  offers: [],
+  error: null,
+  selectedService: null,
+  foundOffer: null,
+  form: {
+    title: '',
+    description: '',
+    contractType: '',
+    location: '',
+    salaryMin: '',
+    salaryMax: '',
+  },
+};
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'SET_OFFERS':
+      return { ...state, offers: action.payload, error: null };
+    case 'SET_ERROR':
+      return { ...state, error: action.payload };
+    case 'TOGGLE_SERVICE':
+      const newService = state.selectedService === action.payload ? null : action.payload;
+      return { ...initialState, offers: state.offers, selectedService: newService };
+    case 'SET_FOUND_OFFER':
+      return { ...state, foundOffer: action.payload, error: action.payload ? null : 'Offre introuvable' };
+    case 'START_EDIT':
+      return {
+        ...state,
+        selectedService: 'editOffer',
+        foundOffer: null,
+        form: { ...action.payload },
+      };
+    case 'UPDATE_FORM':
+      return { ...state, form: { ...state.form, [action.payload.field]: action.payload.value } };
+    case 'RESET':
+      return { ...initialState, offers: state.offers, selectedService: 'list' };
+    default:
+      return state;
+  }
+}
+
 export default function JobOffersServices() {
-  const [offers, setOffers] = useState<JobOffer[]>([
-    {
-      id: '1',
-      title: 'Développeur React',
-      description: 'CDI - Paris',
-      contractType: 'CDI',
-      location: 'Paris',
-      salaryMin: '2500',
-      salaryMax: '3500',
-    },
-    {
-      id: '2',
-      title: 'Designer UX',
-      description: 'Freelance - Lyon',
-      contractType: 'Freelance',
-      location: 'Lyon',
-      salaryMin: '2000',
-      salaryMax: '3000',
-    },
-  ]);
-  const [error, setError] = useState('');
-  const [selectedService, setSelectedService] = useState<string | null>(null);
-  const [foundOffer, setFoundOffer] = useState<JobOffer | null>(null);
-
-  // States pour création/modification
-  const [editOfferId, setEditOfferId] = useState('');
-  const [editTitle, setEditTitle] = useState('');
-  const [editDescription, setEditDescription] = useState('');
-  const [editContractType, setEditContractType] = useState('');
-  const [editLocation, setEditLocation] = useState('');
-  const [editSalaryMin, setEditSalaryMin] = useState('');
-  const [editSalaryMax, setEditSalaryMax] = useState('');
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [contractType, setContractType] = useState('');
-  const [location, setLocation] = useState('');
-  const [salaryMin, setSalaryMin] = useState('');
-  const [salaryMax, setSalaryMax] = useState('');
-
-  // Fonction pour dérouler/renrouler le service
-  const toggleService = (service: string) => {
-    setError('');
-    setFoundOffer(null);
-    setEditOfferId('');
-    setEditTitle('');
-    setEditDescription('');
-    setEditContractType('');
-    setEditLocation('');
-    setEditSalaryMin('');
-    setEditSalaryMax('');
-    setTitle('');
-    setDescription('');
-    setContractType('');
-    setLocation('');
-    setSalaryMin('');
-    setSalaryMax('');
-    setSelectedService(selectedService === service ? null : service);
-  };
+  const [state, dispatch] = useReducer(reducer, initialState);
+  const { offers, error, selectedService, foundOffer, form } = state;
 
   useEffect(() => {
-    fetch('/api/joboffers') // adapte l’URL à ton backend
-      .then(res => res.json())
-      .then(data => setOffers(data))
-      .catch(() => setError('Erreur de chargement'));
+    const fetchOffers = async () => {
+      try {
+        const res = await fetch('/api/joboffers');
+        if (!res.ok) throw new Error('Erreur de chargement');
+        const data = await res.json();
+        dispatch({ type: 'SET_OFFERS', payload: data });
+      } catch {
+        dispatch({ type: 'SET_ERROR', payload: 'Erreur de chargement' });
+      }
+    };
+    fetchOffers();
   }, []);
+
+  const refetchOffers = () => {
+    fetch('/api/joboffers')
+      .then(res => res.json())
+      .then(data => dispatch({ type: 'SET_OFFERS', payload: data }));
+  };
 
   return (
     <div style={{
@@ -123,7 +139,7 @@ export default function JobOffersServices() {
               color: '#fff',
               boxShadow: selectedService === 'create' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
             }}
-            onClick={() => toggleService('create')}
+            onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'create' })}
           >
             Créer une offre
           </button>
@@ -134,7 +150,7 @@ export default function JobOffersServices() {
               color: '#fff',
               boxShadow: selectedService === 'list' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
             }}
-            onClick={() => toggleService('list')}
+            onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'list' })}
           >
             Afficher les offres
           </button>
@@ -145,7 +161,7 @@ export default function JobOffersServices() {
               color: '#fff',
               boxShadow: selectedService === 'findOffer' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
             }}
-            onClick={() => toggleService('findOffer')}
+            onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'findOffer' })}
           >
             Trouver une offre
           </button>
@@ -186,30 +202,24 @@ export default function JobOffersServices() {
             <form
               onSubmit={async e => {
                 e.preventDefault();
-                setError('');
+                dispatch({ type: 'SET_ERROR', payload: null });
                 try {
-                  const res = await fetch('/job-offers', {
+                  const res = await fetch('/api/joboffers', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      title,
-                      description,
-                      contractType,
-                      location,
-                      salaryMin,
-                      salaryMax,
-                    }),
+                    body: JSON.stringify(form),
                   });
-                  if (!res.ok) throw new Error('Erreur lors de la création');
-                  // Optionnel: recharge la liste ou affiche un message de succès
-                  setTitle('');
-                  setDescription('');
-                  setContractType('');
-                  setLocation('');
-                  setSalaryMin('');
-                  setSalaryMax('');
+                  if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.message || 'Erreur lors de la création');
+                  }
+                  refetchOffers();
+                  dispatch({ type: 'RESET' });
                 } catch (err) {
-                  setError('Erreur lors de la création');
+                  dispatch({
+                    type: 'SET_ERROR',
+                    payload: err instanceof Error ? err.message : 'Erreur inconnue',
+                  });
                 }
               }}
               style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
@@ -219,16 +229,16 @@ export default function JobOffersServices() {
                 type="text"
                 placeholder="Titre"
                 required
-                value={title}
-                onChange={e => setTitle(e.target.value)}
+                value={form.title}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'title', value: e.target.value } })}
                 style={styles.input}
               />
               <input
                 name="description"
                 type="text"
                 placeholder="Description"
-                value={description}
-                onChange={e => setDescription(e.target.value)}
+                value={form.description}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'description', value: e.target.value } })}
                 style={styles.input}
               />
               <input
@@ -236,8 +246,8 @@ export default function JobOffersServices() {
                 type="text"
                 placeholder="Type de contrat"
                 required
-                value={contractType}
-                onChange={e => setContractType(e.target.value)}
+                value={form.contractType}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'contractType', value: e.target.value } })}
                 style={styles.input}
               />
               <input
@@ -245,24 +255,24 @@ export default function JobOffersServices() {
                 type="text"
                 placeholder="Localisation"
                 required
-                value={location}
-                onChange={e => setLocation(e.target.value)}
+                value={form.location}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'location', value: e.target.value } })}
                 style={styles.input}
               />
               <input
                 name="salaryMin"
                 type="number"
                 placeholder="Salaire minimum (€)"
-                value={salaryMin}
-                onChange={e => setSalaryMin(e.target.value)}
+                value={form.salaryMin}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMin', value: e.target.value } })}
                 style={styles.input}
               />
               <input
                 name="salaryMax"
                 type="number"
                 placeholder="Salaire maximum (€)"
-                value={salaryMax}
-                onChange={e => setSalaryMax(e.target.value)}
+                value={form.salaryMax}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMax', value: e.target.value } })}
                 style={styles.input}
               />
               <button type="submit" style={styles.smallButton}>
@@ -280,16 +290,9 @@ export default function JobOffersServices() {
             <form
               onSubmit={e => {
                 e.preventDefault();
-                setError('');
                 const id = e.currentTarget.offerId.value;
-                const offer = offers.find(o => o.id === id);
-                if (offer) {
-                  setFoundOffer(offer);
-                  setError('');
-                } else {
-                  setFoundOffer(null);
-                  setError("Offre introuvable");
-                }
+                const found = offers.find(o => o.id === id);
+                dispatch({ type: 'SET_FOUND_OFFER', payload: found || null });
               }}
               style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
             >
@@ -316,25 +319,25 @@ export default function JobOffersServices() {
                 <div style={{ display: 'flex', gap: 12, marginTop: 18 }}>
                   <button
                     style={styles.smallButton}
-                    onClick={() => {
-                      setEditOfferId(foundOffer.id);
-                      setEditTitle(foundOffer.title || '');
-                      setEditDescription(foundOffer.description || '');
-                      setEditContractType(foundOffer.contractType || '');
-                      setEditLocation(foundOffer.location || '');
-                      setEditSalaryMin(foundOffer.salaryMin || '');
-                      setEditSalaryMax(foundOffer.salaryMax || '');
-                      setSelectedService('editOffer');
-                    }}
+                    onClick={() => dispatch({ type: 'START_EDIT', payload: foundOffer })}
                   >
                     Modifier
                   </button>
                   <button
                     style={{ ...styles.smallButton, background: '#e53935' }}
-                    onClick={() => {
-                      setOffers(offers.filter(o => o.id !== foundOffer.id));
-                      setFoundOffer(null);
-                      setError('');
+                    onClick={async () => {
+                      if (!foundOffer) return;
+                      try {
+                        const res = await fetch(`/api/joboffers/${foundOffer.id}`, {
+                          method: 'DELETE',
+                        });
+                        if (!res.ok) throw new Error('Erreur lors de la suppression');
+                        refetchOffers();
+                        dispatch({ type: 'TOGGLE_SERVICE', payload: null });
+                      } catch (err) {
+                        const message = err instanceof Error ? err.message : 'Erreur lors de la suppression';
+                        dispatch({ type: 'SET_ERROR', payload: message });
+                      }
                     }}
                   >
                     Supprimer
@@ -350,32 +353,22 @@ export default function JobOffersServices() {
           <div style={styles.section}>
             <div style={styles.title}>Modifier une offre</div>
             <form
-              onSubmit={e => {
+              onSubmit={async e => {
                 e.preventDefault();
-                setError('');
-                setOffers(offers =>
-                  offers.map(o =>
-                    o.id === editOfferId
-                      ? {
-                          ...o,
-                          title: editTitle,
-                          description: editDescription,
-                          contractType: editContractType,
-                          location: editLocation,
-                          salaryMin: editSalaryMin,
-                          salaryMax: editSalaryMax,
-                        }
-                      : o
-                  )
-                );
-                setEditOfferId('');
-                setEditTitle('');
-                setEditDescription('');
-                setEditContractType('');
-                setEditLocation('');
-                setEditSalaryMin('');
-                setEditSalaryMax('');
-                setSelectedService(null);
+                dispatch({ type: 'SET_ERROR', payload: null });
+                try {
+                  const res = await fetch(`/api/joboffers/${form.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(form),
+                  });
+                  if (!res.ok) throw new Error("Erreur lors de la mise à jour");
+                  refetchOffers();
+                  dispatch({ type: 'RESET' });
+                } catch (err) {
+                  const message = err instanceof Error ? err.message : 'Erreur lors de la mise à jour';
+                  dispatch({ type: 'SET_ERROR', payload: message });
+                }
               }}
               style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
             >
@@ -384,16 +377,16 @@ export default function JobOffersServices() {
                 type="text"
                 placeholder="Titre"
                 required
-                value={editTitle}
-                onChange={e => setEditTitle(e.target.value)}
+                value={form.title}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'title', value: e.target.value } })}
                 style={styles.input}
               />
               <input
                 name="editDescription"
                 type="text"
                 placeholder="Description"
-                value={editDescription}
-                onChange={e => setEditDescription(e.target.value)}
+                value={form.description}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'description', value: e.target.value } })}
                 style={styles.input}
               />
               <input
@@ -401,8 +394,8 @@ export default function JobOffersServices() {
                 type="text"
                 placeholder="Type de contrat"
                 required
-                value={editContractType}
-                onChange={e => setEditContractType(e.target.value)}
+                value={form.contractType}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'contractType', value: e.target.value } })}
                 style={styles.input}
               />
               <input
@@ -410,24 +403,24 @@ export default function JobOffersServices() {
                 type="text"
                 placeholder="Localisation"
                 required
-                value={editLocation}
-                onChange={e => setEditLocation(e.target.value)}
+                value={form.location}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'location', value: e.target.value } })}
                 style={styles.input}
               />
               <input
                 name="editSalaryMin"
                 type="number"
                 placeholder="Salaire minimum (€)"
-                value={editSalaryMin}
-                onChange={e => setEditSalaryMin(e.target.value)}
+                value={form.salaryMin}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMin', value: e.target.value } })}
                 style={styles.input}
               />
               <input
                 name="editSalaryMax"
                 type="number"
                 placeholder="Salaire maximum (€)"
-                value={editSalaryMax}
-                onChange={e => setEditSalaryMax(e.target.value)}
+                value={form.salaryMax}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMax', value: e.target.value } })}
                 style={styles.input}
               />
               <button type="submit" style={styles.smallButton}>
@@ -436,16 +429,7 @@ export default function JobOffersServices() {
               <button
                 type="button"
                 style={styles.backButton}
-                onClick={() => {
-                  setEditOfferId('');
-                  setEditTitle('');
-                  setEditDescription('');
-                  setEditContractType('');
-                  setEditLocation('');
-                  setEditSalaryMin('');
-                  setEditSalaryMax('');
-                  setSelectedService(null);
-                }}
+                onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: null })}
               >
                 Annuler
               </button>
