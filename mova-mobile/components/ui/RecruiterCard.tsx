@@ -1,324 +1,190 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet, ViewStyle, useWindowDimensions, TextInput, TouchableOpacity  } from 'react-native';
+import { View, Text, Image, StyleSheet, useWindowDimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface RecruiterCardProps {
   avatarUrl: string;
   companyName: string;
+  firstName?: string;
+  lastName?: string;
   location?: string;
   jobSeeking?: string;
   experienceRequired?: string;
   contractType?: string;
   presentation?: string;
-  style?: ViewStyle;
-  isEditing?: boolean;
-  onFieldChange?: (field: string, value: string) => void;
-  onImagePicker?: () => void;
-}
-
-function splitPresentation(text: string, screenWidth: number): string[] {
-  if (!text) return ['', '', ''];
-  let maxCharsPerLine = 35;
-  if (screenWidth > 350) maxCharsPerLine = 40;
-  if (screenWidth > 400) maxCharsPerLine = 45;
-  if (screenWidth > 450) maxCharsPerLine = 50;
-  const words = text.split(' ');
-  const lines: string[] = ['', '', ''];
-  let currentLineIndex = 0;
-  for (const word of words) {
-    if (currentLineIndex >= 3) break;
-    const testLine = lines[currentLineIndex] ? `${lines[currentLineIndex]} ${word}` : word;
-    if (testLine.length <= maxCharsPerLine) {
-      lines[currentLineIndex] = testLine;
-    } else {
-      currentLineIndex++;
-      if (currentLineIndex < 3) {
-        lines[currentLineIndex] = word;
-      }
-    }
-  }
-  return lines;
 }
 
 export default function RecruiterCard({
   avatarUrl,
   companyName,
+  firstName = "",
+  lastName = "",
   location = "",
-  jobSeeking = "Poste à pourvoir",
-  experienceRequired = "Débutant",
-  contractType = "CDI",
+  jobSeeking = "",
+  experienceRequired = "",
+  contractType = "",
   presentation = "",
-  style: customStyle,
-  isEditing = false,
-  onFieldChange,
-  onImagePicker,
 }: RecruiterCardProps) {
   const { width, height } = useWindowDimensions();
-  const lines = splitPresentation(presentation, width);
-
-  const cardPadding = width * 0.03;
-  const borderRadius = 12;
-  const borderWidth = 2;
-  const gradientPadding = 2;
-  const photoWidth = width * 0.31;
-  const photoHeight = photoWidth * 1.2;
-
-  const dynamicStyles = StyleSheet.create({
-    gradientBorder: {
-      width: width * 0.9,
-      alignSelf: 'center',
-      borderRadius: borderRadius + borderWidth,
-      padding: gradientPadding,
-      marginVertical: height * 0.012,
-    },
-    container: {
-      backgroundColor: '#fff',
-      borderRadius: borderRadius,
-      padding: cardPadding,
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 3 },
-      shadowOpacity: 0.12,
-      shadowRadius: 10,
-      elevation: 6,
-      flex: 1,
-    },
-    topSection: {
-      flexDirection: 'row',
-      marginBottom: 0,
-      alignItems: 'flex-start',
-    },
-    photoGradientBorder: {
-      borderRadius: 10,
-      padding: 1,
-      marginRight: width * 0.04,
-    },
-    photoContainer: {
-      width: photoWidth,
-      height: photoHeight,
-      borderRadius: 8,
-      overflow: 'hidden',
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 1,           // <--- bordure toujours visible
-      borderColor: '#6746a8',   // <--- couleur violette
-      borderStyle: 'solid',
-      backgroundColor: '#f8f9fa',
-    },
-    photo: {
-      width: photoWidth,
-      height: photoHeight,
-      borderRadius: 8,
-      backgroundColor: '#f8f9fa',
-    },
-    mainInfo: {
-      flex: 1,
-      justifyContent: 'flex-start',
-      paddingTop: 4,
-    },
-    name: {
-      fontSize: width * 0.05,
-      color: '#1a1a1a',
-      marginBottom: 4,
-      letterSpacing: -0.3,
-    },
-    location: {
-      fontSize: width * 0.042,
-      color: '#333',
-      marginBottom: 4,
-    },
-    jobSeeking: {
-      fontSize: width * 0.042,
-      color: '#333',
-      marginBottom: 4,
-    },
-    experienceRequired: {
-      fontSize: width * 0.042,
-      color: '#333',
-      marginBottom: 4,
-    },
-    contractType: {
-      fontSize: width * 0.042,
-      color: '#333',
-      marginBottom: 4,
-    },
-    detailsSection: {
-      borderTopWidth: 1,
-      borderTopColor: '#f0f0f0',
-      paddingTop: height * 0.015,
-    },
-    lineContainer: {
-      marginBottom: height * 0.008,
-      position: 'relative',
-      minHeight: height * 0.035,
-      justifyContent: 'center',
-    },
-    presentationText: {
-      fontSize: width * 0.042,
-      color: '#333',
-      textAlign: 'left',
-      paddingRight: 8,
-      paddingLeft: 2,
-      backgroundColor: 'transparent',
-      zIndex: 2,
-      lineHeight: width * 0.042 * 1.5,
-    },
-    separator: {
-      position: 'absolute',
-      left: 0,
-      right: 0,
-      bottom: 4,
-      height: 1,
-      backgroundColor: '#d1d5db',
-      zIndex: 1,
-      borderRadius: 1,
-    },
-    editableField: {
-      borderWidth: 0,
-      backgroundColor: 'transparent',
-      color: '#1a1a1a',
-      marginBottom: 0,
-      padding: 0,
-      fontSize: width * 0.042,
-      textAlign: 'left',
-    },
-    photoEditOverlay: {
-      position: 'absolute',
-      bottom: 8,
-      right: 8,
-      backgroundColor: '#6746a8',
-      borderRadius: 16,
-      width: 32,
-      height: 32,
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 10,
-    },
-    photoEditText: {
-      color: '#fff',
-      fontSize: 18,
-    },
-  });
-
-  const photoContainerStyle = [
-    dynamicStyles.photoContainer,
-    isEditing ? {
-      borderWidth: 2,
-      borderColor: '#6746a8',
-      borderStyle: 'dashed',
-    } as ViewStyle : null,
-  ].filter(Boolean);
+  const cardPadding = width * 0.04;
+  // Agrandir la photo : passer à 30% de la largeur
+  const photoWidth = width * 0.34;
+  const photoHeight = photoWidth * 1.25;
 
   return (
-    <LinearGradient
-      colors={['#6746a8', '#6b25f9', '#07b9ff']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={dynamicStyles.gradientBorder}
-    >
-      <View style={[dynamicStyles.container, customStyle || {}]}>
-        <View style={dynamicStyles.topSection}>
-          <LinearGradient
-            colors={['#6746a8', '#6b25f9', '#07b9ff']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={dynamicStyles.photoGradientBorder}
-          >
-            <View style={photoContainerStyle}>
-              <TouchableOpacity
-                onPress={isEditing ? onImagePicker : undefined}
-                activeOpacity={isEditing ? 0.7 : 1}
-                style={{ width: photoWidth, height: photoHeight, borderRadius: 8 }}
+    <>
+      <Text style={{
+        fontWeight: 'bold',
+        fontSize: width * 0.08,
+        color: '#6746a8',
+        textAlign: 'center',
+        marginBottom: 20,
+        marginTop: 18,
+      }}>{companyName}</Text>
+      <LinearGradient
+        colors={['#6746a8', '#6b25f9', '#07b9ff']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={{
+          borderRadius: 14,
+          padding: 2,
+          width: width * 0.98,
+          alignSelf: 'center',
+        }}
+      >
+        <View style={{ backgroundColor: '#fff', borderRadius: 14, width: '100%' }}>
+          <View style={[styles.card, { padding: cardPadding, borderRadius: 14 }]}> 
+            <View style={styles.topRow}>
+              <LinearGradient
+                colors={['#6746a8', '#6b25f9', '#07b9ff']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  borderRadius: 14,
+                  padding: 2,
+                  width: photoWidth + 4,
+                  height: photoHeight + 4,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
                 <Image
                   source={avatarUrl ? { uri: avatarUrl } : require('../../assets/images/icon.png')}
-                  style={dynamicStyles.photo}
+                  style={{
+                    width: photoWidth,
+                    height: photoHeight,
+                    borderRadius: 14,
+                    backgroundColor: '#f8f9fa',
+                  }}
                 />
-                {isEditing && (
-                  <View style={dynamicStyles.photoEditOverlay}>
-                    <Text style={dynamicStyles.photoEditText}>📷</Text>
+              </LinearGradient>
+              <View style={styles.mainInfo}>
+                <View style={{ marginBottom: 8, marginTop: 8 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                    <Text style={[styles.label, { fontSize: width * 0.04 }]}>Prénom : </Text>
+                    <Text style={[styles.value, { fontSize: width * 0.04 }]}>{firstName}</Text>
                   </View>
-                )}
-              </TouchableOpacity>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                    <Text style={[styles.label, { fontSize: width * 0.04 }]}>Nom : </Text>
+                    <Text style={[styles.value, { fontSize: width * 0.04 }]}>{lastName}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                    <Text style={[styles.label, { fontSize: width * 0.04 }]}>Lieu : </Text>
+                    <Text style={[styles.location, { fontSize: width * 0.04, marginBottom: 0 }]}>{location}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                    <Text style={[styles.label, { fontSize: width * 0.04 }]}>Poste : </Text>
+                    <Text style={[styles.value, { fontSize: width * 0.04 }]}>{jobSeeking}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                    <Text style={[styles.label, { fontSize: width * 0.04 }]}>Niveau : </Text>
+                    <Text style={[styles.value, { fontSize: width * 0.04 }]}>{experienceRequired}</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <Text style={[styles.label, { fontSize: width * 0.04 }]}>Contrat : </Text>
+                    <Text style={[styles.value, { fontSize: width * 0.04 }]}>{contractType}</Text>
+                  </View>
+                </View>
+              </View>
             </View>
-          </LinearGradient>
-          <View style={dynamicStyles.mainInfo}>
-            {isEditing ? (
-              <>
-                <TextInput
-                  value={companyName}
-                  onChangeText={text => onFieldChange?.('companyName', text)}
-                  style={[dynamicStyles.name, dynamicStyles.editableField, { fontWeight: 'normal' }]}
-                  placeholder="Nom de l'entreprise"
-                  underlineColorAndroid="transparent"
-                />
-                <TextInput
-                  value={location}
-                  onChangeText={text => onFieldChange?.('location', text)}
-                  style={[dynamicStyles.location, dynamicStyles.editableField, { fontWeight: 'normal' }]}
-                  placeholder="Localisation"
-                  underlineColorAndroid="transparent"
-                />
-                <TextInput
-                  value={jobSeeking}
-                  onChangeText={text => onFieldChange?.('jobSeeking', text)}
-                  style={[dynamicStyles.jobSeeking, dynamicStyles.editableField, { fontWeight: 'normal' }]}
-                  placeholder="Poste à pourvoir"
-                  underlineColorAndroid="transparent"
-                />
-                <TextInput
-                  value={experienceRequired}
-                  onChangeText={text => onFieldChange?.('experienceRequired', text)}
-                  style={[dynamicStyles.experienceRequired, dynamicStyles.editableField, { fontWeight: 'normal' }]}
-                  placeholder="Expérience requise"
-                  underlineColorAndroid="transparent"
-                />
-                <TextInput
-                  value={contractType}
-                  onChangeText={text => onFieldChange?.('contractType', text)}
-                  style={[dynamicStyles.contractType, dynamicStyles.editableField, { fontWeight: 'normal' }]}
-                  placeholder="Type de contrat"
-                  underlineColorAndroid="transparent"
-                />
-              </>
-            ) : (
-              <>
-                <Text style={[dynamicStyles.name, { fontWeight: '700' }]}>{companyName}</Text>
-                {location && <Text style={[dynamicStyles.location, { fontWeight: '600' }]}>{location}</Text>}
-                <Text style={[dynamicStyles.jobSeeking, { fontWeight: '600' }]}>{jobSeeking}</Text>
-                <Text style={[dynamicStyles.experienceRequired, { fontWeight: '600' }]}>{experienceRequired}</Text>
-                <Text style={[dynamicStyles.contractType, { fontWeight: '600' }]}>{contractType}</Text>
-              </>
-            )}
+            <View style={styles.bottomBlock}>
+              <Text style={[styles.label, { fontSize: width * 0.042 }]}>Présentation :</Text>
+              <View style={{ height: 8 }} />
+              {(() => {
+                const maxChars = 179;
+                const cleanText = (presentation || '').replace(/\n/g, ' ').replace(/ +/g, ' ');
+                const limitedText = cleanText.length > maxChars ? cleanText.slice(0, maxChars) : cleanText;
+                return (
+                  <Text style={[styles.value, { fontSize: width * 0.04 }]}>{limitedText}</Text>
+                );
+              })()}
+            </View>
           </View>
         </View>
-        <View style={dynamicStyles.detailsSection}>
-          {isEditing ? (
-            <TextInput
-              value={presentation}
-              onChangeText={text => onFieldChange?.('presentation', text)}
-              style={[dynamicStyles.presentationText, dynamicStyles.editableField, { fontWeight: 'normal' }]}
-              placeholder="Présentation"
-              multiline
-              underlineColorAndroid="transparent"
-            />
-          ) : (
-            <>
-              <View style={dynamicStyles.lineContainer}>
-                <Text style={[dynamicStyles.presentationText, { fontWeight: '500' }]}>{lines[0] || ' '}</Text>
-                <View style={dynamicStyles.separator} />
-              </View>
-              <View style={dynamicStyles.lineContainer}>
-                <Text style={[dynamicStyles.presentationText, { fontWeight: '500' }]}>{lines[1] || ' '}</Text>
-                <View style={dynamicStyles.separator} />
-              </View>
-              <View style={dynamicStyles.lineContainer}>
-                <Text style={[dynamicStyles.presentationText, { fontWeight: '500' }]}>{lines[2] || ' '}</Text>
-                <View style={dynamicStyles.separator} />
-              </View>
-            </>
-          )}
-        </View>
-      </View>
-    </LinearGradient>
+      </LinearGradient>
+    </>
   );
 }
+
+const styles = StyleSheet.create({
+  // Carte globale
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.22,
+    shadowRadius: 16,
+    elevation: 6,
+    width: '100%',
+    justifyContent: 'flex-start',
+  },
+  // Ligne du haut : photo + infos principales
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+    width: '100%',
+  },
+  avatar: {
+    borderRadius: 14,
+    backgroundColor: '#f8f9fa',
+    marginRight: 22,
+  },
+  mainInfo: {
+    flex: 1,
+    justifyContent: 'flex-start',
+    marginLeft: 18,
+  },
+  companyName: {
+    fontWeight: 'bold',
+    color: '#6746a8',
+    marginBottom: 2,
+    textAlign: 'left',
+  },
+  location: {
+    color: '#333',
+    marginBottom: 8,
+    textAlign: 'left',
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 6,
+    justifyContent: 'flex-start',
+  },
+  label: {
+    fontWeight: '600',
+    color: '#6746a8',
+    lineHeight: 22,
+  },
+  value: {
+    color: '#222',
+    lineHeight: 22,
+  },
+  // Bloc du bas : présentation
+  bottomBlock: {
+    marginTop: 8,
+    width: '100%',
+  },
+});

@@ -1,108 +1,135 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, Dimensions, Animated, PanResponder } from 'react-native';
 import CandidateCard from '@/components/ui/CandidateCard';
 import RecruiterCard from '@/components/ui/RecruiterCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
 import SmallMovaLogo from '@/components/ui/SmallMovaLogo';
-import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = width * 0.95;
+const CARD_HEIGHT = Math.min(600, width * 1.2); // ou adapte selon ton besoin
 
 export default function SwipeNotificationScreen({ route }: any) {
-  const navigation = useNavigation();
-  // Récupère le type d'utilisateur (à passer dans la navigation)
-  const userType = route?.params?.userType ?? 'candidat'; // 'candidat' ou 'recruteur'
+  const userType = route?.params?.userType ?? 'candidat';
 
-  // Les contacts sont typés en any pour FlatList
   const contacts: any[] = userType === 'candidat'
     ? [
         {
           id: '1',
-          companyName: 'TechCorp Solutions',
+          companyName: 'Test Entreprise',
           location: 'Paris',
-          jobSeeking: 'Développeur React',
-          experienceRequired: 'Intermédiaire',
+          jobSeeking: 'Développeur',
+          experienceRequired: 'Junior',
           contractType: 'CDI',
-          presentation: 'Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et travailler sur des projets innovants dans un environnement stimulant.',
-          avatarUrl: '',
+          presentation: `Je suis passionné par le recrutement et l'accompagnement des talents. Mon expérience m'a permis de collaborer avec des entreprises variées.
+          J'aime créer des opportunités et des rencontres professionnelles. Je suis passionné par le recrutement et l'accompagnement des talents.
+          Mon expérience m'a permis de collaborer avec des entreprises variées. J'aime créer des opportunités et des rencontres professionnelles.`,
+          avatarUrl: ''
+        },
+        {
+          id: '2',
+          companyName: 'Autre Entreprise',
+          location: 'Lyon',
+          jobSeeking: 'Designer',
+          experienceRequired: 'Senior',
+          contractType: 'CDD',
+          presentation: 'Autre présentation',
+          avatarUrl: ''
         },
       ]
     : [
-        {
-          id: '1',
-          firstName: 'Lucas',
-          lastName: 'Boyadjian',
-          location: 'Paris',
-          job: 'Développeur Front-end',
-          experience: 'Débutant',
-          contractType: 'CDI',
-          presentation: 'Développeur front-end débutant mais motivé, passionné par React Native et prêt à apprendre et contribuer à des projets ambitieux avec une équipe expérimentée.',
-          avatarUrl: '',
-        },
+        { id: '1', firstName: 'Lucas', lastName: 'Boyadjian', location: 'Paris', job: 'Développeur', experience: 'Débutant', contractType: 'CDI', presentation: 'Présentation Lucas', avatarUrl: '' },
+        { id: '2', firstName: 'Marie', lastName: 'Dupont', location: 'Lille', job: 'Product Owner', experience: 'Confirmé', contractType: 'CDI', presentation: 'Présentation Marie', avatarUrl: '' },
       ];
 
   const tabs = userType === 'candidat'
-    ? getCandidateTabs(navigation, 0)
-    : getRecruiterTabs(navigation, 0);
+    ? getCandidateTabs(undefined, 0)
+    : getRecruiterTabs(undefined, 0);
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [cardVisible, setCardVisible] = useState(true);
+  const position = useRef(new Animated.ValueXY()).current;
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gesture) =>
+        Math.abs(gesture.dx) > Math.abs(gesture.dy) && Math.abs(gesture.dx) > 10,
+      onPanResponderMove: Animated.event([null, { dx: position.x }], { useNativeDriver: false }),
+      onPanResponderRelease: (_, gesture) => {
+        if (gesture.dx > 120 || gesture.dx < -120) {
+          Animated.timing(position, {
+            toValue: { x: gesture.dx > 0 ? width : -width, y: 0 },
+            duration: 200,
+            useNativeDriver: false,
+          }).start(() => {
+            setCardVisible(false);
+            setTimeout(() => {
+              position.setValue({ x: 0, y: 0 });
+              setCurrentIndex(i => i + 1); // <-- On passe au profil suivant
+              setCardVisible(true);
+            }, 100);
+          });
+        } else {
+          Animated.spring(position, {
+            toValue: { x: 0, y: 0 },
+            useNativeDriver: false,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
+  const currentCard = contacts[currentIndex];
+
+  const rotate = position.x.interpolate({
+    inputRange: [-width, 0, width],
+    outputRange: ['-20deg', '0deg', '20deg'],
+  });
+
+  const animatedStyle = {
+    width: CARD_WIDTH,
+    height: CARD_HEIGHT,
+    transform: [
+      { translateX: position.x },
+      { rotate },
+      { scale: position.x.interpolate({
+          inputRange: [-width, 0, width],
+          outputRange: [0.95, 1, 0.95],
+        })
+    },
+  ],
+    opacity: position.x.interpolate({
+      inputRange: [-width, 0, width],
+      outputRange: [0.5, 1, 0.5],
+    }),
+    // On retire le fond et le borderRadius pour éviter la superposition
+    elevation: 0,
+    shadowColor: 'transparent',
+    backgroundColor: 'transparent',
+    borderRadius: 0,
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.logoRow}>
-        <SmallMovaLogo />
-      </View>
-      <Text style={styles.title}>Faites votre choix</Text>
-      <FlatList
-        data={contacts}
-        keyExtractor={item => item.id}
-        renderItem={({ item }) => (
-          <View>
-            <View style={{ marginBottom: 20 }}>
-              {userType === 'candidat' ? (
-                <RecruiterCard
-                  companyName={item.companyName ?? ''}
-                  location={item.location ?? ''}
-                  jobSeeking={item.jobSeeking ?? ''}
-                  experienceRequired={item.experienceRequired ?? ''}
-                  contractType={item.contractType ?? ''}
-                  presentation={item.presentation ?? ''}
-                  avatarUrl={item.avatarUrl ?? ''}
-                />
-              ) : (
-                <CandidateCard
-                  firstName={item.firstName ?? ''}
-                  lastName={item.lastName ?? ''}
-                  location={item.location ?? ''}
-                  job={item.job ?? ''}
-                  experience={item.experience ?? ''}
-                  contractType={item.contractType ?? ''}
-                  presentation={item.presentation ?? ''}
-                  avatarUrl={item.avatarUrl ?? ''}
-                />
-              )}
-            </View>
-            <View style={styles.iconsRow}>
-              <View style={styles.iconCircle}>
-                <Ionicons name="close" size={30} color="#e74c3c" />
-              </View>
-              <View style={styles.iconCircle}>
-                <Ionicons name="checkmark" size={30} color="#27ae60" />
-              </View>
-            </View>
-            <View style={{ alignItems: 'center', marginTop: 16 }}>
-              <View style={styles.iconCircle}>
-                <Ionicons
-                  name="refresh"
-                  size={30}
-                  color="#FFD600"
-                  style={{ transform: [{ scaleX: -1 }] }}
-                />
-              </View>
-            </View>
-          </View>
+      {/* Supprimé : logo et titre */}
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        {currentIndex < contacts.length && cardVisible && (
+          <Animated.View
+            style={animatedStyle}
+            {...panResponder.panHandlers}
+          >
+            {userType === 'candidat' ? (
+              <RecruiterCard {...contacts[currentIndex]} />
+            ) : (
+              <CandidateCard {...contacts[currentIndex]} />
+            )}
+          </Animated.View>
         )}
-        contentContainerStyle={styles.list}
-      />
+        {currentIndex >= contacts.length && (
+          <Text style={{ textAlign: 'center', marginTop: 40 }}>Plus de profils à afficher</Text>
+        )}
+      </View>
       <BottomTabBar tabs={tabs} activeTabId="notifications" />
     </View>
   );
@@ -111,7 +138,7 @@ export default function SwipeNotificationScreen({ route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f2', // gris clair
+    backgroundColor: '#ffffffff',
   },
   logoRow: {
     alignItems: 'flex-start',
@@ -124,22 +151,8 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 40,
   },
-  list: {
-    paddingBottom: 24,
-    paddingHorizontal: 10,
-  },
-  iconsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 12,
-    paddingHorizontal: 30, // Utilise le même padding que la card
-  },
-  iconCircle: {
-    height: 40,
-    width: 40,
-    borderRadius: 20,
-    backgroundColor: '#fff', // cercle blanc
-    alignItems: 'center',
-    justifyContent: 'center',
+  card: {
+    width: '100%',
+    height: '100%',
   },
 });
