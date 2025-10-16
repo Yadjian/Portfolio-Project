@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { AuthStack, AppTabs } from './navigation';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -25,6 +26,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    DancingScript_700Bold, // <-- Ajoute cette ligne
     ...FontAwesome.font,
   });
 

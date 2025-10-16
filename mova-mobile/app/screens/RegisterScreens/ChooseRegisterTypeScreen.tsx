@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, Pressable, StyleSheet, Dimensions } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import MovaLogo from '@/components/ui/MovaLogo';
 
 const { height, width } = Dimensions.get('window');
@@ -7,25 +8,39 @@ const { height, width } = Dimensions.get('window');
 export default function ChooseRegisterTypeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.content}>
-          <MovaLogo sizeProp={60} />
-          <Text style={styles.title}>Vous êtes ?</Text>
-          <Pressable
-            style={[styles.button, { backgroundColor: '#07b9ff' }]}
-            onPress={() => navigation.navigate('CreateAccount', { userType: 'candidate' })}
-          >
-            <Text style={styles.buttonText}>Candidat</Text>
-          </Pressable>
-          <View style={{ marginVertical: height * 0.03 }} />
-          <Pressable
-            style={[styles.button, { backgroundColor: '#6b25f9' }]}
-            onPress={() => navigation.navigate('CreateAccount', { userType: 'recruiter' })}
-          >
-            <Text style={styles.buttonText}>Recruteur</Text>
-          </Pressable>
-        </View>
+      <View style={styles.header}>
+        <MovaLogo />
+        <Text style={styles.title}>Rejoignez-nous</Text>
+        <Text style={styles.subtitle}>Choisissez votre profil pour commencer l'aventure Mova.</Text>
       </View>
+
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => navigation.navigate('CreateAccount', { userType: 'candidate' })}
+      >
+        <View style={styles.cardContent}>
+          <Feather name="user" size={32} color="#4930a3" style={styles.icon} />
+          <View>
+            <Text style={styles.cardTitle}>Candidat</Text>
+            <Text style={styles.cardDescription}>Je cherche un job</Text>
+          </View>
+        </View>
+        <Feather name="chevron-right" size={24} color="#C7C7CC" />
+      </Pressable>
+
+      <Pressable
+        style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
+        onPress={() => navigation.navigate('CreateAccount', { userType: 'recruiter' })}
+      >
+        <View style={styles.cardContent}>
+          <Feather name="briefcase" size={32} color="#4930a3" style={styles.icon} />
+          <View>
+            <Text style={styles.cardTitle}>Recruteur</Text>
+            <Text style={styles.cardDescription}>Je recrute des talents</Text>
+          </View>
+        </View>
+        <Feather name="chevron-right" size={24} color="#C7C7CC" />
+      </Pressable>
     </View>
   );
 }
@@ -33,53 +48,67 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f2', // même fond que CreateCompanyScreen
-    justifyContent: 'flex-start',
+    backgroundColor: '#fff', // Fond blanc pour la cohérence du parcours d'inscription
+    justifyContent: 'flex-start', // Aligner en haut pour un meilleur contrôle
+    alignItems: 'center',
+    paddingTop: height * 0.1, // Marge en haut pour centrer verticalement
+    paddingHorizontal: width * 0.05,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: height * 0.06,
+    width: '90%',
   },
   card: {
-    flex: 1,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: width * 0.045,
-    paddingVertical: height * 0.04,
-    paddingHorizontal: width * 0.06,
-    marginVertical: height * 0.02,
-    marginHorizontal: width * 0.03,
-    shadowColor: '#6746a8',
+    borderRadius: 16,
+    width: '100%',
+    paddingVertical: 20,
+    paddingHorizontal: 25,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
-    shadowRadius: width * 0.03,
-    elevation: 4,
-    justifyContent: 'flex-start', // <-- le logo remonte dans la card
+    shadowRadius: 8,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#eee',
+  },
+  cardContent: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  content: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  icon: {
+    marginRight: 20,
+  },
+  cardPressed: {
+    transform: [{ scale: 0.98 }],
+    backgroundColor: '#fafafa',
   },
   title: {
     fontSize: 30,
     fontWeight: 'bold',
-    color: '#6746a8',
-    marginBottom: 60,
-    marginTop: 70, // <-- espace augmenté sous le logo
+    color: '#4930a3',
+    marginTop: 25,
     textAlign: 'center',
   },
-  button: {
-    width: width * 0.8,
-    height: height * 0.09,
-    borderRadius: 25,
-    alignSelf: 'center',
-    justifyContent: 'center',
-    paddingVertical: height * 0.03,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 3,
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 10,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: width * 0.055,
+  cardTitle: {
+    fontSize: 22,
     fontWeight: 'bold',
-    textAlign: 'center',
+    color: '#2c2c2e',
+  },
+  cardDescription: {
+    fontSize: 16,
+    color: '#8e8e93',
+    marginTop: 5,
   },
 });

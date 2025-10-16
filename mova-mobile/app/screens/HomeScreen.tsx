@@ -84,12 +84,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     paddingHorizontal: width * 0.05,
   },
   header: {
     alignItems: 'center',
-    marginTop: height * 0.1,
+    marginBottom: height * 0.12, // Crée un espace volontaire avec les boutons
   },
   slogan: {
     fontSize: width * 0.06,
@@ -101,10 +101,9 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     alignItems: 'center',
-    marginBottom: height * 0.05,
   },
   primaryButton: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
     borderRadius: 30,
     width: '100%',
     paddingVertical: 18,
@@ -125,7 +124,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 30,
     borderWidth: 1.5,
-    borderColor: Colors.light.primary,
+    borderColor: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
     width: '100%',
     paddingVertical: 18,
     justifyContent: 'center',
@@ -133,7 +132,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   secondaryButtonText: {
-    color: Colors.light.primary,
+    color: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
     fontSize: width * 0.045,
     fontWeight: 'bold',
   },
