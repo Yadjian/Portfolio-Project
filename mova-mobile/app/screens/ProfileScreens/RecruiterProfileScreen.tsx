@@ -1,181 +1,193 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, Button, useWindowDimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, Text, Dimensions, Image, TouchableOpacity } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Feather } from '@expo/vector-icons';
+
 import type { AuthStackParamList } from '../../../lib/types';
-import ActiveToggle from '../../../components/ui/ActiveToggle';
-import RecruiterCard from '../../../components/ui/RecruiterCard';
-import EditProfileButton from '../../../components/ui/EditProfileButton';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
-import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
-import * as ImagePicker from 'expo-image-picker';
 import { getRecruiterTabs } from '@/constants/tabsConfig';
+import Colors from '../../../constants/Colors';
+
+const { width } = Dimensions.get('window');
+
+// Reusing the ProfileSection component for consistency
+const ProfileSection = ({ title, icon, children }) => (
+  <View style={styles.section}>
+    <View style={styles.sectionHeader}>
+      <Feather name={icon} size={22} color={Colors.light.primary} />
+      <Text style={styles.sectionTitle}>{title}</Text>
+    </View>
+    <View style={styles.sectionContent}>
+      {children}
+    </View>
+  </View>
+);
 
 export default function RecruiterProfileScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'RecruiterProfile'>>();
-  const startEditing = route.params?.startEditing === true;
-
-  const [isActive, setIsActive] = useState(true);
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-  const { width, height } = useWindowDimensions();
 
-  // Ajout état édition
-  const [isEditing, setIsEditing] = useState(startEditing);
-  const [firstEdit, setFirstEdit] = useState(startEditing);
-
-  // Données modifiables
+  // Mock data for the recruiter profile
   const [recruiter, setRecruiter] = useState({
     companyName: 'TechCorp Solutions',
     location: 'Lyon, France',
-    avatarUrl: '',
-    jobSeeking: 'Développeur',
+    avatarUrl: 'https://via.placeholder.com/150', // Placeholder logo
+    jobSeeking: 'Développeur React Native',
     experienceRequired: 'Intermédiaire',
     contractType: 'CDI',
-    presentation: "Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et innovative !",
+    presentation: "Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et innovante ! Notre culture d'entreprise est basée sur la collaboration, la créativité et l'excellence technique. Rejoignez-nous pour travailler sur des projets d'envergure.",
   });
 
-  const handleToggleActive = (value: boolean) => {
-    setIsActive(value);
-  };
+  // TODO: Add useEffect to fetch real recruiter data when API is ready
 
-  // Empêche de quitter le mode édition à la première édition
-  const handleEditProfile = () => {
-    if (firstEdit) return;
-    setIsEditing(!isEditing);
-  };
-
-  // Sauvegarder les modifications
-  const handleSave = async () => {
-    if (
-      !recruiter.companyName ||
-      !recruiter.location ||
-      !recruiter.jobSeeking ||
-      !recruiter.experienceRequired ||
-      !recruiter.contractType
-    ) {
-      alert('Tous les champs sont obligatoires sauf la présentation.');
-      return;
-    }
-    // Ajoute ici ta logique d'API si besoin
-    setIsEditing(false);
-    setFirstEdit(false); // Permet d'afficher le bouton Annuler après la première édition
-  };
-
-  // Annuler édition
-  const handleCancel = () => {
-    setIsEditing(false);
-    // Optionnel : remettre les anciennes valeurs si tu veux
-  };
-
-  // Changer la photo
-  const handleImagePicker = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
-
-    if (!result.canceled) {
-      setRecruiter(prev => ({ ...prev, avatarUrl: result.assets[0].uri }));
-    }
-  };
-
-  const notificationCount = 0; // À remplacer par ton vrai compteur
+  const notificationCount = 0; // Example count
   const tabs = getRecruiterTabs(navigation, notificationCount);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
+    <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={[styles.logoContainer, { paddingTop: height * 0.025, paddingBottom: height * 0.01 }]}>
-          <SmallMovaLogo />
-          <Text style={[styles.title, { fontSize: width * 0.08, marginTop: height * 0.035, color: '#6746a8' }]}>Mon Profil</Text>
-        </View>
-
-        <View style={{ height: height * 0.055 }} />
-
-        <View style={[styles.container, { paddingHorizontal: width * 0.06 }]}>
-          <View style={[styles.actionRow, { marginBottom: height * 0.01, paddingHorizontal: width * 0.01 }]}>
-            {/* Masque les boutons secondaires lors de la première édition */}
-            {!firstEdit && (
-              <>
-                <View style={styles.toggleWrapper}>
-                  <ActiveToggle 
-                    initialValue={isActive}
-                    onToggle={handleToggleActive}
-                  />
-                </View>
-                <EditProfileButton onPress={() => navigation.navigate('EditProfileScreen', { userType: 'recruteur' })} />
-              </>
-            )}
+        {/* --- Profile Header --- */}
+        <View style={styles.header}>
+          <View style={styles.headerBackground} />
+          <Image source={{ uri: recruiter.avatarUrl }} style={styles.avatar} />
+          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen', { userType: 'recruiter' })}>
+            <Feather name="edit-2" size={20} color={Colors.light.primary} />
+          </TouchableOpacity>
+          <Text style={styles.name}>{recruiter.companyName}</Text>
+          <View style={styles.locationContainer}>
+            <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
+            <Text style={styles.location}>{recruiter.location}</Text>
           </View>
         </View>
 
-        {/* RecruiterCard avec props d'édition */}
-        <RecruiterCard
-          avatarUrl={recruiter.avatarUrl}
-          companyName={recruiter.companyName}
-          location={recruiter.location}
-          jobSeeking={recruiter.jobSeeking}
-          experienceRequired={recruiter.experienceRequired}
-          contractType={recruiter.contractType}
-          presentation={recruiter.presentation}
-          isEditing={isEditing}
-          onFieldChange={(field, value) => setRecruiter(prev => ({ ...prev, [field]: value }))}
-          onImagePicker={handleImagePicker}
-        />
+        {/* --- About Section --- */}
+        <ProfileSection title="À propos de l'entreprise" icon="aperture">
+          <Text style={styles.sectionText}>{recruiter.presentation}</Text>
+        </ProfileSection>
 
-        {/* Boutons d'action en mode édition */}
-        {isEditing && (
-          <View style={styles.buttonContainer}>
-            <Button title="Enregistrer" onPress={handleSave} />
-            {!firstEdit && <Button title="Annuler" onPress={handleCancel} color="#999" />}
+        {/* --- Job Details Section --- */}
+        <ProfileSection title="Recherche en cours" icon="briefcase">
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Poste recherché:</Text>
+            <Text style={styles.detailValue}>{recruiter.jobSeeking}</Text>
           </View>
-        )}
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Expérience requise:</Text>
+            <Text style={styles.detailValue}>{recruiter.experienceRequired}</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Type de contrat:</Text>
+            <Text style={styles.detailValue}>{recruiter.contractType}</Text>
+          </View>
+        </ProfileSection>
 
-        <View style={styles.container}>
-          <View style={{ height: height * 0.08 }} />
-        </View>
+        {/* Spacer at the bottom */}
+        <View style={{ height: 100 }} />
       </ScrollView>
-      {/* Masque la BottomTabBar lors de la première édition */}
-      {!firstEdit && <BottomTabBar tabs={tabs} activeTabId="profile" />}
+      <BottomTabBar tabs={tabs} activeTabId="profile" />
     </View>
   );
 }
 
+// Using the same styles as CandidateProfileScreen for consistency
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
   scrollContainer: {
     flex: 1,
   },
-  container: {
-    flex: 1,
-  },
-  logoContainer: {
+  // Header Styles
+  header: {
     alignItems: 'center',
+    paddingBottom: 20,
+    backgroundColor: Colors.light.backgroundCard,
   },
-  title: {
-    color: '#fff',
+  headerBackground: {
+    backgroundColor: Colors.light.primary,
+    height: 100,
+    width: '100%',
+    position: 'absolute',
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60, // Circular for consistency, can be changed to square for companies
+    borderWidth: 4,
+    borderColor: Colors.light.backgroundCard,
+    marginTop: 40,
+  },
+  editButton: {
+    position: 'absolute',
+    top: 110,
+    right: 20,
+    backgroundColor: Colors.light.backgroundCard,
+    padding: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  name: {
+    fontSize: 24,
     fontWeight: 'bold',
-    letterSpacing: 2,
+    color: Colors.light.text,
+    marginTop: 10,
   },
-  actionRow: {
+  locationContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  location: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+    marginLeft: 4,
+  },
+  // Section Styles
+  section: {
+    backgroundColor: Colors.light.backgroundCard,
+    marginTop: 10,
+    padding: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  toggleWrapper: {
-    flex: 1,
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.light.text,
+    marginLeft: 10,
   },
-  buttonContainer: {
-    marginVertical: 20,
+  sectionContent: {
+    marginTop: 15,
   },
-  buttonRow: {
+  sectionText: {
+    fontSize: 15,
+    color: Colors.light.text,
+    lineHeight: 22,
+  },
+  // Detail Section Styles
+  detailItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    paddingVertical: 8,
   },
-  buttonWrapper: {
-    flex: 1,
-    marginHorizontal: 5,
+  detailLabel: {
+    fontSize: 15,
+    color: Colors.light.textSecondary,
+  },
+  detailValue: {
+    fontSize: 15,
+    color: Colors.light.text,
+    fontWeight: '600',
+    maxWidth: '60%',
+    textAlign: 'right',
   },
 });

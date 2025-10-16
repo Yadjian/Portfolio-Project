@@ -1,7 +1,7 @@
 import React from 'react';
-import { View, Text, ImageBackground, StyleSheet, useWindowDimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Image, StyleSheet, useWindowDimensions } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import Colors from '../../constants/Colors'; // Using the new color palette
 
 interface SwipeCardProps {
   userType: 'candidate' | 'recruiter';
@@ -18,21 +18,18 @@ interface SwipeCardProps {
   contractType?: string;
 }
 
-const InfoTag = ({ icon, text }: { icon: any; text: string }) => (
-  <LinearGradient
-    colors={['#6746a8', '#6b25f9', '#07b9ff']}
-    start={{ x: 0, y: 0 }}
-    end={{ x: 1, y: 1 }}
-    style={styles.tag}
-  >
-    <Ionicons name={icon} size={16} color="#fff" />
+// Redesigned InfoTag
+const InfoTag = ({ icon, text }: { icon: keyof typeof Feather.glyphMap; text: string }) => (
+  <View style={styles.tag}>
+    <Feather name={icon} size={14} color={Colors.light.primary} />
     <Text style={styles.tagText}>{text}</Text>
-  </LinearGradient>
+  </View>
 );
 
 export default function SwipeCard(props: SwipeCardProps) {
   const { width } = useWindowDimensions();
-  const cardHeight = width * 1.5; // Increased height ratio
+  // The card height can be adjusted if needed, but we'll make it content-driven
+  const cardHeight = width * 1.3;
 
   const { userType, avatarUrl, firstName, lastName, companyName, location, job, jobSeeking, experience, experienceRequired, presentation, contractType } = props;
 
@@ -42,28 +39,32 @@ export default function SwipeCard(props: SwipeCardProps) {
 
   return (
     <View style={[styles.card, { height: cardHeight }]}>
-      <ImageBackground
-        source={avatarUrl ? { uri: avatarUrl } : require('../../assets/images/splash-icon.png')}
-        style={styles.image}
-        imageStyle={{ borderTopLeftRadius: 20, borderTopRightRadius: 20 }}
-      >
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.8)']}
-          style={styles.gradient}
-        >
-          <Text style={styles.name}>{name}</Text>
-          {location && <Text style={styles.location}>{location}</Text>}
-        </LinearGradient>
-      </ImageBackground>
-      <View style={styles.infoSection}>
-          <View style={styles.tagsContainer}>
-            {mainRole && <InfoTag icon="briefcase-outline" text={mainRole} />}
-            {exp && <InfoTag icon="bar-chart-outline" text={exp} />}
-            {contractType && <InfoTag icon="document-text-outline" text={contractType} />}
+      {/* Header Section */}
+      <View style={styles.header}>
+        <Image
+          source={avatarUrl ? { uri: avatarUrl } : require('../../assets/images/icon.png')}
+          style={styles.avatar}
+        />
+        <Text style={styles.name}>{name}</Text>
+        {location && (
+          <View style={styles.locationContainer}>
+            <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
+            <Text style={styles.location}>{location}</Text>
           </View>
-          <Text style={styles.presentationText} numberOfLines={5} ellipsizeMode="clip">
-            {presentation}
-          </Text>
+        )}
+      </View>
+
+      {/* Info Section */}
+      <View style={styles.infoSection}>
+        <Text style={styles.mainRole}>{mainRole}</Text>
+        <View style={styles.tagsContainer}>
+          {exp && <InfoTag icon="bar-chart-2" text={exp} />}
+          {contractType && <InfoTag icon="file-text" text={contractType} />}
+        </View>
+        <Text style={styles.presentationTitle}>Présentation</Text>
+        <Text style={styles.presentationText} numberOfLines={6}>
+          {presentation || 'Aucune présentation disponible.'}
+        </Text>
       </View>
     </View>
   );
@@ -73,71 +74,84 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.backgroundCard,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
     elevation: 10,
-    overflow: 'hidden', // Prevents content from overflowing rounded corners
+    overflow: 'hidden',
   },
-  image: {
-    width: '100%',
-    height: '60%', // Adjusted ratio
-    justifyContent: 'flex-end',
-  },
-  gradient: {
+  header: {
+    alignItems: 'center',
     padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.border,
+  },
+  avatar: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 15,
+    backgroundColor: 'pink', // DEBUGGING LINE
   },
   name: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    color: Colors.light.text,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
   },
   location: {
-    fontSize: 18,
-    color: '#fff',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    fontSize: 15,
+    color: Colors.light.textSecondary,
+    marginLeft: 5,
   },
   infoSection: {
-    padding: 15,
-    height: '40%', // Adjusted ratio
-    justifyContent: 'flex-start',
+    padding: 20,
+    flex: 1,
   },
-  presentationText: {
-    fontSize: 15,
-    color: '#555',
-    fontStyle: 'italic',
-    textAlign: 'left',
-    flexShrink: 1, // Ensure text does not overflow
+  mainRole: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.light.text,
+    textAlign: 'center',
+    marginBottom: 15,
   },
   tagsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 20,
   },
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 20,
+    borderRadius: 8,
     paddingVertical: 6,
     paddingHorizontal: 12,
-    marginRight: 6,
-    marginBottom: 6,
+    margin: 4,
+    backgroundColor: Colors.light.background, // Light grey background for tags
   },
   tagText: {
-    color: '#fff',
-    marginLeft: 6,
-    fontSize: 14,
+    color: Colors.light.primary,
+    marginLeft: 8,
+    fontSize: 13,
     fontWeight: '600',
+  },
+  presentationTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: Colors.light.text,
+    marginBottom: 8,
+  },
+  presentationText: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+    lineHeight: 20,
   },
 });

@@ -1,14 +1,21 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, Dimensions, Pressable } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, View, Text, Dimensions, TouchableOpacity, SafeAreaView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import * as Location from 'expo-location';
+
 import MovaLogo from '@/components/ui/MovaLogo';
 import { useAuth } from '../../contexts/AuthContext';
-import * as Location from 'expo-location';
 import { sendLocationToBackend } from '../../services/api';
+import Colors from '../../constants/Colors'; // Import new colors
+import { AuthStackParamList } from '@/lib/types';
 
 const { height, width } = Dimensions.get('window');
 
-export default function HomeScreen({ navigation }: any) {
+export default function HomeScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const { loading } = useAuth();
+
   // Géolocalisation : demande la permission et envoie périodiquement
   useEffect(() => {
     let interval: number;
@@ -19,114 +26,115 @@ export default function HomeScreen({ navigation }: any) {
         console.log('Permission refusée');
         return;
       }
-      const location = await Location.getCurrentPositionAsync({});
-      await sendLocationToBackend({
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      });
+      try {
+        const location = await Location.getCurrentPositionAsync({});
+        await sendLocationToBackend({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+        });
+      } catch (error) {
+        console.error("Could not get location", error)
+      }
     };
 
     askAndSendLocation();
-    interval = setInterval(askAndSendLocation, 5 * 60 * 1000);
+    // Casting to NodeJS.Timeout for compatibility, as setInterval in RN returns a number.
+    interval = setInterval(askAndSendLocation, 5 * 60 * 1000) as unknown as number;
 
     return () => clearInterval(interval);
   }, []);
 
-  // AuthProvider
-  const { loading } = useAuth();
-
   return (
-    <View style={styles.container}>
-      <View style={styles.logoContainer}>
-        <MovaLogo />
-        <Text style={styles.slogan}>
-          Votre prochain emploi{'\n'}commence par une rencontre !
-        </Text>
-      </View>
-      <View style={styles.separator} />
-      <View style={styles.buttonContainer}>
-        <LinearGradient
-          colors={['#6746a8', '#6b25f9', '#07b9ff']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradientButton}
-        >
-          <Pressable
-            style={styles.pressable}
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <MovaLogo />
+          <Text style={styles.slogan}>
+            Votre prochain emploi commence par une rencontre !
+          </Text>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => navigation.navigate('ChooseRegisterType')}
+          >
+            <Text style={styles.primaryButtonText}>Créer mon compte</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryButton}
             onPress={() => navigation.navigate('Login')}
             disabled={loading}
           >
-            <Text style={styles.buttonText}>
+            <Text style={styles.secondaryButtonText}>
               {loading ? 'Chargement...' : 'Connexion'}
             </Text>
-          </Pressable>
-        </LinearGradient>
-        <View style={{ marginVertical: 20 }} />
-        <LinearGradient
-          colors={['#6746a8', '#6b25f9', '#07b9ff']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={styles.gradientButton}
-        >
-          <Pressable
-            style={styles.pressable}
-            onPress={() => navigation.navigate('ChooseRegisterType')}
-          >
-            <Text style={styles.buttonText}>Créer mon compte</Text>
-          </Pressable>
-        </LinearGradient>
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'flex-start',
+    backgroundColor: Colors.light.background,
   },
-  logoContainer: {
+  content: {
+    flex: 1,
+    justifyContent: 'space-around',
+    paddingHorizontal: width * 0.05,
+  },
+  header: {
     alignItems: 'center',
-    marginTop: height * 0.2,
+    marginTop: height * 0.1,
   },
   slogan: {
-    fontSize: width * 0.055,
-    color: '#6746a8',
-    fontWeight: 'bold',
+    fontSize: width * 0.06,
+    color: Colors.light.text,
+    fontWeight: '600',
     textAlign: 'center',
-    marginTop: 18,
-    marginBottom: 8,
-  },
-  separator: {
-    height: 1,
-    backgroundColor: '#e0e0e0',
-    marginHorizontal: width * 0.12,
-    marginVertical: height * 0.03,
+    marginTop: 24,
+    lineHeight: width * 0.08,
   },
   buttonContainer: {
     alignItems: 'center',
-    marginTop: height * 0.04,
+    marginBottom: height * 0.05,
   },
-  gradientButton: {
-    borderRadius: 25,
-    width: width * 0.8,
-    height: height * 0.09,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pressable: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+  primaryButton: {
+    backgroundColor: Colors.light.primary,
     borderRadius: 30,
+    width: '100%',
+    paddingVertical: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  buttonText: {
-    color: '#fff',
-    fontSize: width * 0.055,
+  primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: width * 0.045,
     fontWeight: 'bold',
-    letterSpacing: 1,
-    textAlign: 'center',
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 30,
+    borderWidth: 1.5,
+    borderColor: Colors.light.primary,
+    width: '100%',
+    paddingVertical: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  secondaryButtonText: {
+    color: Colors.light.primary,
+    fontSize: width * 0.045,
+    fontWeight: 'bold',
   },
 });

@@ -1,21 +1,30 @@
 import React, { useRef, useState } from 'react';
 import { View, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons'; // Changed from Ionicons
 import SwipeCard from '@/components/ui/SwipeCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
+import Colors from '@/constants/Colors'; // Import our new colors
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-const ActionButton = ({ onPress, small, color, icon, style }: any) => (
-  <TouchableOpacity onPress={onPress} style={[styles.button, small ? styles.smallButton : styles.largeButton, { backgroundColor: '#fff', shadowColor: color }, style]}>
-    <Ionicons name={icon} size={small ? 20 : 28} color={color} />
+// Re-styled ActionButton
+const ActionButton = ({ onPress, small, color, icon, style }: { 
+  onPress: () => void;
+  small?: boolean;
+  color: string;
+  icon: keyof typeof Feather.glyphMap;
+  style?: any;
+}) => (
+  <TouchableOpacity onPress={onPress} style={[styles.button, small ? styles.smallButton : styles.largeButton, { backgroundColor: Colors.light.backgroundCard, shadowColor: '#000' }, style]}>
+    <Feather name={icon} size={small ? 24 : 32} color={color} />
   </TouchableOpacity>
 );
 
 export default function SwipeNotificationScreen({ route, navigation }: any) {
   const userType = route?.params?.userType ?? 'candidat';
 
+  // --- Mock data remains the same ---
   const contacts: any[] = userType === 'candidat'
     ? [
         {
@@ -67,6 +76,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const [profiles, setProfiles] = useState(contacts);
   const position = useRef(new Animated.ValueXY()).current;
 
+  // --- All the logic (tabs, panResponder, animations) remains the same ---
   const tabs = (userType === 'candidat'
     ? getCandidateTabs(navigation, 0)
     : getRecruiterTabs(navigation, 0)
@@ -106,7 +116,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const resetPosition = () => {
     Animated.spring(position, {
       toValue: { x: 0, y: 0 },
-      useNativeDriver: true,
+      useNativeDriver: false, // Needs to be false for spring if not fully supported
       friction: 5,
     }).start();
   };
@@ -115,7 +125,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
     Animated.timing(position, {
       toValue: { x: direction === 'right' ? width * 1.5 : -width * 1.5, y: 0 },
       duration: 400,
-      useNativeDriver: true,
+      useNativeDriver: false, // Needs to be false for this to work reliably with setValue
     }).start(() => {
       setProfiles(prevProfiles => prevProfiles.slice(1));
       position.setValue({ x: 0, y: 0 });
@@ -125,30 +135,38 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.deckContainer}>
-        {profiles.map((profile, index) => {
-          if (index === 0) {
+        {profiles.length > 0 ? (
+          profiles.map((profile, index) => {
+            if (index === 0) {
+              return (
+                <Animated.View
+                  key={profile.id}
+                  style={[styles.card, animatedStyle]}
+                  {...panResponder.panHandlers}
+                >
+                  <SwipeCard userType={userType === 'candidat' ? 'recruiter' : 'candidate'} {...profile} />
+                </Animated.View>
+              );
+            }
             return (
-              <Animated.View
-                key={profile.id}
-                style={[styles.card, animatedStyle]}
-                {...panResponder.panHandlers}
-              >
+              <Animated.View key={profile.id} style={[styles.card, styles.behindCard]}>
                 <SwipeCard userType={userType === 'candidat' ? 'recruiter' : 'candidate'} {...profile} />
               </Animated.View>
             );
-          }
-          return (
-            <Animated.View key={profile.id} style={styles.card}>
-              <SwipeCard userType={userType === 'candidat' ? 'recruiter' : 'candidate'} {...profile} />
-            </Animated.View>
-          );
-        }).reverse()}
+          }).reverse()
+        ) : (
+          <View style={styles.noMoreProfiles}>
+            <Feather name="briefcase" size={80} color={Colors.light.textSecondary} />
+            <Text style={styles.noMoreProfilesText}>Plus de profils pour le moment</Text>
+          </View>
+        )}
       </View>
 
+      {/* --- Re-styled Footer --- */}
       <View style={styles.footer}>
-        <ActionButton icon="close" color="#fd297b" onPress={() => swipe('left')} />
-        <ActionButton icon="refresh" color="#f6d365" small style={{ transform: [{scaleX: -1}] }} />
-        <ActionButton icon="checkmark" color="#20e3b2" onPress={() => swipe('right')} />
+        <ActionButton icon="x" color={Colors.light.error} onPress={() => swipe('left')} />
+        <ActionButton icon="refresh-cw" color={Colors.light.textSecondary} small onPress={() => { /* TODO: Implement refresh logic */ }} />
+        <ActionButton icon="check" color={Colors.light.accent} onPress={() => swipe('right')} />
       </View>
       <BottomTabBar tabs={tabs} activeTabId="notifications" />
     </View>
@@ -158,7 +176,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: Colors.light.background, // Use new background color
   },
   deckContainer: {
     flex: 1,
@@ -167,30 +185,44 @@ const styles = StyleSheet.create({
   },
   card: {
     position: 'absolute',
-    width: width * 0.95,
+    width: width * 0.9, // Slightly smaller width
+  },
+  behindCard: {
+    // Style for cards that are behind the top one to create a deck effect
+    transform: [{ scale: 0.95 }],
+    top: -10,
+  },
+  noMoreProfiles: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  noMoreProfilesText: {
+    fontSize: 18,
+    color: Colors.light.textSecondary,
+    marginTop: 20,
   },
   footer: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    paddingVertical: 10,
-    paddingBottom: 90, // Space for the BottomTabBar
+    paddingVertical: 15,
+    paddingBottom: 100, // Space for the BottomTabBar
   },
   button: {
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 5,
+    elevation: 8,
     shadowOpacity: 0.15,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },
   },
   smallButton: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
   },
   largeButton: {
-    width: 55,
-    height: 55,
+    width: 65,
+    height: 65,
   },
 });
