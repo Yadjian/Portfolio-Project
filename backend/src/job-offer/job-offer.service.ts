@@ -1,6 +1,6 @@
 // Fichier: backend/src/job-offer/job-offer.service.ts
 
-import { Injectable, NotFoundException, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobOfferDto } from './dto/create-job-offer.dto';
 
@@ -8,17 +8,17 @@ import { CreateJobOfferDto } from './dto/create-job-offer.dto';
 export class JobOfferService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(auth0Id: string, createJobOfferDto: CreateJobOfferDto) {
-    // 1. Trouver le profil du recruteur qui fait la requête
-    const recruiterProfile = await this.prisma.recruiterProfile.findFirst({
-      where: { user: { auth0Id } },
-            include: {
-        // On inclut les adhésions (memberships) pour trouver la compagnie
+  async create(createJobOfferDto: CreateJobOfferDto, userId: string) {
+    const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
+      where: { userId },
+      // ✅ AJOUT : On inclut les adhésions ET les catégories d'intérêt du recruteur
+      include: {
         memberships: {
           include: {
-            company: true, // Et on inclut les données de la compagnie liée
+            company: true,
           },
         },
+        searchedCategories: true, // Assurez-vous que la relation est bien nommée 'searchedCategories' dans votre schema.prisma
       },
     });
 
@@ -26,17 +26,23 @@ export class JobOfferService {
       throw new NotFoundException('Recruiter profile not found for this user.');
     }
 
-    // On suppose qu'un recruteur est lié à une seule compagnie lors de sa création.
-    // Si la liste des memberships est vide ou que la compagnie n'existe pas, on lève une erreur.
     if (!recruiterProfile.memberships || recruiterProfile.memberships.length === 0) {
       throw new ForbiddenException('You are not associated with any company and cannot post a job offer.');
     }
 
-    // 3. Extraire les informations nécessaires
-    const companyId = recruiterProfile.memberships[0].company.id;
-    const recruiterId = recruiterProfile.id;
+    // ✅ AJOUT : On vérifie que le recruteur a bien défini ses catégories
+    if (!recruiterProfile.searchedCategories || recruiterProfile.searchedCategories.length === 0) {
+      throw new ForbiddenException("Veuillez finaliser votre profil en définissant vos catégories d'intérêt avant de poster une offre.");
+    }
 
-    // 3. Si tout est bon, créer l'offre d'emploi
+    const companyId = recruiterProfile.memberships[0].company.id;
+    // Note: Vous devrez peut-être ajouter une colonne 'createdById' à votre modèle JobOffer
+    // pour stocker l'ID du recruteur qui a créé l'offre.
+    // const recruiterId = recruiterProfile.id;
+
+    // On extrait les IDs des catégories du profil du recruteur
+    const categoryIds = recruiterProfile.searchedCategories.map(category => ({ id: category.id }));
+
     const jobOffer = await this.prisma.jobOffer.create({
       data: {
         title: createJobOfferDto.title,
@@ -45,22 +51,30 @@ export class JobOfferService {
         locationWKT: createJobOfferDto.locationWKT,
         salaryMin: createJobOfferDto.salaryMin,
         salaryMax: createJobOfferDto.salaryMax,
-        // On lie l'offre à l'entreprise ET au recruteur qui l'a créée
-        companyId: companyId,
-        createdById: recruiterId,
+        // Connect the creator (required by the Prisma type) to the recruiter profile
+        createdBy: {
+          connect: { id: recruiterProfile.id },
+        },
+        // On connecte l'entreprise via la relation plutôt que d'utiliser companyId directement
+        company: {
+          connect: { id: companyId },
+        },
+        // ✅ MODIFICATION : On connecte automatiquement les catégories du profil
+        categories: {
+          connect: categoryIds,
+        },
       },
     });
 
     return jobOffer;
   }
 
-  // --- NOUVELLE MÉTHODE ---
   async findAll() {
     return this.prisma.jobOffer.findMany({
-      where: { isActive: true }, // On ne récupère que les offres actives
-      orderBy: { createdAt: 'desc' }, // On trie par date de création, la plus récente d'abord
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
       include: {
-        company: { // Inclut les informations de l'entreprise
+        company: {
           select: {
             name: true,
             logoUrl: true,
@@ -70,18 +84,12 @@ export class JobOfferService {
     });
   }
 
-  // --- NOUVELLE MÉTHODE ---
   async findOne(id: string) {
     const jobOffer = await this.prisma.jobOffer.findUnique({
       where: { id },
       include: {
-        company: true, // Inclut l'objet Company complet
-        createdBy: {   // Inclut le profil du recruteur qui a créé l'offre
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        },
+        company: true,
+        // createdBy: { ... } // Si vous avez la relation 'createdBy'
       },
     });
 
@@ -90,5 +98,44 @@ export class JobOfferService {
     }
 
     return jobOffer;
+  }
+
+  // --- VERSION CORRIGÉE ---
+  async findNearby(userId: string, radiusInMeters: number = 20000) {
+    // FIX: On cherche le profil candidat directement via son userId, qui est unique
+    const candidateProfile = await this.prisma.candidateProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!candidateProfile) {
+      throw new NotFoundException('Candidate profile not found.');
+    }
+
+    if (!candidateProfile.locationWKT) {
+      throw new NotFoundException('Candidate location must be set before searching for nearby jobs.');
+    }
+
+    try {
+      // Le reste de votre requête SQL est parfait et n'a pas besoin de changer.
+      return await this.prisma.$queryRaw`
+        SELECT
+          "id", "title", "contractType", "locationWKT",
+          ST_Distance(
+            ST_GeomFromText("locationWKT", 4326),
+            ST_GeomFromText(${candidateProfile.locationWKT}, 4326)
+          ) as "distanceInMeters"
+        FROM "JobOffer"
+        WHERE "locationWKT" IS NOT NULL
+        AND "isActive" = true
+        AND ST_DWithin(
+          ST_GeomFromText("locationWKT", 4326),
+          ST_GeomFromText(${candidateProfile.locationWKT}, 4326),
+          ${radiusInMeters}
+        )
+        ORDER BY "distanceInMeters" ASC;
+      `;
+    } catch (error) {
+      throw new BadRequestException('Error processing geographic data');
+    }
   }
 }

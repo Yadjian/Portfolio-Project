@@ -1,18 +1,20 @@
-// Fichier: backend/src/auth/auth.module.ts
+// src/auth/auth.module.ts
 
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from './jwt.strategy';
+import { JwtStrategy } from './jwt.strategy'; // Nous allons le modifier
 import { PassportModule } from '@nestjs/passport';
-import { PrismaModule } from '../prisma/prisma.module'; // <-- Cette ligne ne devrait plus être en erreur
+import { PrismaModule } from '../prisma/prisma.module';
+import { JwtModule } from '@nestjs/jwt'; // <-- AJOUTÉ
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    PrismaModule, // <-- On importe le module pour pouvoir utiliser PrismaService dans AuthService
+    JwtModule.register({}), // <-- AJOUTÉ: configuration vide, nous la ferons dans le service
+    PrismaModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy], // <-- Nous allons réécrire AuthService
 })
 export class AuthModule {}

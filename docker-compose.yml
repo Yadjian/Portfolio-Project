@@ -17,8 +17,14 @@ services:
     networks:
       - mova-network
 
+    volumes: # <--- AJOUTEZ CE BLOC ENTIER
+      # Mappe votre dossier local au dossier de travail du container
+      - ./backend:/usr/src/app
+      # Astuce : isole les node_modules à l'intérieur du container
+      - /usr/src/app/node_modules
+
   db:
-    image: postgres:15
+    image: postgis/postgis:15-3.3
     container_name: mova-db
     env_file:
       - .env
