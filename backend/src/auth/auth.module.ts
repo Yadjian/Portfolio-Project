@@ -7,6 +7,7 @@ import { JwtStrategy } from './jwt.strategy'; // Nous allons le modifier
 import { PassportModule } from '@nestjs/passport';
 import { PrismaModule } from '../prisma/prisma.module';
 import { JwtModule } from '@nestjs/jwt'; // <-- AJOUTÉ
+import { RefreshTokenStrategy } from './refreshToken.strategy';
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { JwtModule } from '@nestjs/jwt'; // <-- AJOUTÉ
     PrismaModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy], // <-- Nous allons réécrire AuthService
+  providers: [AuthService, JwtStrategy, RefreshTokenStrategy], // <-- Nous allons réécrire AuthService
 })
 export class AuthModule {}
