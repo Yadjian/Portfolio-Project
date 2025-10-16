@@ -111,7 +111,7 @@ export default function RecruiterCard({
               <Text style={[styles.label, { fontSize: width * 0.042 }]}>Présentation :</Text>
               <View style={{ height: 8 }} />
               {(() => {
-                const maxChars = 179;
+                const maxChars = 225;
                 const cleanText = (presentation || '').replace(/\n/g, ' ').replace(/ +/g, ' ');
                 const limitedText = cleanText.length > maxChars ? cleanText.slice(0, maxChars) : cleanText;
                 return (

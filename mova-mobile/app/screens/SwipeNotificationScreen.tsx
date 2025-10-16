@@ -5,6 +5,7 @@ import RecruiterCard from '@/components/ui/RecruiterCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
 import SmallMovaLogo from '@/components/ui/SmallMovaLogo';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.95;
@@ -49,6 +50,10 @@ export default function SwipeNotificationScreen({ route }: any) {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cardVisible, setCardVisible] = useState(true);
+  const [showGreenPop, setShowGreenPop] = useState(false);
+  const [showRedPop, setShowRedPop] = useState(false);
+  const greenPopAnim = useRef(new Animated.Value(0)).current;
+  const redPopAnim = useRef(new Animated.Value(0)).current;
   const position = useRef(new Animated.ValueXY()).current;
 
   const panResponder = useRef(
@@ -58,6 +63,43 @@ export default function SwipeNotificationScreen({ route }: any) {
       onPanResponderMove: Animated.event([null, { dx: position.x }], { useNativeDriver: false }),
       onPanResponderRelease: (_, gesture) => {
         if (gesture.dx > 120 || gesture.dx < -120) {
+          if (gesture.dx > 0) {
+            // Swipe right: show green pop animation
+            setShowGreenPop(true);
+            greenPopAnim.setValue(0);
+            Animated.sequence([
+              Animated.timing(greenPopAnim, {
+                toValue: 1,
+                duration: 180,
+                useNativeDriver: true,
+              }),
+              Animated.timing(greenPopAnim, {
+                toValue: 0,
+                duration: 320,
+                useNativeDriver: true,
+              })
+            ]).start(() => {
+              setShowGreenPop(false);
+            });
+          } else {
+            // Swipe left: show red pop animation
+            setShowRedPop(true);
+            redPopAnim.setValue(0);
+            Animated.sequence([
+              Animated.timing(redPopAnim, {
+                toValue: 1,
+                duration: 180,
+                useNativeDriver: true,
+              }),
+              Animated.timing(redPopAnim, {
+                toValue: 0,
+                duration: 320,
+                useNativeDriver: true,
+              })
+            ]).start(() => {
+              setShowRedPop(false);
+            });
+          }
           Animated.timing(position, {
             toValue: { x: gesture.dx > 0 ? width : -width, y: 0 },
             duration: 200,
@@ -112,19 +154,98 @@ export default function SwipeNotificationScreen({ route }: any) {
 
   return (
     <View style={styles.container}>
-      {/* Supprimé : logo et titre */}
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 24 }}>
         {currentIndex < contacts.length && cardVisible && (
-          <Animated.View
-            style={animatedStyle}
-            {...panResponder.panHandlers}
-          >
-            {userType === 'candidat' ? (
-              <RecruiterCard {...contacts[currentIndex]} />
-            ) : (
-              <CandidateCard {...contacts[currentIndex]} />
+          <>
+            <Animated.View
+              style={animatedStyle}
+              {...panResponder.panHandlers}
+            >
+              {userType === 'candidat' ? (
+                <RecruiterCard {...contacts[currentIndex]} />
+              ) : (
+                <CandidateCard {...contacts[currentIndex]} />
+              )}
+            </Animated.View>
+            {/* Green pop animation when swiping right */}
+            {showGreenPop && (
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 20,
+                  opacity: greenPopAnim,
+                  backgroundColor: 'rgba(39, 174, 96, 0.85)',
+                }}
+              >
+                <Animated.View
+                  style={{
+                    transform: [
+                      {
+                        scale: greenPopAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.5, 1.6],
+                        })
+                      }
+                    ]
+                  }}
+                >
+                  <Ionicons name="checkmark-circle" size={120} color="#fff" />
+                </Animated.View>
+              </Animated.View>
             )}
-          </Animated.View>
+            {/* Red pop animation when swiping left */}
+            {showRedPop && (
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  zIndex: 20,
+                  opacity: redPopAnim,
+                  backgroundColor: 'rgba(231, 76, 60, 0.85)',
+                }}
+              >
+                <Animated.View
+                  style={{
+                    transform: [
+                      {
+                        scale: redPopAnim.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [0.5, 1.6],
+                        })
+                      }
+                    ]
+                  }}
+                >
+                  <Ionicons name="close-circle" size={120} color="#fff" />
+                </Animated.View>
+              </Animated.View>
+            )}
+            {/* Boutons vert, rouge, jaune sur la même ligne sous la card */}
+            <View style={{ marginTop: 64 }}>
+              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+                <View style={[styles.iconCircleWithBorder, { borderColor: '#e74c3c' }]}> 
+                  <Ionicons name="close" size={30} color="#e74c3c" />
+                </View>
+                <View style={[styles.iconCircleWithBorder, { borderColor: '#FFD600' }]}> 
+                  <Ionicons name="refresh" size={30} color="#FFD600" style={{ transform: [{ scaleX: -1 }] }} />
+                </View>
+                <View style={[styles.iconCircleWithBorder, { borderColor: '#27ae60' }]}> 
+                  <Ionicons name="checkmark" size={30} color="#27ae60" />
+                </View>
+              </View>
+            </View>
+          </>
         )}
         {currentIndex >= contacts.length && (
           <Text style={{ textAlign: 'center', marginTop: 40 }}>Plus de profils à afficher</Text>
@@ -154,5 +275,25 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     height: '100%',
+  },
+  iconCircle: {
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 12,
+  },
+  iconCircleWithBorder: {
+    height: 48,
+    width: 48,
+    borderRadius: 24,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 20,
+    borderWidth: 2,
+    // borderColor retiré pour laisser la couleur inline dominer
   },
 });
