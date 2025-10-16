@@ -15,6 +15,7 @@ export type AuthStackParamList = {
   CandidateCVScreen: undefined;
   RecruiterJobOfferScreen: undefined;
   CreateAccount: { userType: 'candidate' | 'recruiter' };
+  UserHome: undefined;
 };
 
 // Définir les props pour chaque écran
@@ -23,5 +24,3 @@ export type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login
 export type ChooseRegisterTypeScreenProps = NativeStackScreenProps<AuthStackParamList, 'ChooseRegisterType'>;
 export type CandidateProfileScreenProps = NativeStackScreenProps<AuthStackParamList, 'CandidateProfile'>;
 export type RecruiterProfileScreenProps = NativeStackScreenProps<AuthStackParamList, 'RecruiterProfile'>;
-
-

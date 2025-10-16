@@ -17,6 +17,7 @@ import HomeScreen from '../screens/HomeScreen';
 import CreateAccountScreen from '../screens/RegisterScreens/CreateAccountScreen';
 import CreateCompanyScreen from '../screens/ProfileScreens/CreateCompanyScreen';
 import MovaLogo from '@/components/ui/MovaLogo';
+import UserHomeScreen from '../screens/UserHomeScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -76,9 +77,7 @@ export default function AuthStack() {
         component={CandidateProfileScreen}
         options={({ navigation }) => ({
           headerLeft: () => <MovaLogo sizeProp={40} />,
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
+          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
           headerBackTitleVisible: false,
         })}
       />
@@ -87,9 +86,7 @@ export default function AuthStack() {
         component={RecruiterProfileScreen}
         options={({ navigation }) => ({
           headerLeft: () => <MovaLogo sizeProp={40} />,
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
+          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
           headerBackTitleVisible: false,
         })}
       />
@@ -105,9 +102,7 @@ export default function AuthStack() {
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
+          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
           headerBackTitleVisible: false,
         })}
       />
@@ -116,9 +111,7 @@ export default function AuthStack() {
         component={CandidateCVScreen}
         options={({ navigation }) => ({
           headerLeft: () => <MovaLogo sizeProp={40} />,
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
+          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
           headerBackTitleVisible: false,
         })}
       />
@@ -127,9 +120,7 @@ export default function AuthStack() {
         component={RecruiterJobOfferScreen}
         options={({ navigation }) => ({
           headerLeft: () => <MovaLogo sizeProp={40} />,
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
+          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
           headerBackTitleVisible: false,
         })}
       />
@@ -140,9 +131,7 @@ export default function AuthStack() {
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
+          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
           headerBackTitleVisible: false,
         })}
       />
@@ -153,11 +142,14 @@ export default function AuthStack() {
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
+          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
           headerBackTitleVisible: false,
         })}
+      />
+      <Stack.Screen
+        name="UserHome"
+        component={UserHomeScreen}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );

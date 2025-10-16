@@ -47,7 +47,6 @@ export default function CreateCompanyScreen() {
       <ScrollView 
         contentContainerStyle={keyboardVisible ? styles.scrollContent : styles.content}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={keyboardVisible}
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
