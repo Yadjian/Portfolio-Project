@@ -33,9 +33,9 @@ export default function CreateAccountScreen({ route, navigation }: any) {
   const handleSubmit = () => {
     console.log('Création compte:', formData, userType);
     if (userType === 'recruiter') {
-      navigation.navigate('RecruiterOnboardingScreen');
+      navigation.navigate('CreateCompany');
     } else {
-      navigation.navigate('Home');
+      navigation.navigate('EditProfileScreen', { userType: 'candidate' });
     }
   };
 
