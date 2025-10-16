@@ -40,54 +40,51 @@ export default function EditProfileScreen() {
   const [companyPresentation, setCompanyPresentation] = useState('');
   const [siret, setSiret] = useState('');
 
-  const handleSubmit = async () => {
-    // Restrictions désactivées pour les tests
-    // if (userType === 'candidat') {
-    //   if (!firstName || !lastName || !location || !job || !experience || !contractType) {
-    //     alert('Tous les champs sont obligatoires sauf la présentation.');
-    //     return;
-    //   }
-    //   try {
-    //     await updateProfile({
-    //       firstName,
-    //       lastName,
-    //       location,
-    //       job,
-    //       experience,
-    //       contractType,
-    //       presentation,
-    //     });
-    //     navigation.replace('CandidateProfile', { startEditing: false });
-    //   } catch (error) {
-    //     alert("Erreur lors de l'enregistrement du profil.");
-    //     console.error(error);
-    //   }
-    // } else {
-    //   if (!companyName || !companyLocation || !jobSeeking || !experienceRequired || !companyContractType || !siret) {
-    //     alert('Tous les champs sont obligatoires sauf la présentation.');
-    //     return;
-    //   }
-    //   try {
-    //     await updateProfile({
-    //       companyName,
-    //       companyLocation,
-    //       jobSeeking,
-    //       experienceRequired,
-    //       contractType: companyContractType,
-    //       presentation: companyPresentation,
-    //       siret,
-    //     });
-    //     navigation.replace('RecruiterProfile', { startEditing: false });
-    //   } catch (error) {
-    //     alert("Erreur lors de l'enregistrement du profil.");
-    //     console.error(error);
-    //   }
-    // }
+  // TODO: Pré-remplir les champs avec les données de l'utilisateur actuel
 
-    // Navigation directe sans backend ni restriction :
+  const handleSubmit = async () => {
     if (userType === 'candidate') {
+      const candidateData = {
+        firstName,
+        lastName,
+        location,
+        avatarUrl,
+        job,
+        experience,
+        contractType,
+        presentation,
+      };
+      console.log('Updating candidate profile:', candidateData);
+      // try {
+      //   await updateProfile(candidateData);
+      // } catch (error) {
+      //   console.error("Erreur lors de l'enregistrement du profil candidat.", error);
+      //   alert("Erreur lors de l'enregistrement du profil.");
+      //   return;
+      // }
       navigation.replace('CandidateProfile', { startEditing: false });
     } else {
+      const recruiterData = {
+        companyName,
+        location,
+        avatarUrl: companyAvatarUrl,
+        jobSeeking,
+        experienceRequired,
+        contractType: companyContractType,
+        presentation: companyPresentation,
+        siret,
+        // Les champs `firstName` et `lastName` sont aussi pour le recruteur (contact person)
+        firstName,
+        lastName,
+      };
+      console.log('Updating recruiter profile:', recruiterData);
+      // try {
+      //   await updateProfile(recruiterData);
+      // } catch (error) {
+      //   console.error("Erreur lors de l'enregistrement du profil recruteur.", error);
+      //   alert("Erreur lors de l'enregistrement du profil.");
+      //   return;
+      // }
       navigation.replace('RecruiterProfile', { startEditing: false });
     }
   };
@@ -423,8 +420,8 @@ export default function EditProfileScreen() {
           />
           <GenericInputBar
             placeholder="Localisation"
-            value={companyLocation}
-            onChangeText={setCompanyLocation}
+            value={location}
+            onChangeText={setLocation}
           />
           {/* Picker Poste recherché */}
           <Pressable

@@ -9,38 +9,44 @@ import type { AuthStackParamList } from '../../../lib/types';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import { getRecruiterTabs } from '@/constants/tabsConfig';
 import Colors from '../../../constants/Colors';
+import ProfileSection from '../../../components/ui/ProfileSection'; // Correction de l'import
 
 const { width } = Dimensions.get('window');
-
-// Reusing the ProfileSection component for consistency
-const ProfileSection = ({ title, icon, children }) => (
-  <View style={styles.section}>
-    <View style={styles.sectionHeader}>
-      <Feather name={icon} size={22} color={Colors.light.primary} />
-      <Text style={styles.sectionTitle}>{title}</Text>
-    </View>
-    <View style={styles.sectionContent}>
-      {children}
-    </View>
-  </View>
-);
 
 export default function RecruiterProfileScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'RecruiterProfile'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
   // Mock data for the recruiter profile
-  const [recruiter, setRecruiter] = useState({
-    companyName: 'TechCorp Solutions',
-    location: 'Lyon, France',
-    avatarUrl: 'https://via.placeholder.com/150', // Placeholder logo
-    jobSeeking: 'Développeur React Native',
-    experienceRequired: 'Intermédiaire',
-    contractType: 'CDI',
-    presentation: "Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et innovante ! Notre culture d'entreprise est basée sur la collaboration, la créativité et l'excellence technique. Rejoignez-nous pour travailler sur des projets d'envergure.",
+  const [recruiter, setRecruiter] = useState<any>({
+    companyName: '',
+    firstName: '',
+    lastName: '',
+    location: '',
+    avatarUrl: 'https://via.placeholder.com/150',
+    jobSeeking: '',
+    experienceRequired: '',
+    contractType: '',
+    presentation: '',
   });
 
-  // TODO: Add useEffect to fetch real recruiter data when API is ready
+  useEffect(() => {
+    // TODO: Remplacer par un appel API pour récupérer les vraies données du recruteur
+    const fetchRecruiterData = () => {
+      const mockData = {
+        companyName: 'TechCorp Solutions',
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        location: 'Lyon, France',
+        jobSeeking: 'Développeur React Native',
+        experienceRequired: 'Intermédiaire',
+        contractType: 'CDI',
+        presentation: "Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et innovante ! Notre culture d'entreprise est basée sur la collaboration, la créativité et l'excellence technique. Rejoignez-nous pour travailler sur des projets d'envergure.",
+      };
+      setRecruiter((prev: any) => ({ ...prev, ...mockData }));
+    };
+    fetchRecruiterData();
+  }, []);
 
   const notificationCount = 0; // Example count
   const tabs = getRecruiterTabs(navigation, notificationCount);
@@ -56,14 +62,15 @@ export default function RecruiterProfileScreen() {
             <Feather name="edit-2" size={20} color={Colors.light.primary} />
           </TouchableOpacity>
           <Text style={styles.name}>{recruiter.companyName}</Text>
+          <Text style={styles.jobTitle}>{`${recruiter.firstName} ${recruiter.lastName}`.trim()}</Text>
           <View style={styles.locationContainer}>
             <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
             <Text style={styles.location}>{recruiter.location}</Text>
           </View>
         </View>
 
-        {/* --- About Section --- */}
-        <ProfileSection title="À propos de l'entreprise" icon="aperture">
+        {/* --- Presentation Section --- */}
+        <ProfileSection title="Présentation de l'entreprise" icon="briefcase">
           <Text style={styles.sectionText}>{recruiter.presentation}</Text>
         </ProfileSection>
 
@@ -139,6 +146,11 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     marginTop: 10,
   },
+  jobTitle: {
+    fontSize: 16,
+    color: Colors.light.textSecondary,
+    marginTop: 4,
+  },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -148,25 +160,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.light.textSecondary,
     marginLeft: 4,
-  },
-  // Section Styles
-  section: {
-    backgroundColor: Colors.light.backgroundCard,
-    marginTop: 10,
-    padding: 20,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    marginLeft: 10,
-  },
-  sectionContent: {
-    marginTop: 15,
   },
   sectionText: {
     fontSize: 15,

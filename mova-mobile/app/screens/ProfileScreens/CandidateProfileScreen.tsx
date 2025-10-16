@@ -4,27 +4,14 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Feather } from '@expo/vector-icons';
-
 import type { AuthStackParamList } from '../../../lib/types';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import { getCurrentUser } from '../../../services/api';
 import { getCandidateTabs } from '@/constants/tabsConfig';
-import Colors from '../../../constants/Colors'; // Import the new colors
+import Colors from '../../../constants/Colors';
+import ProfileSection from '../../../components/ui/ProfileSection';
 
 const { width } = Dimensions.get('window');
-
-// A new component for profile sections
-const ProfileSection = ({ title, icon, children }) => (
-  <View style={styles.section}>
-    <View style={styles.sectionHeader}>
-      <Feather name={icon} size={22} color={Colors.light.primary} />
-      <Text style={styles.sectionTitle}>{title}</Text>
-    </View>
-    <View style={styles.sectionContent}>
-      {children}
-    </View>
-  </View>
-);
 
 export default function CandidateProfileScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'CandidateProfile'>>();
@@ -71,7 +58,6 @@ export default function CandidateProfileScreen() {
   }, []);
 
   const tabs = getCandidateTabs(navigation, 0);
-  const fullName = `${candidate.firstName} ${candidate.lastName}`;
 
   return (
     <View style={styles.container}>
@@ -83,7 +69,7 @@ export default function CandidateProfileScreen() {
           <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen', { userType: 'candidate' })}>
             <Feather name="edit-2" size={20} color={Colors.light.primary} />
           </TouchableOpacity>
-          <Text style={styles.name}>{fullName}</Text>
+          <Text style={styles.name}>{`${candidate.firstName} ${candidate.lastName}`.trim()}</Text>
           <Text style={styles.jobTitle}>{candidate.job}</Text>
           <View style={styles.locationContainer}>
             <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
@@ -181,25 +167,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.light.textSecondary,
     marginLeft: 4,
-  },
-  // Section Styles
-  section: {
-    backgroundColor: Colors.light.backgroundCard,
-    marginTop: 10,
-    padding: 20,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: Colors.light.text,
-    marginLeft: 10,
-  },
-  sectionContent: {
-    marginTop: 15,
   },
   sectionText: {
     fontSize: 15,
