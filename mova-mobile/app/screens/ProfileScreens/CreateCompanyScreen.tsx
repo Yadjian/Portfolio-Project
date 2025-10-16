@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Pressable } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Dimensions, Pressable, KeyboardAvoidingView, Platform, ScrollView, TextInput, Keyboard, TouchableOpacity } from 'react-native';
 import { createCompany } from '../../../services/api';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../lib/types';
 import MovaLogo from '../../../components/ui/MovaLogo';
-import { LinearGradient } from 'expo-linear-gradient';
-import GenericInputBar from '../../../components/ui/TextInput';
+import { Ionicons } from '@expo/vector-icons';
 
 const { height, width } = Dimensions.get('window');
 
@@ -14,6 +13,21 @@ export default function CreateCompanyScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const [companyName, setCompanyName] = useState('');
   const [siret, setSiret] = useState('');
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const handleSubmit = async () => {
     try {
@@ -26,110 +40,153 @@ export default function CreateCompanyScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.content}>
+    <KeyboardAvoidingView 
+      style={styles.container} 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <ScrollView 
+        contentContainerStyle={keyboardVisible ? styles.scrollContent : styles.content}
+        showsVerticalScrollIndicator={false}
+        scrollEnabled={keyboardVisible}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.header}>
           <MovaLogo sizeProp={60} />
-          <Text style={styles.title}>Inscription</Text>
-          <GenericInputBar
-            placeholder="Raison Sociale"
-            value={companyName}
-            onChangeText={setCompanyName}
-            style={{ width: width * 0.55 }} 
-          />
-          <GenericInputBar
-            placeholder="Numéro SIRET"
-            value={siret}
-            onChangeText={setSiret}
-            keyboardType="numeric"
-            style={{ width: width * 0.55 }}
-          />
-          <LinearGradient
-            colors={['#6746a8', '#6b25f9', '#07b9ff']}
-            style={styles.button}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <Pressable
-              style={styles.pressable}
-              onPress={handleSubmit}
-              android_ripple={{ color: '#6b25f9' }}
-            >
-              <Text style={styles.buttonText}>Valider</Text>
-            </Pressable>
-          </LinearGradient>
+          <Text style={styles.title}>Créez votre entreprise</Text>
+          <Text style={styles.subtitle}>
+            Renseignez les informations de votre société.
+          </Text>
         </View>
-      </View>
-    </View>
+
+        <View style={styles.formCard}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Raison Sociale</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="business-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Nom de votre entreprise"
+                placeholderTextColor="#999"
+                value={companyName}
+                onChangeText={setCompanyName}
+              />
+            </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Numéro SIRET</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="barcode-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="14 chiffres"
+                placeholderTextColor="#999"
+                keyboardType="numeric"
+                value={siret}
+                onChangeText={setSiret}
+                maxLength={14}
+              />
+            </View>
+          </View>
+
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Valider</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f2',
-    justifyContent: 'flex-start',
-  },
-  card: {
-    flex: 1, // la card prend toute la hauteur dispo
     backgroundColor: '#fff',
-    borderRadius: width * 0.045,
-    paddingVertical: height * 0.04,
-    paddingHorizontal: width * 0.06,
-    marginVertical: height * 0.02, // même marge en haut et en bas
-    marginHorizontal: width * 0.03,
-    shadowColor: '#6746a8',
-    shadowOpacity: 0.08,
-    shadowRadius: width * 0.03,
-    elevation: 4,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
   },
   content: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+    justifyContent: 'flex-start',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+  },
+  header: {
     alignItems: 'center',
-    justifyContent: 'center',
+    marginBottom: 32,
   },
   title: {
-    fontSize: 30,
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#6746a8',
-    marginBottom: 40,
-    marginTop: 60, // espace sous le logo réduit
+    color: '#4930a3',
+    marginTop: 16,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
     textAlign: 'center',
+  },
+  formCard: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 20,
+    padding: 28,
+    shadowColor: '#6746a8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 14,
+    height: 52,
+  },
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
-    width: '80%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 20,
-    backgroundColor: '#fff',
-    fontSize: width * 0.045,
+    flex: 1,
+    fontSize: 15,
+    color: '#333',
   },
-  button: {
-    width: width * 0.55,
-    borderRadius: 25,
-    alignSelf: 'center',
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.10,
-    shadowRadius: 6,
-    elevation: 3,
-    marginTop: 40,
-  },
-  pressable: {
-    width: '100%',
-    paddingVertical: 14,
-    alignItems: 'center',
+  submitButton: {
+    backgroundColor: '#4930a3',
+    borderRadius: 14,
+    height: 54,
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    alignItems: 'center',
+    marginTop: 24,
+    shadowColor: '#4930a3',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  buttonText: {
+  submitButtonText: {
     color: '#fff',
-    fontSize: width * 0.055,
+    fontSize: 17,
     fontWeight: 'bold',
-    textAlign: 'center',
   },
 });

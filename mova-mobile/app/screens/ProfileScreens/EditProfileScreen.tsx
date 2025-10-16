@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform, TextInput, Keyboard } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
 import type { AuthStackParamList } from '../../../lib/types';
-import { LinearGradient } from 'expo-linear-gradient';
 import { updateProfile } from '../../../services/api';
 import * as ImagePicker from 'expo-image-picker';
-import SmallMovaLogo from '../../../components/ui/SmallMovaLogo';
-import { MaterialIcons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import GenericInputBar from '../../../components/ui/TextInput';
+import MovaLogo from '../../../components/ui/MovaLogo';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'EditProfileScreen'>>();
   const { userType } = route.params;
+
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
 
   // Champs pour candidat
   const [firstName, setFirstName] = useState('');
@@ -41,6 +41,21 @@ export default function EditProfileScreen() {
   const [siret, setSiret] = useState('');
 
   // TODO: Pré-remplir les champs avec les données de l'utilisateur actuel
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
+
 
   const handleSubmit = async () => {
     if (userType === 'candidate') {
@@ -90,116 +105,201 @@ export default function EditProfileScreen() {
   };
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={styles.container}
-      enableOnAndroid={true}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.logoContainer}>
-        <SmallMovaLogo />
-      </View>
-      <Text style={styles.title}>Complétez votre profil</Text>
-      {userType === 'candidate' ? (
-        <>
-          <View style={{ alignSelf: 'center', marginBottom: 16 }}>
-            <Pressable onPress={async () => {
-              const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: [31, 37],
-                quality: 0.7,
-              });
-              if (!result.canceled && result.assets && result.assets.length > 0) {
-                setAvatarUrl(result.assets[0].uri);
-              }
-            }}>
-              <LinearGradient
-                colors={['#6746a8', '#6b25f9', '#07b9ff']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{
-                  width: 124, // 120 + 2*border
-                  height: 148, // 144 + 2*border
-                  borderRadius: 12,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 2,
-                }}
-              >
-                <View style={{ position: 'relative' }}>
-                  <Image
-                    source={avatarUrl ? { uri: avatarUrl } : require('../../../assets/images/icon.png')}
-                    style={{
-                      width: 120,
-                      height: 144,
-                      borderRadius: 8,
-                      backgroundColor: '#f8f9fa',
-                    }}
-                  />
-                  <View style={{
-                    position: 'absolute',
-                    right: 6,
-                    bottom: 6,
-                    backgroundColor: '#fff',
-                    borderRadius: 16,
-                    padding: 2,
-                    elevation: 2,
-                  }}>
-                    <MaterialIcons name="photo-camera" size={24} color="#6746a8" />
-                  </View>
-                </View>
-              </LinearGradient>
-            </Pressable>
-          </View>
-          <GenericInputBar
-            placeholder="Prénom"
-            value={firstName}
-            onChangeText={setFirstName}
-          />
-          <GenericInputBar
-            placeholder="Nom"
-            value={lastName}
-            onChangeText={setLastName}
-          />
-          <GenericInputBar
-            placeholder="Localisation"
-            value={location}
-            onChangeText={setLocation}
-          />
-          {/* Picker custom pour Poste recherché */}
-          <Pressable
-            style={{
-              width: '88%',
-              alignSelf: 'center',
-              marginVertical: 8,
-            }}
-            onPress={() => setJobModalVisible(true)}
-          >
-            <LinearGradient
-              colors={['#6746a8', '#6b25f9', '#07b9ff']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 8,
-                padding: 2,
-              }}
-            >
-              <View style={{
-                backgroundColor: '#fff',
-                borderRadius: 8,
-                minHeight: 48,
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                justifyContent: 'space-between',
+    <View style={styles.container}>
+      <KeyboardAwareScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={styles.content}
+        enableOnAndroid={true}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.header}>
+          <MovaLogo sizeProp={60} />
+          <Text style={styles.title}>Complétez votre profil</Text>
+          <Text style={styles.subtitle}>
+            {userType === 'candidate' ? 'Candidat' : 'Recruteur'}
+          </Text>
+        </View>
+
+        <View style={styles.formCard}>
+          {userType === 'candidate' ? (
+            <>
+              {/* Image Picker */}
+              <TouchableOpacity style={styles.imagePicker} onPress={async () => {
+                const result = await ImagePicker.launchImageLibraryAsync({
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                  allowsEditing: true,
+                  aspect: [3, 4],
+                  quality: 0.7,
+                });
+                if (!result.canceled && result.assets && result.assets.length > 0) {
+                  setAvatarUrl(result.assets[0].uri);
+                }
               }}>
-                <Text style={{ color: job ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
-                  {job || 'Poste'}
-                </Text>
-                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
+                <Image
+                  source={avatarUrl ? { uri: avatarUrl } : require('../../../assets/images/icon.png')}
+                  style={styles.avatar}
+                />
+                <View style={styles.cameraIcon}>
+                  <Ionicons name="camera" size={24} color="#fff" />
+                </View>
+              </TouchableOpacity>
+
+              {/* Prénom */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Prénom</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <TextInput style={styles.input} placeholder="Votre prénom" placeholderTextColor="#999" value={firstName} onChangeText={setFirstName} />
+                </View>
               </View>
-            </LinearGradient>
-          </Pressable>
+
+              {/* Nom */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Nom</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <TextInput style={styles.input} placeholder="Votre nom" placeholderTextColor="#999" value={lastName} onChangeText={setLastName} />
+                </View>
+              </View>
+
+              {/* Localisation */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Localisation</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <TextInput style={styles.input} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} onChangeText={setLocation} />
+                </View>
+              </View>
+
+              {/* Poste */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Poste recherché</Text>
+                <TouchableOpacity style={styles.inputContainer} onPress={() => setJobModalVisible(true)}>
+                  <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <Text style={[styles.input, !job && styles.placeholder]}>{job || 'Sélectionner un poste'}</Text>
+                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Expérience */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Expérience</Text>
+                <TouchableOpacity style={styles.inputContainer} onPress={() => setExperienceModalVisible(true)}>
+                  <Ionicons name="analytics-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <Text style={[styles.input, !experience && styles.placeholder]}>{experience || 'Sélectionner une expérience'}</Text>
+                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Contrat */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Type de contrat</Text>
+                <TouchableOpacity style={styles.inputContainer} onPress={() => setContractModalVisible(true)}>
+                  <Ionicons name="document-text-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <Text style={[styles.input, !contractType && styles.placeholder]}>{contractType || 'Sélectionner un contrat'}</Text>
+                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
+                </TouchableOpacity>
+              </View>
+
+              {/* Présentation */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Présentation</Text>
+                <View style={[styles.inputContainer, { height: 120, alignItems: 'flex-start' }]}>
+                  <Ionicons name="chatbox-ellipses-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
+                  <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} placeholder="Parlez-nous de vous..." placeholderTextColor="#999" value={presentation} onChangeText={setPresentation} multiline />
+                </View>
+              </View>
+            </>
+          ) : (
+            <>
+              {/* Recruiter Form */}
+              <TouchableOpacity style={styles.imagePicker} onPress={async () => {
+                const result = await ImagePicker.launchImageLibraryAsync({
+                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                  allowsEditing: true,
+                  aspect: [1, 1],
+                  quality: 0.7,
+                });
+                if (!result.canceled && result.assets && result.assets.length > 0) {
+                  setCompanyAvatarUrl(result.assets[0].uri);
+                }
+              }}>
+                <Image
+                  source={companyAvatarUrl ? { uri: companyAvatarUrl } : require('../../../assets/images/icon.png')}
+                  style={styles.avatar}
+                />
+                <View style={styles.cameraIcon}>
+                  <Ionicons name="camera" size={24} color="#fff" />
+                </View>
+              </TouchableOpacity>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Prénom du contact</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <TextInput style={styles.input} placeholder="Votre prénom" placeholderTextColor="#999" value={firstName} onChangeText={setFirstName} />
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Nom du contact</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <TextInput style={styles.input} placeholder="Votre nom" placeholderTextColor="#999" value={lastName} onChangeText={setLastName} />
+                </View>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Localisation de l'entreprise</Text>
+                <View style={styles.inputContainer}>
+                  <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <TextInput style={styles.input} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} onChangeText={setLocation} />
+                </View>
+              </View>
+
+              {/* Other recruiter fields */}
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Poste recherché</Text>
+                <TouchableOpacity style={styles.inputContainer} onPress={() => setJobModalVisible(true)}>
+                  <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <Text style={[styles.input, !jobSeeking && styles.placeholder]}>{jobSeeking || 'Sélectionner un poste'}</Text>
+                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Expérience requise</Text>
+                <TouchableOpacity style={styles.inputContainer} onPress={() => setExperienceModalVisible(true)}>
+                  <Ionicons name="analytics-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <Text style={[styles.input, !experienceRequired && styles.placeholder]}>{experienceRequired || 'Sélectionner une expérience'}</Text>
+                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Type de contrat</Text>
+                <TouchableOpacity style={styles.inputContainer} onPress={() => setContractModalVisible(true)}>
+                  <Ionicons name="document-text-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                  <Text style={[styles.input, !companyContractType && styles.placeholder]}>{companyContractType || 'Sélectionner un contrat'}</Text>
+                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Présentation de l'entreprise</Text>
+                <View style={[styles.inputContainer, { height: 120, alignItems: 'flex-start' }]}>
+                  <Ionicons name="chatbox-ellipses-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
+                  <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} placeholder="Présentez votre entreprise..." placeholderTextColor="#999" value={companyPresentation} onChangeText={setCompanyPresentation} multiline />
+                </View>
+              </View>
+            </>
+          )}
+
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+            <Text style={styles.submitButtonText}>Enregistrer</Text>
+          </TouchableOpacity>
+
+          {/* Modals */}
           <Modal
             visible={jobModalVisible}
             transparent
@@ -229,430 +329,122 @@ export default function EditProfileScreen() {
               </View>
             </TouchableOpacity>
           </Modal>
-          {/* Picker Expérience */}
-          <Pressable
-            style={{
-              width: '88%',
-              alignSelf: 'center',
-              marginVertical: 8,
-            }}
-            onPress={() => setExperienceModalVisible(true)}
-          >
-            <LinearGradient
-              colors={['#6746a8', '#6b25f9', '#07b9ff']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 8,
-                padding: 2,
-              }}
-            >
-              <View style={{
-                backgroundColor: '#fff',
-                borderRadius: 8,
-                minHeight: 48,
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                justifyContent: 'space-between',
-              }}>
-                <Text style={{ color: experience ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
-                  {experience || 'Expérience'}
-                </Text>
-                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
-              </View>
-            </LinearGradient>
-          </Pressable>
-          <Modal
-            visible={experienceModalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setExperienceModalVisible(false)}
-          >
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setExperienceModalVisible(false)}>
-              <View style={styles.modalContent}>
-                {['Débutant', 'Intermédiaire', 'Senior'].map(opt => (
-                  <Pressable
-                    key={opt}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setExperience(opt);
-                      setExperienceModalVisible(false);
-                    }}
-                  >
-                    <Text style={{ fontSize: 18 }}>{opt}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </TouchableOpacity>
-          </Modal>
-          {/* Picker Type de contrat */}
-          <Pressable
-            style={{
-              width: '88%',
-              alignSelf: 'center',
-              marginVertical: 8,
-            }}
-            onPress={() => setContractModalVisible(true)}
-          >
-            <LinearGradient
-              colors={['#6746a8', '#6b25f9', '#07b9ff']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 8,
-                padding: 2,
-              }}
-            >
-              <View style={{
-                backgroundColor: '#fff',
-                borderRadius: 8,
-                minHeight: 48,
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                justifyContent: 'space-between',
-              }}>
-                <Text style={{ color: contractType ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
-                  {contractType || 'Type de contrat'}
-                </Text>
-                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
-              </View>
-            </LinearGradient>
-          </Pressable>
-          <Modal
-            visible={contractModalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setContractModalVisible(false)}
-          >
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
-              <View style={styles.modalContent}>
-                {['CDI', 'CDD', 'STAGE', 'ALTERNANCE'].map(opt => (
-                  <Pressable
-                    key={opt}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setContractType(opt);
-                      setContractModalVisible(false);
-                    }}
-                  >
-                    <Text style={{ fontSize: 18 }}>{opt}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </TouchableOpacity>
-          </Modal>
-          <GenericInputBar
-            placeholder="Présentation (optionnel)"
-            value={presentation}
-            onChangeText={setPresentation}
-            multiline
-          />
-        </>
-      ) : (
-        <>
-          {/* Photo recruteur avec encadrement dégradé */}
-          <View style={{ alignSelf: 'center', marginBottom: 16 }}>
-            <Pressable onPress={async () => {
-              const result = await ImagePicker.launchImageLibraryAsync({
-                mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                allowsEditing: true,
-                aspect: [1, 1],
-                quality: 0.7,
-              });
-              if (!result.canceled && result.assets && result.assets.length > 0) {
-                setCompanyAvatarUrl(result.assets[0].uri);
-              }
-            }}>
-              <LinearGradient
-                colors={['#6746a8', '#6b25f9', '#07b9ff']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={{
-                  width: 124, // 120 + 2*border
-                  height: 148, // 144 + 2*border
-                  borderRadius: 12,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: 2,
-                }}
-              >
-                <View style={{ position: 'relative' }}>
-                  <Image
-                    source={companyAvatarUrl ? { uri: companyAvatarUrl } : require('../../../assets/images/icon.png')}
-                    style={{
-                      width: 120,
-                      height: 144,
-                      borderRadius: 8,
-                      backgroundColor: '#f8f9fa',
-                    }}
-                  />
-                  <View style={{
-                    position: 'absolute',
-                    right: 6,
-                    bottom: 6,
-                    backgroundColor: '#fff',
-                    borderRadius: 16,
-                    padding: 2,
-                    elevation: 2,
-                  }}>
-                    <MaterialIcons name="photo-camera" size={24} color="#6746a8" />
-                  </View>
-                </View>
-              </LinearGradient>
-            </Pressable>
-          </View>
-          <GenericInputBar
-            placeholder="Raison Sociale"
-            value={companyName}
-            onChangeText={setCompanyName}
-          />
-          <GenericInputBar
-            placeholder="Prénom"
-            value={firstName}
-            onChangeText={setFirstName}
-          />
-          <GenericInputBar
-            placeholder="Nom"
-            value={lastName}
-            onChangeText={setLastName}
-          />
-          <GenericInputBar
-            placeholder="Localisation"
-            value={location}
-            onChangeText={setLocation}
-          />
-          {/* Picker Poste recherché */}
-          <Pressable
-            style={{
-              width: '88%',
-              alignSelf: 'center',
-              marginVertical: 8,
-            }}
-            onPress={() => setJobModalVisible(true)}
-          >
-            <LinearGradient
-              colors={['#6746a8', '#6b25f9', '#07b9ff']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 8,
-                padding: 2,
-              }}
-            >
-              <View style={{
-                backgroundColor: '#fff',
-                borderRadius: 8,
-                minHeight: 48,
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                justifyContent: 'space-between',
-              }}>
-                <Text style={{ color: jobSeeking ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
-                  {jobSeeking || 'Poste'}
-                </Text>
-                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
-              </View>
-            </LinearGradient>
-          </Pressable>
-          <Modal
-            visible={jobModalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setJobModalVisible(false)}
-          >
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setJobModalVisible(false)}>
-              <View style={styles.modalContent}>
-                {[
-                  'Serveur(se)',
-                  'Vendeur(se) en boutique',
-                  'Animateur(trice) de colonie',
-                  'Cueilleur(se) de fruits',
-                  'Plagiste'
-                ].map(opt => (
-                  <Pressable
-                    key={opt}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setJobSeeking(opt);
-                      setJobModalVisible(false);
-                    }}
-                  >
-                    <Text style={{ fontSize: 18 }}>{opt}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </TouchableOpacity>
-          </Modal>
-          {/* Picker Expérience */}
-          <Pressable
-            style={{
-              width: '88%',
-              alignSelf: 'center',
-              marginVertical: 8,
-            }}
-            onPress={() => setExperienceModalVisible(true)}
-          >
-            <LinearGradient
-              colors={['#6746a8', '#6b25f9', '#07b9ff']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 8,
-                padding: 2,
-              }}
-            >
-              <View style={{
-                backgroundColor: '#fff',
-                borderRadius: 8,
-                minHeight: 48,
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                justifyContent: 'space-between',
-              }}>
-                <Text style={{ color: experienceRequired ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
-                  {experienceRequired || 'Expérience'}
-                </Text>
-                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
-              </View>
-            </LinearGradient>
-          </Pressable>
-          <Modal
-            visible={experienceModalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setExperienceModalVisible(false)}
-          >
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setExperienceModalVisible(false)}>
-              <View style={styles.modalContent}>
-                {['Débutant', 'Intermédiaire', 'Senior'].map(opt => (
-                  <Pressable
-                    key={opt}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setExperienceRequired(opt);
-                      setExperienceModalVisible(false);
-                    }}
-                  >
-                    <Text style={{ fontSize: 18 }}>{opt}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </TouchableOpacity>
-          </Modal>
-          {/* Picker Type de contrat */}
-          <Pressable
-            style={{
-              width: '88%',
-              alignSelf: 'center',
-              marginVertical: 8,
-            }}
-            onPress={() => setContractModalVisible(true)}
-          >
-            <LinearGradient
-              colors={['#6746a8', '#6b25f9', '#07b9ff']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-              style={{
-                borderRadius: 8,
-                padding: 2,
-              }}
-            >
-              <View style={{
-                backgroundColor: '#fff',
-                borderRadius: 8,
-                minHeight: 48,
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: 16,
-                justifyContent: 'space-between',
-              }}>
-                <Text style={{ color: companyContractType ? '#222' : '#aaa', fontSize: 16, flex: 1 }}>
-                  {companyContractType || 'Type de contrat'}
-                </Text>
-                <MaterialIcons name="arrow-drop-down" size={28} color="#6746a8" />
-              </View>
-            </LinearGradient>
-          </Pressable>
-          <Modal
-            visible={contractModalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setContractModalVisible(false)}
-          >
-            <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
-              <View style={styles.modalContent}>
-                {['CDI', 'CDD', 'STAGE', 'ALTERNANCE'].map(opt => (
-                  <Pressable
-                    key={opt}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setCompanyContractType(opt);
-                      setContractModalVisible(false);
-                    }}
-                  >
-                    <Text style={{ fontSize: 18 }}>{opt}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </TouchableOpacity>
-          </Modal>
-          <GenericInputBar
-            placeholder="Présentation (optionnel)"
-            value={companyPresentation}
-            onChangeText={setCompanyPresentation}
-            multiline
-            maxLength={300}
-          />
-        </>
-      )}
-      <View style={styles.buttonRow}>
-        <Pressable
-          style={[styles.button, { backgroundColor: '#07b9ff' }]}
-          onPress={handleSubmit}
-        >
-          <Text style={styles.buttonText}>Enregistrer</Text>
-        </Pressable>
-        <Pressable
-          style={[styles.button, { backgroundColor: '#6b25f9', marginLeft: 12 }]}
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.buttonText}>Annuler</Text>
-        </Pressable>
-      </View>
-      <View style={{ height: 80 }} /> {/* marge esthétique en bas */}
-    </KeyboardAwareScrollView>
+        </View>
+        <View style={{ height: 40 }} /> 
+      </KeyboardAwareScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flexGrow: 1, 
-    justifyContent: 'center', 
-    paddingBottom: 20,   // marge en bas
-    backgroundColor: '#fffffffb'
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
-  title: { 
-    fontSize: 22,
+  content: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+    justifyContent: 'flex-start',
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  title: {
+    fontSize: 26,
     fontWeight: 'bold',
-    marginBottom: 24, textAlign: 'center', color: '#6746a8' },
-  label: { marginBottom: 4, fontSize: 16, color: '#222' },
-  input: { borderWidth: 1, borderColor: '#ccc', marginBottom: 16, padding: 12, borderRadius: 6, backgroundColor: '#fff', fontSize: 16, height: 48, justifyContent: 'center' },
-  buttonRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 20 },
-  button: { borderRadius: 30, paddingVertical: 14, paddingHorizontal: 32 },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold', textAlign: 'center' },
+    color: '#4930a3',
+    marginTop: 16,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
+  },
+  formCard: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 20,
+    padding: 28,
+    shadowColor: '#4930a3',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+  },
+  imagePicker: {
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  avatar: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#e0e0e0',
+    borderWidth: 3,
+    borderColor: '#4930a3',
+  },
+  cameraIcon: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: '#4930a3',
+    borderRadius: 15,
+    padding: 6,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 14,
+    height: 52,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    fontSize: 15,
+    color: '#333',
+  },
+  placeholder: {
+    color: '#999',
+  },
+  submitButton: {
+    backgroundColor: '#4930a3',
+    borderRadius: 14,
+    height: 54,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10, // Reduced margin
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: 'bold',
+  },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0006' },
   modalContent: { backgroundColor: '#fff', borderRadius: 8, padding: 16, minWidth: 220 },
   modalOption: { paddingVertical: 12, alignItems: 'center' },
-  gradientButton: {
-    borderRadius: 30,
-    overflow: 'hidden',
-  },
-  logoContainer: {
-    alignItems: 'flex-start',
-    marginBottom: 24,
-  },
 });
