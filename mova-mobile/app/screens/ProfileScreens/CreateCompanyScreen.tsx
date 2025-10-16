@@ -51,7 +51,7 @@ export default function CreateCompanyScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <MovaLogo sizeProp={60} />
+          <MovaLogo />
           <Text style={styles.title}>Créez votre entreprise</Text>
           <Text style={styles.subtitle}>
             Renseignez les informations de votre société.
