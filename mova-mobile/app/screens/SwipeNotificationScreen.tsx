@@ -152,6 +152,70 @@ export default function SwipeNotificationScreen({ route }: any) {
     borderRadius: 0,
   };
 
+  // Fonctions pour simuler swipe à droite/gauche via bouton
+  const handleSwipeRight = () => {
+    if (currentIndex < contacts.length && cardVisible) {
+      setShowGreenPop(true);
+      greenPopAnim.setValue(0);
+      Animated.timing(position.x, {
+        toValue: width,
+        duration: 200,
+        useNativeDriver: false,
+      }).start(() => {
+        Animated.timing(greenPopAnim, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }).start(() => {
+          Animated.timing(greenPopAnim, {
+            toValue: 0,
+            duration: 320,
+            useNativeDriver: true,
+          }).start(() => {
+            setShowGreenPop(false);
+            setCardVisible(false);
+            setTimeout(() => {
+              position.setValue({ x: 0, y: 0 });
+              setCurrentIndex(i => i + 1);
+              setCardVisible(true);
+            }, 100);
+          });
+        });
+      });
+    }
+  };
+  const handleSwipeLeft = () => {
+    if (currentIndex < contacts.length && cardVisible) {
+      setShowRedPop(true);
+      redPopAnim.setValue(0);
+      Animated.timing(position.x, {
+        toValue: -width,
+        duration: 200,
+        useNativeDriver: false,
+      }).start(() => {
+        Animated.timing(redPopAnim, {
+          toValue: 1,
+          duration: 180,
+          useNativeDriver: true,
+        }).start(() => {
+          Animated.timing(redPopAnim, {
+            toValue: 0,
+            duration: 320,
+            useNativeDriver: true,
+          }).start(() => {
+            setShowRedPop(false);
+            setCardVisible(false);
+            setTimeout(() => {
+              position.setValue({ x: 0, y: 0 });
+              setCurrentIndex(i => i + 1);
+              setCardVisible(true);
+            }, 100);
+          });
+        });
+      });
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 24 }}>
@@ -180,7 +244,7 @@ export default function SwipeNotificationScreen({ route }: any) {
                   alignItems: 'center',
                   zIndex: 20,
                   opacity: greenPopAnim,
-                  backgroundColor: 'rgba(39, 174, 96, 0.85)',
+                  // backgroundColor retiré
                 }}
               >
                 <Animated.View
@@ -212,7 +276,7 @@ export default function SwipeNotificationScreen({ route }: any) {
                   alignItems: 'center',
                   zIndex: 20,
                   opacity: redPopAnim,
-                  backgroundColor: 'rgba(231, 76, 60, 0.85)',
+                  // backgroundColor retiré
                 }}
               >
                 <Animated.View
@@ -235,13 +299,13 @@ export default function SwipeNotificationScreen({ route }: any) {
             <View style={{ marginTop: 64 }}>
               <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
                 <View style={[styles.iconCircleWithBorder, { borderColor: '#e74c3c' }]}> 
-                  <Ionicons name="close" size={30} color="#e74c3c" />
+                  <Ionicons name="close" size={30} color="#e74c3c" onPress={handleSwipeLeft} />
                 </View>
                 <View style={[styles.iconCircleWithBorder, { borderColor: '#FFD600' }]}> 
                   <Ionicons name="refresh" size={30} color="#FFD600" style={{ transform: [{ scaleX: -1 }] }} />
                 </View>
                 <View style={[styles.iconCircleWithBorder, { borderColor: '#27ae60' }]}> 
-                  <Ionicons name="checkmark" size={30} color="#27ae60" />
+                  <Ionicons name="checkmark" size={30} color="#27ae60" onPress={handleSwipeRight} />
                 </View>
               </View>
             </View>
