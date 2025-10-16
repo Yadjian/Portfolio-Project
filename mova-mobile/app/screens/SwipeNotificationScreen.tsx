@@ -138,7 +138,7 @@ export default function SwipeNotificationScreen({ route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: '#ffffffff',
   },
   logoRow: {
     alignItems: 'flex-start',
