@@ -3,8 +3,7 @@ import { View, Text, TouchableOpacity, ActivityIndicator, Linking, Alert, StyleS
 import * as DocumentPicker from 'expo-document-picker';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getCandidateTabs } from '../../constants/tabsConfig';
-import SmallMovaLogo from '../../components/ui/SmallMovaLogo';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width, height } = Dimensions.get('window');
 
@@ -77,51 +76,45 @@ export default function CandidateCVScreen({ navigation }: any) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
+    <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-        <View style={[styles.logoContainer]}>
-          <SmallMovaLogo />
+        <View style={styles.header}>          
           <Text style={styles.title}>Mon CV</Text>
+          <Text style={styles.subtitle}>Importez ou mettez à jour votre CV.</Text>
         </View>
-        <View style={{ height: height * 0.055 }} />
-        <View style={[styles.card, { paddingHorizontal: width * 0.06 }]}>
-          {cvUrl ? (
-            <View style={{ marginBottom: 24 }}>
-              <Text style={styles.label}>CV importé :</Text>
-              <TouchableOpacity onPress={() => Linking.openURL(cvUrl)}>
-                <Text style={styles.link}>Voir mon CV</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={handleDelete}
-                style={[styles.cvButton, { backgroundColor: '#e74c3c', marginTop: 12 }]}
-                activeOpacity={0.8}
-              >
-                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Supprimer mon CV</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <Text style={{ marginBottom: 24 }}>Aucun CV importé.</Text>
-          )}
+
+        <View style={styles.card}>
           {loading ? (
             <ActivityIndicator color="#6746a8" />
           ) : (
-            <TouchableOpacity
-              onPress={handleUpload}
-              activeOpacity={0.8}
-              style={styles.cvButton}
-            >
-              <LinearGradient
-                colors={['#6746a8', '#6b25f9', '#07b9ff']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 0 }}
-                style={StyleSheet.absoluteFill}
-              />
-              <Text style={styles.cvButtonText}>Importer mon CV</Text>
-            </TouchableOpacity>
+            <>
+              {cvUrl ? (
+                <View style={styles.cvInfoContainer}>
+                  <Ionicons name="document-attach-outline" size={24} color="#4930a3" />
+                  <View style={styles.cvInfoText}>
+                    <Text style={styles.cvFileName}>Mon_CV.pdf</Text>
+                    <TouchableOpacity onPress={() => Linking.openURL(cvUrl)}>
+                      <Text style={styles.link}>Voir le CV</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity onPress={handleDelete}>
+                    <Ionicons name="trash-outline" size={24} color="#e74c3c" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <View style={styles.noCvContainer}>
+                  <Ionicons name="cloud-offline-outline" size={40} color="#999" />
+                  <Text style={styles.noCvText}>Aucun CV importé pour le moment.</Text>
+                </View>
+              )}
+
+              <TouchableOpacity style={styles.submitButton} onPress={handleUpload}>
+                <Text style={styles.submitButtonText}>{cvUrl ? 'Mettre à jour le CV' : 'Importer mon CV'}</Text>
+              </TouchableOpacity>
+            </>
           )}
           {error ? <Text style={{ color: 'red', marginTop: 16 }}>{error}</Text> : null}
         </View>
-        <View style={{ height: height * 0.08 }} />
       </ScrollView>
       <BottomTabBar tabs={getCandidateTabs(navigation)} activeTabId="cv" />
     </View>
@@ -129,56 +122,94 @@ export default function CandidateCVScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   scrollContainer: {
     flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
   },
-  logoContainer: {
+  header: {
     alignItems: 'center',
+    marginBottom: 32,
   },
   title: {
+    fontSize: 26,
     fontWeight: 'bold',
-    letterSpacing: 2,
-    fontSize: width * 0.08,
     color: '#6746a8',
+    marginTop: 16,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 8,
+    maxWidth: '80%',
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: '#f8f8f8',
     borderRadius: width * 0.045,
     paddingVertical: height * 0.04,
     paddingHorizontal: width * 0.06,
-    marginHorizontal: width * 0.02,
-    marginBottom: height * 0.02,
     shadowColor: '#6746a8',
     shadowOpacity: 0.08,
     shadowRadius: width * 0.03,
     elevation: 4,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
   },
-  label: {
-    fontWeight: 'bold',
-    color: '#6746a8',
-    marginBottom: height * 0.01,
-    fontSize: width * 0.045,
+  cvInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  cvInfoText: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  cvFileName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
   },
   link: {
-    color: '#07b9ff',
+    color: '#4930a3',
     textDecorationLine: 'underline',
-    marginBottom: height * 0.015,
-    fontSize: width * 0.045,
+    fontSize: 14,
+    marginTop: 4,
   },
-  cvButton: {
-    width: width * 0.4,
-    alignSelf: 'center',
-    height: height * 0.055,
-    borderRadius: height * 0.027,
+  noCvContainer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    marginBottom: 24,
+  },
+  noCvText: {
+    fontSize: 16,
+    color: '#666',
+    marginTop: 12,
+  },
+  submitButton: {
+    backgroundColor: '#4930a3',
+    borderRadius: 14,
+    height: 54,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: height * 0.01,
-    overflow: 'hidden',
+    shadowColor: '#4930a3',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  cvButtonText: {
+  submitButtonText: {
     color: '#fff',
-    fontSize: width * 0.045,
+    fontSize: 17,
     fontWeight: 'bold',
-    zIndex: 1,
   },
 });

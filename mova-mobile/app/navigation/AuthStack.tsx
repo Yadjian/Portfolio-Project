@@ -115,9 +115,7 @@ export default function AuthStack() {
         name="CandidateCVScreen"
         component={CandidateCVScreen}
         options={({ navigation }) => ({
-          headerLeft: () => (
-            <BackButton onPress={() => navigation.goBack()} />
-          ),
+          headerLeft: () => <MovaLogo sizeProp={40} />,
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
@@ -128,9 +126,7 @@ export default function AuthStack() {
         name="RecruiterJobOfferScreen"
         component={RecruiterJobOfferScreen}
         options={({ navigation }) => ({
-          headerLeft: () => (
-            <BackButton onPress={() => navigation.goBack()} />
-          ),
+          headerLeft: () => <MovaLogo sizeProp={40} />,
           headerRight: () => (
             <HomeButton onPress={() => navigation.navigate('Home')} />
           ),
