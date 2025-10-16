@@ -38,6 +38,7 @@ export default function RecruiterProfileScreen() {
         firstName: 'Jean',
         lastName: 'Dupont',
         location: 'Lyon, France',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/2.jpg',
         jobSeeking: 'Développeur React Native',
         experienceRequired: 'Intermédiaire',
         contractType: 'CDI',
@@ -59,23 +60,23 @@ export default function RecruiterProfileScreen() {
           <View style={styles.headerBackground} />
           <Image source={{ uri: recruiter.avatarUrl }} style={styles.avatar} />
           <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen', { userType: 'recruiter' })}>
-            <Feather name="edit-2" size={20} color={Colors.light.primary} />
+            <Feather name="edit-2" size={20} color="#4930a3" />
           </TouchableOpacity>
           <Text style={styles.name}>{recruiter.companyName}</Text>
           <Text style={styles.jobTitle}>{`${recruiter.firstName} ${recruiter.lastName}`.trim()}</Text>
           <View style={styles.locationContainer}>
-            <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
+            <Feather name="map-pin" size={14} color="#4930a3" />
             <Text style={styles.location}>{recruiter.location}</Text>
           </View>
         </View>
 
         {/* --- Presentation Section --- */}
-        <ProfileSection title="Présentation de l'entreprise" icon="briefcase">
+        <ProfileSection title="Présentation de l'entreprise" icon="user" iconColor="#4930a3">
           <Text style={styles.sectionText}>{recruiter.presentation}</Text>
         </ProfileSection>
 
         {/* --- Job Details Section --- */}
-        <ProfileSection title="Recherche en cours" icon="briefcase">
+        <ProfileSection title="Recherche en cours" icon="briefcase" iconColor="#4930a3">
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Poste recherché:</Text>
             <Text style={styles.detailValue}>{recruiter.jobSeeking}</Text>
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.backgroundCard,
   },
   headerBackground: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: '#4930a3',
     height: 100,
     width: '100%',
     position: 'absolute',

@@ -4,8 +4,8 @@ import { useFonts, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function MovaLogo({ sizeProp }: { sizeProp?: number }) {
-  const { width } = useWindowDimensions();
-  const size = sizeProp || width * 0.40;
+  const { width, height } = useWindowDimensions();
+  const size = sizeProp || Math.min(width * 0.30, height * 0.18);
 
   return (
     <LinearGradient

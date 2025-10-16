@@ -28,7 +28,7 @@ export default function CandidateProfileScreen() {
     firstName: '',
     lastName: '',
     location: '',
-    avatarUrl: 'https://via.placeholder.com/150', // Placeholder
+    avatarUrl: 'https://randomuser.me/api/portraits/women/2.jpg', // Placeholder
     job: '',
     experience: '',
     contractType: '',
@@ -67,23 +67,23 @@ export default function CandidateProfileScreen() {
           <View style={styles.headerBackground} />
           <Image source={{ uri: candidate.avatarUrl }} style={styles.avatar} />
           <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen', { userType: 'candidate' })}>
-            <Feather name="edit-2" size={20} color={Colors.light.primary} />
+            <Feather name="edit-2" size={20} color="#4930a3" />
           </TouchableOpacity>
           <Text style={styles.name}>{`${candidate.firstName} ${candidate.lastName}`.trim()}</Text>
           <Text style={styles.jobTitle}>{candidate.job}</Text>
           <View style={styles.locationContainer}>
-            <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
+            <Feather name="map-pin" size={14} color="#4930a3" />
             <Text style={styles.location}>{candidate.location}</Text>
           </View>
         </View>
 
         {/* --- About Section --- */}
-        <ProfileSection title="Présentation" icon="user">
+        <ProfileSection title="Présentation" icon="user" iconColor="#4930a3">
           <Text style={styles.sectionText}>{candidate.presentation || 'Aucune présentation pour le moment.'}</Text>
         </ProfileSection>
 
         {/* --- Details Section --- */}
-        <ProfileSection title="Détails" icon="briefcase">
+        <ProfileSection title="Détails" icon="briefcase" iconColor="#4930a3">
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Poste recherché:</Text>
             <Text style={styles.detailValue}>{candidate.job}</Text>
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.backgroundCard,
   },
   headerBackground: {
-    backgroundColor: Colors.light.primary,
+    backgroundColor: '#4930a3',
     height: 100,
     width: '100%',
     position: 'absolute',

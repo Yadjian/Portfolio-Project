@@ -52,7 +52,7 @@ export default function CreateAccountScreen({ route, navigation }: any) {
       >
         {/* Header avec logo */}
         <View style={styles.header}>
-          <MovaLogo sizeProp={60} />
+          <MovaLogo />
           <Text style={styles.title}>Créez un compte</Text>
           <Text style={styles.subtitle}>
             {userType === 'candidate' ? 'Candidat' : 'Recruteur'}

@@ -5,14 +5,15 @@ import Colors from '../../constants/Colors';
 
 interface ProfileSectionProps {
   title: string;
-  icon: keyof typeof Feather.glyphMap;
+  icon?: keyof typeof Feather.glyphMap;
+  iconColor?: string;
   children: React.ReactNode;
 }
 
-const ProfileSection: React.FC<ProfileSectionProps> = ({ title, icon, children }) => (
+const ProfileSection: React.FC<ProfileSectionProps> = ({ title, icon, iconColor = Colors.light.primary, children }) => (
   <View style={styles.section}>
     <View style={styles.sectionHeader}>
-      <Feather name={icon} size={22} color={Colors.light.primary} />
+      {icon && <Feather name={icon} size={22} color={iconColor} />}
       <Text style={styles.sectionTitle}>{title}</Text>
     </View>
     <View style={styles.sectionContent}>

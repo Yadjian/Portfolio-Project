@@ -113,7 +113,7 @@ export default function EditProfileScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.header}>
-          <MovaLogo sizeProp={60} />
+          <MovaLogo />
           <Text style={styles.title}>Complétez votre profil</Text>
           <Text style={styles.subtitle}>
             {userType === 'candidate' ? 'Candidat' : 'Recruteur'}
