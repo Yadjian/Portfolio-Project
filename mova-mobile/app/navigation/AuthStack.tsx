@@ -73,28 +73,12 @@ export default function AuthStack() {
       <Stack.Screen
         name="CandidateProfile"
         component={CandidateProfileScreen}
-        options={({ navigation }) => ({
-          headerLeft: () => (
-            <BackButton onPress={() => navigation.goBack()} />
-          ),
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
-          headerBackTitleVisible: false,
-        })}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="RecruiterProfile"
         component={RecruiterProfileScreen}
-        options={({ navigation }) => ({
-          headerLeft: () => (
-            <BackButton onPress={() => navigation.goBack()} />
-          ),
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
-          headerBackTitleVisible: false,
-        })}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="SwipeNotification"

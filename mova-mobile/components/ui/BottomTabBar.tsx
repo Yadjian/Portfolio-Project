@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface TabItem {
   id: string;
@@ -19,6 +19,7 @@ interface BottomTabBarProps {
 
 export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
   const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   
   const iconSize = Math.max(20, width * 0.065);
   const fontSize = Math.max(8, width * 0.022);
@@ -36,7 +37,6 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
       flexDirection: 'row' as const,
       backgroundColor: '#FFFFFF',
       paddingTop: paddingVertical,
-      paddingBottom: Math.max(paddingVertical, 12),
       paddingHorizontal: paddingHorizontal,
       borderTopWidth: 0.5,
       borderTopColor: '#E5E5EA',
@@ -46,6 +46,7 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
       shadowRadius: 8,
       elevation: 8,
       minHeight: containerHeight,
+      paddingBottom: insets.bottom > 0 ? insets.bottom : Math.max(paddingVertical, 12),
     },
     navItem: {
       flex: 1,
@@ -75,7 +76,7 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
       textAlign: 'center' as const,
     },
     activeNavText: {
-      color: '#6746a8',
+      color: '#4930a3',
       fontWeight: '600' as const,
     },
   };
@@ -92,11 +93,13 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
             case 'cv':
               return { iconName: 'document-text-outline', iconNameActive: 'document-text' };
             case 'offre':
-              return { iconName: 'document-text-outline', iconNameActive: 'document-text' };
+              return { iconName: 'briefcase-outline', iconNameActive: 'briefcase' };
             case 'matches':
               return { iconName: 'heart-outline', iconNameActive: 'heart' };
-            case 'notifications': // AJOUTE CE CAS
+            case 'notifications':
               return { iconName: 'notifications-outline', iconNameActive: 'notifications' };
+            case 'home':
+              return { iconName: 'home-outline', iconNameActive: 'home' };
             default:
               return { iconName: tab.iconName, iconNameActive: tab.iconNameActive };
           }
@@ -112,16 +115,15 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
           >
             <View style={dynamicStyles.navIconContainer}>
               {isActive ? (
-                <LinearGradient
-                  colors={['#6746a8', '#6b25f9', '#07b9ff']}
-                  style={dynamicStyles.activeIconGradient}
+                <View
+                  style={[dynamicStyles.activeIconGradient, { backgroundColor: '#4930a3' }]}
                 >
                   <Ionicons 
                     name={iconNameActive} 
                     size={iconSize} 
                     color="#FFFFFF" 
                   />
-                </LinearGradient>
+                </View>
               ) : (
                 <Ionicons 
                   name={iconName} 

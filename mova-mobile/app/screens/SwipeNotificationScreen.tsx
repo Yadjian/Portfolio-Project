@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons'; // Changed from Ionicons
 import SwipeCard from '@/components/ui/SwipeCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
@@ -77,15 +77,15 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const position = useRef(new Animated.ValueXY()).current;
 
   // --- All the logic (tabs, panResponder, animations) remains the same ---
-  const tabs = (userType === 'candidat'
-    ? getCandidateTabs(navigation, 0)
-    : getRecruiterTabs(navigation, 0)
-  ).map(tab => {
-    if (tab.id === 'notifications') {
-      return { ...tab, onPress: () => {} };
-    }
-    return tab;
-  });
+  const baseTabs = userType === 'recruiter' ? getRecruiterTabs(navigation, 0) : getCandidateTabs(navigation, 0);
+  const tabs = [
+    { id: 'home', label: 'Accueil', onPress: () => navigation.navigate('Home') },
+    ...baseTabs.map(tab => 
+      tab.id === 'notifications' 
+        ? { ...tab, onPress: () => {} } // Désactive le clic sur l'onglet actif
+        : tab
+    ),
+  ];
 
   const panResponder = useRef(
     PanResponder.create({

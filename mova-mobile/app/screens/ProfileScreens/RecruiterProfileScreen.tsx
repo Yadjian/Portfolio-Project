@@ -50,7 +50,14 @@ export default function RecruiterProfileScreen() {
   }, []);
 
   const notificationCount = 0; // Example count
-  const tabs = getRecruiterTabs(navigation, notificationCount);
+  const tabs = [
+    {
+      id: 'home',
+      label: 'Accueil',
+      onPress: () => navigation.navigate('Home'),
+    },
+    ...getRecruiterTabs(navigation, notificationCount),
+  ];
 
   return (
     <View style={styles.container}>
@@ -121,16 +128,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   avatar: {
-    width: 120,
-    height: 120,
-    borderRadius: 60, // Circular for consistency, can be changed to square for companies
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     borderWidth: 4,
     borderColor: Colors.light.backgroundCard,
-    marginTop: 40,
+    marginTop: 30, // Ajusté pour centrer l'avatar plus grand
   },
   editButton: {
     position: 'absolute',
-    top: 110,
+    top: 120, // Ajusté pour le nouvel avatar
     right: 20,
     backgroundColor: Colors.light.backgroundCard,
     padding: 8,
