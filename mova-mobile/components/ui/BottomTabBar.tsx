@@ -98,8 +98,6 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
               return { iconName: 'heart-outline', iconNameActive: 'heart' };
             case 'notifications':
               return { iconName: 'notifications-outline', iconNameActive: 'notifications' };
-            case 'home':
-              return { iconName: 'home-outline', iconNameActive: 'home' };
             default:
               return { iconName: tab.iconName, iconNameActive: tab.iconNameActive };
           }

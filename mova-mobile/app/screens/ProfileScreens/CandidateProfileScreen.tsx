@@ -57,14 +57,7 @@ export default function CandidateProfileScreen() {
     fetchUser();
   }, []);
 
-  const tabs = [
-    {
-      id: 'home',
-      label: 'Accueil',
-      onPress: () => navigation.navigate('Home'),
-    },
-    ...getCandidateTabs(navigation, 0),
-  ];
+  const tabs = getCandidateTabs(navigation, 0);
 
   return (
     <View style={styles.container}>

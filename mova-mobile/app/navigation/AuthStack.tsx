@@ -16,6 +16,7 @@ import RecruiterJobOfferScreen from '../screens/RecruiterJobOfferScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CreateAccountScreen from '../screens/RegisterScreens/CreateAccountScreen';
 import CreateCompanyScreen from '../screens/ProfileScreens/CreateCompanyScreen';
+import MovaLogo from '@/components/ui/MovaLogo';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -73,12 +74,24 @@ export default function AuthStack() {
       <Stack.Screen
         name="CandidateProfile"
         component={CandidateProfileScreen}
-        options={{ headerShown: false }}
+        options={({ navigation }) => ({
+          headerLeft: () => <MovaLogo sizeProp={40} />,
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Home')} />
+          ),
+          headerBackTitleVisible: false,
+        })}
       />
       <Stack.Screen
         name="RecruiterProfile"
         component={RecruiterProfileScreen}
-        options={{ headerShown: false }}
+        options={({ navigation }) => ({
+          headerLeft: () => <MovaLogo sizeProp={40} />,
+          headerRight: () => (
+            <HomeButton onPress={() => navigation.navigate('Home')} />
+          ),
+          headerBackTitleVisible: false,
+        })}
       />
       <Stack.Screen
         name="SwipeNotification"

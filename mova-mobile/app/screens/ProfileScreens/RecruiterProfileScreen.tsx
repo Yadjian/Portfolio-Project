@@ -50,14 +50,7 @@ export default function RecruiterProfileScreen() {
   }, []);
 
   const notificationCount = 0; // Example count
-  const tabs = [
-    {
-      id: 'home',
-      label: 'Accueil',
-      onPress: () => navigation.navigate('Home'),
-    },
-    ...getRecruiterTabs(navigation, notificationCount),
-  ];
+  const tabs = getRecruiterTabs(navigation, notificationCount);
 
   return (
     <View style={styles.container}>

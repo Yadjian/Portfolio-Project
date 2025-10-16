@@ -77,15 +77,12 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const position = useRef(new Animated.ValueXY()).current;
 
   // --- All the logic (tabs, panResponder, animations) remains the same ---
-  const baseTabs = userType === 'recruiter' ? getRecruiterTabs(navigation, 0) : getCandidateTabs(navigation, 0);
-  const tabs = [
-    { id: 'home', label: 'Accueil', onPress: () => navigation.navigate('Home') },
-    ...baseTabs.map(tab => 
-      tab.id === 'notifications' 
-        ? { ...tab, onPress: () => {} } // Désactive le clic sur l'onglet actif
-        : tab
-    ),
-  ];
+  const baseTabs = userType === 'recruteur' ? getRecruiterTabs(navigation, 0) : getCandidateTabs(navigation, 0);
+  const tabs = baseTabs.map(tab => 
+    tab.id === 'notifications' 
+      ? { ...tab, onPress: () => {} } // Désactive le clic sur l'onglet actif
+      : tab
+  );
 
   const panResponder = useRef(
     PanResponder.create({
