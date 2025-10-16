@@ -15,8 +15,28 @@ export default function SwipeNotificationScreen({ route }: any) {
 
   const contacts: any[] = userType === 'candidat'
     ? [
-        { id: '1', companyName: 'Test Entreprise', location: 'Paris', jobSeeking: 'Développeur', experienceRequired: 'Junior', contractType: 'CDI', presentation: 'Présentation test', avatarUrl: '' },
-        { id: '2', companyName: 'Autre Entreprise', location: 'Lyon', jobSeeking: 'Designer', experienceRequired: 'Senior', contractType: 'CDD', presentation: 'Autre présentation', avatarUrl: '' },
+        {
+          id: '1',
+          companyName: 'Test Entreprise',
+          location: 'Paris',
+          jobSeeking: 'Développeur',
+          experienceRequired: 'Junior',
+          contractType: 'CDI',
+          presentation: `Je suis passionné par le recrutement et l'accompagnement des talents. Mon expérience m'a permis de collaborer avec des entreprises variées.
+          J'aime créer des opportunités et des rencontres professionnelles. Je suis passionné par le recrutement et l'accompagnement des talents.
+          Mon expérience m'a permis de collaborer avec des entreprises variées. J'aime créer des opportunités et des rencontres professionnelles.`,
+          avatarUrl: ''
+        },
+        {
+          id: '2',
+          companyName: 'Autre Entreprise',
+          location: 'Lyon',
+          jobSeeking: 'Designer',
+          experienceRequired: 'Senior',
+          contractType: 'CDD',
+          presentation: 'Autre présentation',
+          avatarUrl: ''
+        },
       ]
     : [
         { id: '1', firstName: 'Lucas', lastName: 'Boyadjian', location: 'Paris', job: 'Développeur', experience: 'Débutant', contractType: 'CDI', presentation: 'Présentation Lucas', avatarUrl: '' },
@@ -83,13 +103,11 @@ export default function SwipeNotificationScreen({ route }: any) {
       inputRange: [-width, 0, width],
       outputRange: [0.5, 1, 0.5],
     }),
-    elevation: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    // On retire le fond et le borderRadius pour éviter la superposition
+    elevation: 0,
+    shadowColor: 'transparent',
+    backgroundColor: 'transparent',
+    borderRadius: 0,
   };
 
   return (

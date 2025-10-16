@@ -21,12 +21,13 @@ export default function RecruiterCard({
   presentation = "",
 }: RecruiterCardProps) {
   const { width, height } = useWindowDimensions();
-  const cardPadding = width * 0.05;
-  const photoWidth = width * 0.22;
-  const photoHeight = photoWidth * 1.2;
+  const cardPadding = width * 0.04;
+  // Agrandir la photo : passer à 30% de la largeur
+  const photoWidth = width * 0.3;
+  const photoHeight = photoWidth * 1.25;
 
   return (
-    <View style={[styles.card, { padding: cardPadding, minHeight: height * 0.6 }]}>
+  <View style={[styles.card, { padding: cardPadding, width: width * 0.98, minHeight: height * 0.45, alignSelf: 'center' }]}> 
       <View style={styles.topRow}>
         <Image
           source={avatarUrl ? { uri: avatarUrl } : require('../../assets/images/icon.png')}
@@ -44,14 +45,22 @@ export default function RecruiterCard({
             <Text style={[styles.value, { fontSize: width * 0.04 }]}>{experienceRequired}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={[styles.label, { fontSize: width * 0.04 }]}>Type de contrat : </Text>
+            <Text style={[styles.label, { fontSize: width * 0.04 }]}>Contrat : </Text>
             <Text style={[styles.value, { fontSize: width * 0.04 }]}>{contractType}</Text>
           </View>
         </View>
       </View>
       <View style={styles.bottomBlock}>
         <Text style={[styles.label, { fontSize: width * 0.042 }]}>Présentation :</Text>
-        <Text style={[styles.value, { fontSize: width * 0.04 }]}>{presentation}</Text>
+        {(() => {
+          // Estimation : 40 caractères par ligne, 5 lignes max
+          const maxChars = 270;
+          const cleanText = (presentation || '').replace(/\n/g, ' ').replace(/ +/g, ' ');
+          const limitedText = cleanText.length > maxChars ? cleanText.slice(0, maxChars) : cleanText;
+          return (
+            <Text style={[styles.value, { fontSize: width * 0.04 }]}>{limitedText}</Text>
+          );
+        })()}
       </View>
     </View>
   );
@@ -61,7 +70,7 @@ const styles = StyleSheet.create({
   // Carte globale
   card: {
     backgroundColor: '#fff',
-    borderRadius: 16,
+    borderRadius: 14,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.12,
@@ -74,13 +83,13 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 10,
     width: '100%',
   },
   avatar: {
-    borderRadius: 10,
+    borderRadius: 14,
     backgroundColor: '#f8f9fa',
-    marginRight: 18,
+    marginRight: 22,
   },
   mainInfo: {
     flex: 1,
@@ -114,7 +123,7 @@ const styles = StyleSheet.create({
   },
   // Bloc du bas : présentation
   bottomBlock: {
-    marginTop: 18,
+    marginTop: 8,
     width: '100%',
   },
 });
