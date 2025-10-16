@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { createNativeStackNavigator, NativeStackNavigationProp } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import { AuthStackParamList } from '../../lib/types';
@@ -8,8 +8,6 @@ import CandidateProfileScreen from '../screens/ProfileScreens/CandidateProfileSc
 import RecruiterProfileScreen from '../screens/ProfileScreens/RecruiterProfileScreen';
 import SwipeNotificationScreen from '../screens/SwipeNotificationScreen';
 import EditProfileScreen from '../screens/ProfileScreens/EditProfileScreen';
-import RecruiterOnboardingScreen from '../screens/RegisterScreens/RecruiterOnboardingScreen';
-import JoinCompanyScreen from '../screens/RegisterScreens/JoinCompanyScreen';
 import HomeButton from '@/components/ui/HomeButton';
 import CandidateCVScreen from '../screens/CandidateCVScreen';
 import RecruiterJobOfferScreen from '../screens/RecruiterJobOfferScreen';
@@ -22,22 +20,6 @@ import UserHomeScreen from '../screens/UserHomeScreen';
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export default function AuthStack() {
-  const [notificationCount, setNotificationCount] = useState(0);
-
-  useEffect(() => {
-    // Simule la récupération du nombre de notifications depuis une API
-    const fetchNotificationCount = () => {
-      const fetchedCount = 7; // Simulation de 7 notifications
-      setNotificationCount(fetchedCount);
-    };
-    fetchNotificationCount();
-  }, []);
-
-  const handleNotificationPress = () => {
-    setNotificationCount(0);
-    console.log('Notifications consultées');
-  };
-
   return (
     <Stack.Navigator
       initialRouteName="Home"
@@ -49,7 +31,7 @@ export default function AuthStack() {
     >
       <Stack.Screen
         name="Home"
-        component={HomeScreen}
+        component={HomeScreen} // Page d'accueil pour les non-connectés
         options={{ headerShown: false }}
       />
       <Stack.Screen
@@ -149,6 +131,11 @@ export default function AuthStack() {
       <Stack.Screen
         name="UserHome"
         component={UserHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="SwipeNotification"
+        component={SwipeNotificationScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

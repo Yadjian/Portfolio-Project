@@ -1,13 +1,14 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import 'react-native-reanimated';
+import { Stack } from 'expo-router';
 
-import { AuthStack, AppTabs } from './navigation';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import AuthStack from './navigation/AuthStack';
 import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
 
 export {
@@ -17,7 +18,7 @@ export {
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
+  initialRouteName: 'index',
 };
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -25,9 +26,8 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-    DancingScript_700Bold, // <-- Ajoute cette ligne
-    ...FontAwesome.font,
+    DancingScript_700Bold,
+    ...FontAwesome.font, // Police pour les icônes
   });
 
   useEffect(() => {
@@ -62,7 +62,12 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {isAuthenticated ? <AppTabs /> : <AuthStack />}
+      {/* 
+        Cette logique est la clé :
+        - Si l'utilisateur n'est PAS authentifié, on affiche le AuthStack (Login, Register, etc.)
+        - Si l'utilisateur EST authentifié, on le redirige vers son profil (géré par AuthStack après la connexion)
+      */}
+      {isAuthenticated ? <AuthStack /> : <AuthStack />}
     </ThemeProvider>
   );
 }
