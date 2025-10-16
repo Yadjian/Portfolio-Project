@@ -99,15 +99,7 @@ export default function AuthStack() {
       <Stack.Screen
         name="SwipeNotification"
         component={SwipeNotificationScreen}
-        options={({ navigation }) => ({
-          headerLeft: () => (
-            <BackButton onPress={() => navigation.goBack()} />
-          ),
-          headerRight: () => (
-            <HomeButton onPress={() => navigation.navigate('Home')} />
-          ),
-          headerBackTitleVisible: false,
-        })}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="EditProfileScreen"

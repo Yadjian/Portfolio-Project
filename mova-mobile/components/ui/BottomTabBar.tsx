@@ -20,11 +20,10 @@ interface BottomTabBarProps {
 export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
   const { width, height } = useWindowDimensions();
   
-  // Tailles dynamiques basées sur les dimensions de l'écran
-  const iconSize = Math.max(20, width * 0.065); // AGRANDI : Au moins 20px, plus adaptatif
-  const fontSize = Math.max(8, width * 0.022); // Au moins 8px pour la police
-  const containerHeight = Math.max(65, height * 0.09); // Au moins 65px pour la hauteur
-  const iconContainerSize = Math.max(28, width * 0.070); // AGRANDI aussi le conteneur
+  const iconSize = Math.max(20, width * 0.065);
+  const fontSize = Math.max(8, width * 0.022);
+  const containerHeight = Math.max(65, height * 0.09);
+  const iconContainerSize = Math.max(28, width * 0.070);
   const paddingHorizontal = width * 0.05;
   const paddingVertical = height * 0.01;
 
@@ -86,7 +85,6 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
       {tabs.map((tab) => {
         const isActive = tab.id === activeTabId;
         
-        // Définition centralisée des icônes selon l'ID
         const getIconsForTab = (tabId: string) => {
           switch (tabId) {
             case 'profile':
@@ -166,4 +164,3 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
     </View>
   );
 }
-

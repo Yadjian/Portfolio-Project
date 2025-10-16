@@ -1,319 +1,154 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, Animated, PanResponder } from 'react-native';
-import CandidateCard from '@/components/ui/CandidateCard';
-import RecruiterCard from '@/components/ui/RecruiterCard';
+import { View, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import SwipeCard from '@/components/ui/SwipeCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
-import SmallMovaLogo from '@/components/ui/SmallMovaLogo';
-import { Ionicons } from '@expo/vector-icons';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = width * 0.95;
-const CARD_HEIGHT = Math.min(600, width * 1.2); // ou adapte selon ton besoin
+const { width, height } = Dimensions.get('window');
 
-export default function SwipeNotificationScreen({ route }: any) {
+const ActionButton = ({ onPress, small, color, icon, style }: any) => (
+  <TouchableOpacity onPress={onPress} style={[styles.button, small ? styles.smallButton : styles.largeButton, { backgroundColor: '#fff', shadowColor: color }, style]}>
+    <Ionicons name={icon} size={small ? 20 : 28} color={color} />
+  </TouchableOpacity>
+);
+
+export default function SwipeNotificationScreen({ route, navigation }: any) {
   const userType = route?.params?.userType ?? 'candidat';
 
   const contacts: any[] = userType === 'candidat'
     ? [
         {
           id: '1',
-          companyName: 'Test Entreprise',
-          location: 'Paris',
-          jobSeeking: 'Développeur',
-          experienceRequired: 'Junior',
+          companyName: 'Stark Industries',
+          location: 'New York',
+          jobSeeking: 'Développeur React Native',
+          experienceRequired: 'Confirmé',
           contractType: 'CDI',
-          presentation: `Je suis passionné par le recrutement et l'accompagnement des talents. Mon expérience m'a permis de collaborer avec des entreprises variées.
-          J'aime créer des opportunités et des rencontres professionnelles. Je suis passionné par le recrutement et l'accompagnement des talents.
-          Mon expérience m'a permis de collaborer avec des entreprises variées. J'aime créer des opportunités et des rencontres professionnelles.`,
-          avatarUrl: ''
+          avatarUrl: 'https://img.phonandroid.com/2023/04/iron-man-avengers-endgame.jpg',
+          presentation: 'Génie, milliardaire, playboy, philanthrope. Cherche des talents exceptionnels pour changer le monde. Nous offrons un environnement de travail stimulant, des projets innovants et une armure de haute technologie (en option). Le candidat idéal maîtrisera l\'arc-réacteur et aura une bonne connaissance des protocoles de vol. Le travail d\'équipe est essentiel, car vous collaborerez étroitement avec les autres Avengers. Rejoignez-nous pour construire le futur, aujourd\'hui.',
         },
         {
           id: '2',
-          companyName: 'Autre Entreprise',
-          location: 'Lyon',
-          jobSeeking: 'Designer',
-          experienceRequired: 'Senior',
+          companyName: 'Wayne Enterprises',
+          location: 'Gotham City',
+          jobSeeking: 'Chef de Projet Mobile',
+          experienceRequired: 'Intermédiaire',
           contractType: 'CDD',
-          presentation: 'Autre présentation',
-          avatarUrl: ''
+          avatarUrl: 'https://www.presse-citron.net/app/uploads/2022/03/batman-robert-pattinson.jpg',
+          presentation: 'Nous construisons un avenir meilleur. Et parfois, nous travaillons la nuit.',
         },
       ]
     : [
-        { id: '1', firstName: 'Lucas', lastName: 'Boyadjian', location: 'Paris', job: 'Développeur', experience: 'Débutant', contractType: 'CDI', presentation: 'Présentation Lucas', avatarUrl: '' },
-        { id: '2', firstName: 'Marie', lastName: 'Dupont', location: 'Lille', job: 'Product Owner', experience: 'Confirmé', contractType: 'CDI', presentation: 'Présentation Marie', avatarUrl: '' },
+        {
+          id: '3',
+          firstName: 'Peter',
+          lastName: 'Parker',
+          location: 'New York',
+          job: 'Développeur Full-Stack',
+          experience: 'Débutant',
+          contractType: 'Alternance',
+          avatarUrl: 'https://static.posters.cz/image/1300/affiches/spider-man-no-way-home-i121225.jpg',
+          presentation: 'Photographe le jour, super-héros la nuit. Grande agilité avec les frameworks JavaScript.',
+        },
+        {
+          id: '4',
+          firstName: 'Diana',
+          lastName: 'Prince',
+          location: 'Themyscira',
+          job: 'Product Owner',
+          experience: 'Confirmé',
+          contractType: 'CDI',
+          avatarUrl: 'https://www.ecranlarge.com/media/cache/1600x1200/uploads/image/001/498/wonder-woman-1984-photo-1498168.jpg',
+          presentation: 'Passionnée par la justice, la paix et les sprints bien menés. Expérience millénaire.',
+        },
       ];
 
-  const tabs = userType === 'candidat'
-    ? getCandidateTabs(undefined, 0)
-    : getRecruiterTabs(undefined, 0);
-
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [cardVisible, setCardVisible] = useState(true);
-  const [showGreenPop, setShowGreenPop] = useState(false);
-  const [showRedPop, setShowRedPop] = useState(false);
-  const greenPopAnim = useRef(new Animated.Value(0)).current;
-  const redPopAnim = useRef(new Animated.Value(0)).current;
+  const [profiles, setProfiles] = useState(contacts);
   const position = useRef(new Animated.ValueXY()).current;
+
+  const tabs = (userType === 'candidat'
+    ? getCandidateTabs(navigation, 0)
+    : getRecruiterTabs(navigation, 0)
+  ).map(tab => {
+    if (tab.id === 'notifications') {
+      return { ...tab, onPress: () => {} };
+    }
+    return tab;
+  });
 
   const panResponder = useRef(
     PanResponder.create({
-      onMoveShouldSetPanResponder: (_, gesture) =>
-        Math.abs(gesture.dx) > Math.abs(gesture.dy) && Math.abs(gesture.dx) > 10,
-      onPanResponderMove: Animated.event([null, { dx: position.x }], { useNativeDriver: false }),
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: Animated.event([null, { dx: position.x, dy: position.y }], { useNativeDriver: false }),
       onPanResponderRelease: (_, gesture) => {
-        if (gesture.dx > 120 || gesture.dx < -120) {
-          if (gesture.dx > 0) {
-            // Swipe right: show green pop animation
-            setShowGreenPop(true);
-            greenPopAnim.setValue(0);
-            Animated.sequence([
-              Animated.timing(greenPopAnim, {
-                toValue: 1,
-                duration: 180,
-                useNativeDriver: true,
-              }),
-              Animated.timing(greenPopAnim, {
-                toValue: 0,
-                duration: 320,
-                useNativeDriver: true,
-              })
-            ]).start(() => {
-              setShowGreenPop(false);
-            });
-          } else {
-            // Swipe left: show red pop animation
-            setShowRedPop(true);
-            redPopAnim.setValue(0);
-            Animated.sequence([
-              Animated.timing(redPopAnim, {
-                toValue: 1,
-                duration: 180,
-                useNativeDriver: true,
-              }),
-              Animated.timing(redPopAnim, {
-                toValue: 0,
-                duration: 320,
-                useNativeDriver: true,
-              })
-            ]).start(() => {
-              setShowRedPop(false);
-            });
-          }
-          Animated.timing(position, {
-            toValue: { x: gesture.dx > 0 ? width : -width, y: 0 },
-            duration: 200,
-            useNativeDriver: false,
-          }).start(() => {
-            setCardVisible(false);
-            setTimeout(() => {
-              position.setValue({ x: 0, y: 0 });
-              setCurrentIndex(i => i + 1); // <-- On passe au profil suivant
-              setCardVisible(true);
-            }, 100);
-          });
+        if (gesture.dx > 120) {
+          swipe('right');
+        } else if (gesture.dx < -120) {
+          swipe('left');
         } else {
-          Animated.spring(position, {
-            toValue: { x: 0, y: 0 },
-            useNativeDriver: false,
-          }).start();
+          resetPosition();
         }
       },
     })
   ).current;
 
-  const currentCard = contacts[currentIndex];
-
   const rotate = position.x.interpolate({
-    inputRange: [-width, 0, width],
-    outputRange: ['-20deg', '0deg', '20deg'],
+    inputRange: [-width / 2, 0, width / 2],
+    outputRange: ['-10deg', '0deg', '10deg'],
+    extrapolate: 'clamp',
   });
 
   const animatedStyle = {
-    width: CARD_WIDTH,
-    height: CARD_HEIGHT,
-    transform: [
-      { translateX: position.x },
-      { rotate },
-      { scale: position.x.interpolate({
-          inputRange: [-width, 0, width],
-          outputRange: [0.95, 1, 0.95],
-        })
-    },
-  ],
-    opacity: position.x.interpolate({
-      inputRange: [-width, 0, width],
-      outputRange: [0.5, 1, 0.5],
-    }),
-    // On retire le fond et le borderRadius pour éviter la superposition
-    elevation: 0,
-    shadowColor: 'transparent',
-    backgroundColor: 'transparent',
-    borderRadius: 0,
+    transform: [{ translateX: position.x }, { translateY: position.y }, { rotate }],
   };
 
-  // Fonctions pour simuler swipe à droite/gauche via bouton
-  const handleSwipeRight = () => {
-    if (currentIndex < contacts.length && cardVisible) {
-      setShowGreenPop(true);
-      greenPopAnim.setValue(0);
-      Animated.timing(position.x, {
-        toValue: width,
-        duration: 200,
-        useNativeDriver: false,
-      }).start(() => {
-        Animated.timing(greenPopAnim, {
-          toValue: 1,
-          duration: 180,
-          useNativeDriver: true,
-        }).start(() => {
-          Animated.timing(greenPopAnim, {
-            toValue: 0,
-            duration: 320,
-            useNativeDriver: true,
-          }).start(() => {
-            setShowGreenPop(false);
-            setCardVisible(false);
-            setTimeout(() => {
-              position.setValue({ x: 0, y: 0 });
-              setCurrentIndex(i => i + 1);
-              setCardVisible(true);
-            }, 100);
-          });
-        });
-      });
-    }
+  const resetPosition = () => {
+    Animated.spring(position, {
+      toValue: { x: 0, y: 0 },
+      useNativeDriver: true,
+      friction: 5,
+    }).start();
   };
-  const handleSwipeLeft = () => {
-    if (currentIndex < contacts.length && cardVisible) {
-      setShowRedPop(true);
-      redPopAnim.setValue(0);
-      Animated.timing(position.x, {
-        toValue: -width,
-        duration: 200,
-        useNativeDriver: false,
-      }).start(() => {
-        Animated.timing(redPopAnim, {
-          toValue: 1,
-          duration: 180,
-          useNativeDriver: true,
-        }).start(() => {
-          Animated.timing(redPopAnim, {
-            toValue: 0,
-            duration: 320,
-            useNativeDriver: true,
-          }).start(() => {
-            setShowRedPop(false);
-            setCardVisible(false);
-            setTimeout(() => {
-              position.setValue({ x: 0, y: 0 });
-              setCurrentIndex(i => i + 1);
-              setCardVisible(true);
-            }, 100);
-          });
-        });
-      });
-    }
+
+  const swipe = (direction: 'right' | 'left') => {
+    Animated.timing(position, {
+      toValue: { x: direction === 'right' ? width * 1.5 : -width * 1.5, y: 0 },
+      duration: 400,
+      useNativeDriver: true,
+    }).start(() => {
+      setProfiles(prevProfiles => prevProfiles.slice(1));
+      position.setValue({ x: 0, y: 0 });
+    });
   };
 
   return (
     <View style={styles.container}>
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 24 }}>
-        {currentIndex < contacts.length && cardVisible && (
-          <>
-            <Animated.View
-              style={animatedStyle}
-              {...panResponder.panHandlers}
-            >
-              {userType === 'candidat' ? (
-                <RecruiterCard {...contacts[currentIndex]} />
-              ) : (
-                <CandidateCard {...contacts[currentIndex]} />
-              )}
+      <View style={styles.deckContainer}>
+        {profiles.map((profile, index) => {
+          if (index === 0) {
+            return (
+              <Animated.View
+                key={profile.id}
+                style={[styles.card, animatedStyle]}
+                {...panResponder.panHandlers}
+              >
+                <SwipeCard userType={userType === 'candidat' ? 'recruiter' : 'candidate'} {...profile} />
+              </Animated.View>
+            );
+          }
+          return (
+            <Animated.View key={profile.id} style={styles.card}>
+              <SwipeCard userType={userType === 'candidat' ? 'recruiter' : 'candidate'} {...profile} />
             </Animated.View>
-            {/* Green pop animation when swiping right */}
-            {showGreenPop && (
-              <Animated.View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  zIndex: 20,
-                  opacity: greenPopAnim,
-                  // backgroundColor retiré
-                }}
-              >
-                <Animated.View
-                  style={{
-                    transform: [
-                      {
-                        scale: greenPopAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.5, 1.6],
-                        })
-                      }
-                    ]
-                  }}
-                >
-                  <Ionicons name="checkmark-circle" size={120} color="#fff" />
-                </Animated.View>
-              </Animated.View>
-            )}
-            {/* Red pop animation when swiping left */}
-            {showRedPop && (
-              <Animated.View
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  zIndex: 20,
-                  opacity: redPopAnim,
-                  // backgroundColor retiré
-                }}
-              >
-                <Animated.View
-                  style={{
-                    transform: [
-                      {
-                        scale: redPopAnim.interpolate({
-                          inputRange: [0, 1],
-                          outputRange: [0.5, 1.6],
-                        })
-                      }
-                    ]
-                  }}
-                >
-                  <Ionicons name="close-circle" size={120} color="#fff" />
-                </Animated.View>
-              </Animated.View>
-            )}
-            {/* Boutons vert, rouge, jaune sur la même ligne sous la card */}
-            <View style={{ marginTop: 64 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-                <View style={[styles.iconCircleWithBorder, { borderColor: '#e74c3c' }]}> 
-                  <Ionicons name="close" size={30} color="#e74c3c" onPress={handleSwipeLeft} />
-                </View>
-                <View style={[styles.iconCircleWithBorder, { borderColor: '#FFD600' }]}> 
-                  <Ionicons name="refresh" size={30} color="#FFD600" style={{ transform: [{ scaleX: -1 }] }} />
-                </View>
-                <View style={[styles.iconCircleWithBorder, { borderColor: '#27ae60' }]}> 
-                  <Ionicons name="checkmark" size={30} color="#27ae60" onPress={handleSwipeRight} />
-                </View>
-              </View>
-            </View>
-          </>
-        )}
-        {currentIndex >= contacts.length && (
-          <Text style={{ textAlign: 'center', marginTop: 40 }}>Plus de profils à afficher</Text>
-        )}
+          );
+        }).reverse()}
+      </View>
+
+      <View style={styles.footer}>
+        <ActionButton icon="close" color="#fd297b" onPress={() => swipe('left')} />
+        <ActionButton icon="refresh" color="#f6d365" small style={{ transform: [{scaleX: -1}] }} />
+        <ActionButton icon="checkmark" color="#20e3b2" onPress={() => swipe('right')} />
       </View>
       <BottomTabBar tabs={tabs} activeTabId="notifications" />
     </View>
@@ -323,41 +158,39 @@ export default function SwipeNotificationScreen({ route }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ffffffff',
+    backgroundColor: '#f5f5f5',
   },
-  logoRow: {
-    alignItems: 'flex-start',
-    marginBottom: 30,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#6746a8',
-    textAlign: 'center',
-    marginBottom: 40,
+  deckContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   card: {
-    width: '100%',
-    height: '100%',
+    position: 'absolute',
+    width: width * 0.95,
   },
-  iconCircle: {
-    height: 40,
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingBottom: 90, // Space for the BottomTabBar
+  },
+  button: {
+    borderRadius: 50,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+  },
+  smallButton: {
     width: 40,
-    borderRadius: 20,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 12,
+    height: 40,
   },
-  iconCircleWithBorder: {
-    height: 48,
-    width: 48,
-    borderRadius: 24,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 20,
-    borderWidth: 2,
-    // borderColor retiré pour laisser la couleur inline dominer
+  largeButton: {
+    width: 55,
+    height: 55,
   },
 });
