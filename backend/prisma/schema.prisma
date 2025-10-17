@@ -168,7 +168,6 @@ model JobOffer {
   updatedAt    DateTime       @updatedAt
   title        String
   description  String
-  contractType ContractType
   locationWKT          String?
   salaryMin    Int?
   salaryMax    Int?
@@ -181,6 +180,10 @@ model JobOffer {
   applications Application[]
   swipes       Swipe[]
   categories   JobCategory[]
+
+  // Champs hérités du profil du recruteur
+  contractType    ContractType
+  experienceLevel ExperienceLevel?
 
   // Relation pour savoir qui a créé l'offre
   createdBy   RecruiterProfile @relation("CreatedByRecruiter", fields: [createdById], references: [id])
