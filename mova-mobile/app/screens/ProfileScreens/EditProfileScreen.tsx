@@ -111,6 +111,7 @@ export default function EditProfileScreen() {
         contentContainerStyle={styles.content}
         enableOnAndroid={true}
         keyboardShouldPersistTaps="handled"
+        extraScrollHeight={100}
       >
         <View style={styles.header}>
           <MovaLogo />

@@ -13,7 +13,7 @@ import CandidateCVScreen from '../screens/CandidateCVScreen';
 import RecruiterJobOfferScreen from '../screens/RecruiterJobOfferScreen';
 import HomeScreen from '../screens/HomeScreen';
 import CreateAccountScreen from '../screens/RegisterScreens/CreateAccountScreen';
-import CreateCompanyScreen from '../screens/ProfileScreens/CreateCompanyScreen';
+import CreateCompanyScreen from '../screens/RegisterScreens/CreateCompanyScreen';
 import MovaLogo from '@/components/ui/MovaLogo';
 import UserHomeScreen from '../screens/UserHomeScreen';
 

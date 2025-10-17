@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MovaLogo from '@/components/ui/MovaLogo';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -16,6 +16,21 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+    };
+  }, []);
 
   const handleSubmit = () => {
     console.log('Création compte:', formData, userType);
@@ -32,9 +47,10 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView 
-        contentContainerStyle={styles.content}
+        contentContainerStyle={keyboardVisible ? styles.scrollContent : styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
+        scrollEnabled={keyboardVisible}
       >
         {/* Header avec logo */}
         <View style={styles.header}>
@@ -134,6 +150,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   content: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+    justifyContent: 'center',
+  },
+  scrollContent: {
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 40,
