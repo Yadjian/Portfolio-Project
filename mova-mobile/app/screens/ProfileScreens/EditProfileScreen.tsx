@@ -203,10 +203,19 @@ export default function EditProfileScreen() {
 
               {/* Présentation */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Présentation</Text>
+                <Text style={styles.label}>Présentation (max 5 lignes)</Text>
                 <View style={[styles.inputContainer, { height: 120, alignItems: 'flex-start' }]}>
                   <Ionicons name="chatbox-ellipses-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
-                  <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} placeholder="Parlez-nous de vous..." placeholderTextColor="#999" value={presentation} onChangeText={setPresentation} multiline />
+                  <TextInput 
+                    style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} 
+                    placeholder="Parlez-nous de vous..." 
+                    placeholderTextColor="#999" 
+                    value={presentation} 
+                    onChangeText={setPresentation} 
+                    multiline 
+                    maxLength={250}
+                    numberOfLines={5}
+                  />
                 </View>
               </View>
             </>
@@ -286,10 +295,19 @@ export default function EditProfileScreen() {
               </View>
 
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Présentation de l'entreprise</Text>
+                <Text style={styles.label}>Présentation de l'entreprise (max 5 lignes)</Text>
                 <View style={[styles.inputContainer, { height: 120, alignItems: 'flex-start' }]}>
                   <Ionicons name="chatbox-ellipses-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
-                  <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} placeholder="Présentez votre entreprise..." placeholderTextColor="#999" value={companyPresentation} onChangeText={setCompanyPresentation} multiline />
+                  <TextInput 
+                    style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} 
+                    placeholder="Présentez votre entreprise..." 
+                    placeholderTextColor="#999" 
+                    value={companyPresentation} 
+                    onChangeText={setCompanyPresentation} 
+                    multiline 
+                    maxLength={250}
+                    numberOfLines={5}
+                  />
                 </View>
               </View>
             </>

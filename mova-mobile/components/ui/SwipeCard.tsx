@@ -62,7 +62,7 @@ export default function SwipeCard(props: SwipeCardProps) {
           {contractType && <InfoTag icon="file-text" text={contractType} />}
         </View>
         <Text style={styles.presentationTitle}>Présentation</Text>
-        <Text style={styles.presentationText} numberOfLines={6}>
+        <Text style={styles.presentationText} numberOfLines={5} ellipsizeMode="clip">
           {presentation || 'Aucune présentation disponible.'}
         </Text>
       </View>
