@@ -105,6 +105,25 @@ export class AuthService {
 
   // --- HELPERS (fonctions utilitaires) ---
 
+  async refreshTokens(userId: string, refreshToken: string) {
+  // 1. Trouver l'utilisateur et son token haché actuel
+  const user = await this.prisma.user.findUnique({ where: { id: userId } });
+  if (!user || !user.hashedRefreshToken) throw new ForbiddenException('Access Denied');
+
+  // 2. Vérifier que le refresh token fourni correspond à celui en base de données
+  const tokensMatch = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+  if (!tokensMatch) throw new ForbiddenException('Access Denied');
+
+  // 3. Si tout est bon, on utilise votre "Usine à Tokens"
+  const newTokens = await this.getTokens(user.id, user.email);
+
+  // 4. On utilise votre "Coffre-fort" pour stocker le nouveau token
+  await this.updateRefreshTokenHash(user.id, newTokens.refreshToken);
+
+  // 5. On renvoie les nouveaux tokens
+  return newTokens;
+}
+
   private async updateRefreshTokenHash(userId: string, refreshToken: string) {
     const hash = await bcrypt.hash(refreshToken, 10);
     await this.prisma.user.update({
