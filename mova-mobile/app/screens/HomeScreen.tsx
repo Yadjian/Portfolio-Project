@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, Dimensions, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,14 +7,51 @@ import * as Location from 'expo-location';
 import MovaLogo from '@/components/ui/MovaLogo';
 import { useAuth } from '../../contexts/AuthContext';
 import { sendLocationToBackend } from '../../services/api';
-import Colors from '../../constants/Colors'; // Import new colors
+import Colors from '../../constants/Colors';
 import { AuthStackParamList } from '@/lib/types';
+import Constants from 'expo-constants';
 
 const { height, width } = Dimensions.get('window');
+
+// Fonction pour obtenir l'URL du backend
+const getApiUrl = () => {
+  return 'http://192.168.1.16:3000'; // ← Mets l’IP Windows actuelle ici
+};
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { loading } = useAuth();
+  const [backendStatus, setBackendStatus] = useState('🔄 Vérification de la connexion...');
+
+  // Test de connexion au backend
+  useEffect(() => {
+    const testBackendConnection = async () => {
+      const API_URL = getApiUrl();
+      console.log('🔍 [BACKEND TEST] URL détectée:', API_URL);
+      
+      try {
+        console.log('🔍 [BACKEND TEST] Début de la requête...');
+        const response = await fetch(`${API_URL}/health`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        console.log('🔍 [BACKEND TEST] Statut de la réponse:', response.status);
+        const data = await response.json();
+        console.log('✅ [BACKEND TEST] Réponse reçue:', data);
+        setBackendStatus(`✅ Backend connecté (${API_URL})`);
+      } catch (error) {
+        console.error('❌ [BACKEND TEST] Erreur complète:', error);
+        console.error('❌ [BACKEND TEST] Message:', error instanceof Error ? error.message : 'Erreur inconnue');
+        setBackendStatus(`❌ Backend non accessible (${API_URL})`);
+      }
+    };
+
+    console.log('🚀 [BACKEND TEST] useEffect déclenché');
+    testBackendConnection();
+  }, []);
 
   // Géolocalisation : demande la permission et envoie périodiquement
   useEffect(() => {
@@ -38,7 +75,6 @@ export default function HomeScreen() {
     };
 
     askAndSendLocation();
-    // Casting to NodeJS.Timeout for compatibility, as setInterval in RN returns a number.
     interval = setInterval(askAndSendLocation, 5 * 60 * 1000) as unknown as number;
 
     return () => clearInterval(interval);
@@ -47,6 +83,11 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
+        {/* Affichage du statut backend */}
+        <View style={styles.statusContainer}>
+          <Text style={styles.statusText}>{backendStatus}</Text>
+        </View>
+
         <View style={styles.header}>
           <MovaLogo />
           <Text style={styles.slogan}>
@@ -87,9 +128,28 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: width * 0.05,
   },
+  statusContainer: {
+    position: 'absolute',
+    top: 20,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 12,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statusText: {
+    fontSize: 12,
+    textAlign: 'center',
+    color: Colors.light.text,
+  },
   header: {
     alignItems: 'center',
-    marginBottom: height * 0.12, // Crée un espace volontaire avec les boutons
+    marginBottom: height * 0.12,
   },
   slogan: {
     fontSize: width * 0.06,
@@ -103,7 +163,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButton: {
-    backgroundColor: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
+    backgroundColor: '#4930a3',
     borderRadius: 30,
     width: '100%',
     paddingVertical: 18,
@@ -124,7 +184,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 30,
     borderWidth: 1.5,
-    borderColor: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
+    borderColor: '#4930a3',
     width: '100%',
     paddingVertical: 18,
     justifyContent: 'center',
@@ -132,7 +192,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   secondaryButtonText: {
-    color: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
+    color: '#4930a3',
     fontSize: width * 0.045,
     fontWeight: 'bold',
   },

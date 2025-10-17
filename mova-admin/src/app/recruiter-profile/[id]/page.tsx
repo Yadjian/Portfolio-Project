@@ -6,7 +6,18 @@ import React, { useEffect, useState } from 'react';
 export default function RecruiterProfilePage() {
   const { id } = useParams();
   const router = useRouter();
-  const [recruiter, setRecruiter] = useState<any>(null);
+  const [recruiter, setRecruiter] = useState<{
+  firstName: string;
+  lastName: string;
+  location: string;
+  avatarUrl: string;
+  companyName: string;
+  siret: string;
+  jobSeeking: string;
+  experienceRequired: string;
+  contractType: string;
+  presentation: string;
+} | null>(null);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
