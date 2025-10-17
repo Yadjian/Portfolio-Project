@@ -11,10 +11,6 @@ export class CreateJobOfferDto {
   @IsNotEmpty()
   description: string;
 
-  @IsNotEmpty()
-  @IsEnum(ContractType)
-  contractType: ContractType;
-
   @IsOptional()
   @IsString()
   workHours?: string;
