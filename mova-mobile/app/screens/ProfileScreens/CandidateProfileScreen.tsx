@@ -72,7 +72,7 @@ export default function CandidateProfileScreen() {
           <Text style={styles.name}>{`${candidate.firstName} ${candidate.lastName}`.trim()}</Text>
           <Text style={styles.jobTitle}>{candidate.job}</Text>
           <View style={styles.locationContainer}>
-            <Feather name="map-pin" size={14} color="#4930a3" />
+            <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
             <Text style={styles.location}>{candidate.location}</Text>
           </View>
         </View>
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   },
   location: {
     fontSize: 14,
-    color: Colors.light.textSecondary,
+    color: Colors.light.text,
     marginLeft: 4,
   },
   sectionText: {

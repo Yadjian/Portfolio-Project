@@ -65,7 +65,7 @@ export default function RecruiterProfileScreen() {
           <Text style={styles.name}>{recruiter.companyName}</Text>
           <Text style={styles.jobTitle}>{`${recruiter.firstName} ${recruiter.lastName}`.trim()}</Text>
           <View style={styles.locationContainer}>
-            <Feather name="map-pin" size={14} color="#4930a3" />
+            <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
             <Text style={styles.location}>{recruiter.location}</Text>
           </View>
         </View>

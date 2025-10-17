@@ -21,7 +21,7 @@ interface SwipeCardProps {
 // Redesigned InfoTag
 const InfoTag = ({ icon, text }: { icon: keyof typeof Feather.glyphMap; text: string }) => (
   <View style={styles.tag}>
-    <Feather name={icon} size={14} color={Colors.light.primary} />
+    <Feather name={icon} size={14} color="#4930a3" />
     <Text style={styles.tagText}>{text}</Text>
   </View>
 );
@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.background, // Light grey background for tags
   },
   tagText: {
-    color: Colors.light.primary,
+    color: "#4930a3",
     marginLeft: 8,
     fontSize: 13,
     fontWeight: '600',
