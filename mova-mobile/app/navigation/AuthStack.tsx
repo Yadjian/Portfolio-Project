@@ -133,11 +133,6 @@ export default function AuthStack() {
         component={UserHomeScreen}
         options={{ headerShown: false }}
       />
-      <Stack.Screen
-        name="SwipeNotification"
-        component={SwipeNotificationScreen}
-        options={{ headerShown: false }}
-      />
     </Stack.Navigator>
   );
 }
