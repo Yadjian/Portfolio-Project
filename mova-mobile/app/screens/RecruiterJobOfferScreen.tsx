@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Linking, Alert, StyleSheet, Dimensions, ScrollView, TextInput, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Linking, Alert, StyleSheet, Dimensions, ScrollView, TextInput, Modal, Pressable } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getRecruiterTabs } from '../../constants/tabsConfig';
-import SmallMovaLogo from '../../components/ui/SmallMovaLogo';
-import { LinearGradient } from 'expo-linear-gradient';
+import MovaLogo from '../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
@@ -108,23 +107,20 @@ export default function RecruiterJobOfferScreen({ navigation }: any) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#f2f2f2' }}>
+    <View style={styles.container}>
       <KeyboardAwareScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={styles.content}
         enableOnAndroid={true}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={{ flex: 1 }}>
-          <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
-            <View style={styles.logoContainer}>
-              <SmallMovaLogo />
-              <Text style={styles.title}>Mes offres</Text>
-            </View>
-            <View style={{ height: height * 0.03 }} />
+        <View style={styles.header}>
+          <Text style={styles.title}>Mes Offres</Text>
+          <Text style={styles.subtitle}>Gérez vos offres d'emploi ici.</Text>
+        </View>
             {cards.length === 0 && (
               <View style={styles.emptyCard}>
-                <Text style={{ textAlign: 'center', color: '#aaa', marginBottom: 16 }}>
+                <Text style={styles.emptyCardText}>
                   Aucune offre ajoutée pour l'instant.
                 </Text>
                 <TouchableOpacity
@@ -132,7 +128,7 @@ export default function RecruiterJobOfferScreen({ navigation }: any) {
                   onPress={addCard}
                   activeOpacity={0.8}
                 >
-                  <Ionicons name="add-circle" size={30} color="#6746a8" />
+                  <Ionicons name="add-circle" size={40} color="#4930a3" />
                 </TouchableOpacity>
               </View>
             )}
@@ -153,11 +149,11 @@ export default function RecruiterJobOfferScreen({ navigation }: any) {
                       <Text style={styles.link}>Voir mon offre</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      onPress={() => handleDelete(idx)}
-                      style={[styles.offerButton, { backgroundColor: '#e74c3c', marginTop: 12 }]}
+                      onPress={() => updateCard(idx, { offerUrl: null })}
+                      style={[styles.submitButton, styles.secondaryButton, { marginTop: 12 }]}
                       activeOpacity={0.8}
                     >
-                      <Text style={styles.offerButtonText}>Supprimer cette offre</Text>
+                      <Text style={[styles.submitButtonText, styles.secondaryButtonText]}>Remplacer l'offre</Text>
                     </TouchableOpacity>
                   </View>
                 ) : (
@@ -171,160 +167,136 @@ export default function RecruiterJobOfferScreen({ navigation }: any) {
                   !card.title && !card.offerUrl && (
                     <View style={styles.buttonRow}>
                       <TouchableOpacity
-                        onPress={() => handleUpload(idx)}
-                        activeOpacity={0.8}
-                        style={styles.offerButton}
-                      >
-                        <LinearGradient
-                          colors={['#6746a8', '#6b25f9', '#07b9ff']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={StyleSheet.absoluteFill}
-                        />
-                        <Text style={styles.offerButtonText}>Importer</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
                         onPress={() => updateCard(idx, { showForm: !card.showForm })}
                         activeOpacity={0.8}
-                        style={[styles.offerButton, { marginLeft: 12 }]}
+                        style={styles.submitButton}
+                      >                        
+                        <Text style={styles.submitButtonText}>Créer une offre</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        onPress={() => handleUpload(idx)}
+                        activeOpacity={0.8}
+                        style={[styles.submitButton, styles.secondaryButton, { marginTop: 12 }]}
                       >
-                        <LinearGradient
-                          colors={['#6746a8', '#6b25f9', '#07b9ff']}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={StyleSheet.absoluteFill}
-                        />
-                        <Text style={styles.offerButtonText}>Créer</Text>
+                        <Text style={[styles.submitButtonText, styles.secondaryButtonText]}>Importer une offre</Text>
                       </TouchableOpacity>
                     </View>
                   )
                 )}
                 {card.showForm && (
                   <View style={styles.formContainer}>
-                    <Text style={styles.label}>Titre de l'offre</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={card.title || ''}
-                      onChangeText={text => updateCard(idx, { title: text })}
-                      placeholder="Titre"
-                    />
-                    <Text style={styles.label}>Description</Text>
-                    <TextInput
-                      style={[styles.input, { height: 80 }]}
-                      value={card.description || ''}
-                      onChangeText={text => updateCard(idx, { description: text })}
-                      placeholder="Description"
-                      multiline
-                    />
-                    <Text style={styles.label}>Type de contrat</Text>
-                    <TouchableOpacity
-                      style={[styles.input, { justifyContent: 'center' }]}
-                      onPress={() => openContractModal(idx)}
-                    >
-                      <Text style={{ color: card.contractType ? '#222' : '#aaa', fontSize: width * 0.04 }}>
-                        {card.contractType || 'Sélectionner'}
-                      </Text>
-                    </TouchableOpacity>
-                    <Text style={styles.label}>Heures de travail / semaine</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={card.hoursPerWeek || ''}
-                      onChangeText={text => updateCard(idx, { hoursPerWeek: text })}
-                      placeholder="Ex: 35"
-                      keyboardType="numeric"
-                    />
-                    <Text style={styles.label}>Localisation</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={card.location || ''}
-                      onChangeText={text => updateCard(idx, { location: text })}
-                      placeholder="Ville, Région..."
-                    />
-                    <Text style={styles.label}>Salaire minimum (€)</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={card.salaryMin || ''}
-                      onChangeText={text => updateCard(idx, { salaryMin: text })}
-                      placeholder="Ex: 1800"
-                      keyboardType="numeric"
-                    />
-                    <Text style={styles.label}>Salaire maximum (€)</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={card.salaryMax || ''}
-                      onChangeText={text => updateCard(idx, { salaryMax: text })}
-                      placeholder="Ex: 2500"
-                      keyboardType="numeric"
-                    />
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Titre de l'offre</Text>
+                      <View style={styles.inputContainer}>
+                        <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                        <TextInput style={styles.input} value={card.title || ''} onChangeText={text => updateCard(idx, { title: text })} placeholder="Développeur React Native" placeholderTextColor="#999" />
+                      </View>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Description (optionnel)</Text>
+                      <View style={[styles.inputContainer, { height: 100, alignItems: 'flex-start' }]}>
+                        <Ionicons name="document-text-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
+                        <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} value={card.description || ''} onChangeText={text => updateCard(idx, { description: text })} placeholder="Description du poste..." placeholderTextColor="#999" multiline />
+                      </View>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Type de contrat</Text>
+                      <TouchableOpacity style={styles.inputContainer} onPress={() => openContractModal(idx)}>
+                        <Ionicons name="document-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                        <Text style={[styles.input, !card.contractType && styles.placeholder]}>{card.contractType || 'Sélectionner un type'}</Text>
+                        <Ionicons name="chevron-down-outline" size={20} color="#999" />
+                      </TouchableOpacity>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Heures / semaine</Text>
+                      <View style={styles.inputContainer}>
+                        <Ionicons name="time-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                        <TextInput style={styles.input} value={card.hoursPerWeek || ''} onChangeText={text => updateCard(idx, { hoursPerWeek: text })} placeholder="Ex: 35" keyboardType="numeric" />
+                      </View>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Localisation</Text>
+                      <View style={styles.inputContainer}>
+                        <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                        <TextInput style={styles.input} value={card.location || ''} onChangeText={text => updateCard(idx, { location: text })} placeholder="Ville, Région..." />
+                      </View>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Salaire (Brut Annuel)</Text>
+                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <View style={[styles.inputContainer, { width: '48%' }]}>
+                          <Ionicons name="cash-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                          <TextInput style={styles.input} value={card.salaryMin || ''} onChangeText={text => updateCard(idx, { salaryMin: text })} placeholder="Min" keyboardType="numeric" />
+                        </View>
+                        <View style={[styles.inputContainer, { width: '48%' }]}>
+                          <Ionicons name="cash-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                          <TextInput style={styles.input} value={card.salaryMax || ''} onChangeText={text => updateCard(idx, { salaryMax: text })} placeholder="Max" keyboardType="numeric" />
+                        </View>
+                      </View>
+                    </View>
+
                     <View style={styles.formButtonRow}>
                       <TouchableOpacity
                         onPress={() => handleCreateOffer(idx)}
                         activeOpacity={0.8}
-                        style={[styles.offerButton, { backgroundColor: '#07b9ff', marginRight: 12 }]}
+                        style={[styles.submitButton, { flex: 1 }]}
                       >
-                        <Text style={styles.offerButtonText}>Valider</Text>
+                        <Text style={styles.submitButtonText}>Valider</Text>
                       </TouchableOpacity>
                       <TouchableOpacity
                         onPress={() => updateCard(idx, { showForm: false })}
                         activeOpacity={0.8}
-                        style={[styles.offerButton, { backgroundColor: '#6b25f9' }]}
+                        style={[styles.submitButton, styles.secondaryButton, { flex: 1, marginLeft: 12 }]}
                       >
-                        <Text style={styles.offerButtonText}>Annuler</Text>
+                        <Text style={[styles.submitButtonText, styles.secondaryButtonText]}>Annuler</Text>
                       </TouchableOpacity>
                     </View>
                     {card.error ? <Text style={{ color: 'red', marginTop: 8 }}>{card.error}</Text> : null}
                   </View>
                 )}
                 {card.error && !card.showForm ? <Text style={{ color: 'red', marginTop: 16 }}>{card.error}</Text> : null}
-                {/* Ajoute le bouton + seulement sur la dernière card */}
-                {idx === cards.length - 1 && !card.showForm && (
+                {/* Ajoute le bouton + seulement sur la première card si elle est remplie */}
+                {idx === 0 && (card.title || card.offerUrl) && (
                   <TouchableOpacity
                     style={styles.addIconInCard}
                     onPress={addCard}
                     activeOpacity={0.8}
                   >
-                    <Ionicons name="add-circle" size={30} color="#6746a8" />
+                    <Ionicons name="add-circle" size={40} color="#4930a3" />
                   </TouchableOpacity>
                 )}
                 {/* Affiche la fiche du poste et le bouton Modifier */}
                 {!card.showForm && card.title && (
                   <>
-                    <View style={{ marginBottom: 16 }}>
-                      <Text style={styles.label}>Titre : <Text style={{ fontWeight: 'normal' }}>{card.title}</Text></Text>
+                    <View style={styles.offerDetailsContainer}>
+                      <Text style={styles.detailTitle}>{card.title}</Text>
                       {card.description ? (
-                        <Text style={styles.label}>Description : <Text style={{ fontWeight: 'normal' }}>{card.description}</Text></Text>
+                        <Text style={styles.detailText}>{card.description}</Text>
                       ) : null}
-                      {card.contractType ? (
-                        <Text style={styles.label}>Type de contrat : <Text style={{ fontWeight: 'normal' }}>{card.contractType}</Text></Text>
-                      ) : null}
-                      {card.hoursPerWeek ? (
-                        <Text style={styles.label}>Heures/semaine : <Text style={{ fontWeight: 'normal' }}>{card.hoursPerWeek}</Text></Text>
-                      ) : null}
-                      {card.location ? (
-                        <Text style={styles.label}>Localisation : <Text style={{ fontWeight: 'normal' }}>{card.location}</Text></Text>
-                      ) : null}
-                      {(card.salaryMin || card.salaryMax) && (
-                        <Text style={styles.label}>
-                          Salaire : <Text style={{ fontWeight: 'normal' }}>
-                            {card.salaryMin ? `${card.salaryMin}€` : ''}{card.salaryMin && card.salaryMax ? ' - ' : ''}{card.salaryMax ? `${card.salaryMax}€` : ''}
-                          </Text>
-                        </Text>
-                      )}
+                      <View style={styles.tagsContainer}>
+                        {card.contractType && <Text style={styles.tag}>{card.contractType}</Text>}
+                        {card.hoursPerWeek && <Text style={styles.tag}>{card.hoursPerWeek}h/sem</Text>}
+                        {card.location && <Text style={styles.tag}>{card.location}</Text>}
+                        {(card.salaryMin || card.salaryMax) && <Text style={styles.tag}>{card.salaryMin}€ - {card.salaryMax}€</Text>}
+                      </View>
                     </View>
                     <TouchableOpacity
-                      style={[styles.offerButton, { backgroundColor: '#6b25f9', alignSelf: 'flex-start', marginBottom: 12 }]}
+                      style={[styles.submitButton, { alignSelf: 'flex-start', paddingHorizontal: 20, height: 44, marginTop: 16 }]}
                       activeOpacity={0.8}
                       onPress={() => updateCard(idx, { showForm: true })}
                     >
-                      <Text style={styles.offerButtonText}>Modifier</Text>
+                      <Text style={styles.submitButtonText}>Modifier</Text>
                     </TouchableOpacity>
                   </>
                 )}
               </View>
             ))}
-            <View style={{ height: height * 0.08 }} />
-          </ScrollView>
-        </View>
+            <View style={{ height: 100 }} />
         {/* Modal déroulant pour type de contrat */}
         <Modal
           visible={contractModalVisible}
@@ -333,17 +305,17 @@ export default function RecruiterJobOfferScreen({ navigation }: any) {
           onRequestClose={() => setContractModalVisible(false)}
         >
           <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
-            <View style={styles.modalContent}>
+            <Pressable style={styles.modalContent}>
               {['CDI', 'CDD', 'STAGE', 'ALTERNANCE'].map(opt => (
                 <TouchableOpacity
                   key={opt}
                   style={styles.modalOption}
                   onPress={() => selectContractType(opt)}
                 >
-                  <Text style={{ fontSize: 18 }}>{opt}</Text>
+                  <Text style={styles.modalOptionText}>{opt}</Text>
                 </TouchableOpacity>
               ))}
-            </View>
+            </Pressable>
           </TouchableOpacity>
         </Modal>
       </KeyboardAwareScrollView>
@@ -353,130 +325,215 @@ export default function RecruiterJobOfferScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  content: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
   scrollContainer: {
     flex: 1,
   },
-  logoContainer: {
-    alignItems: 'center',
-  },
   title: {
+    fontSize: 26,
     fontWeight: 'bold',
-    letterSpacing: 2,
-    fontSize: width * 0.08,
-    color: '#6746a8',
+    color: '#4930a3',
+    marginTop: 16,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: width * 0.045,
-    paddingVertical: height * 0.04,
-    paddingHorizontal: width * 0.06,
-    marginHorizontal: width * 0.02,
-    marginBottom: height * 0.02,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 20,
+    padding: 28,
     shadowColor: '#6746a8',
-    shadowOpacity: 0.08,
-    shadowRadius: width * 0.03,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+    elevation: 8,
     position: 'relative',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
   },
   emptyCard: {
-    backgroundColor: '#fff',
-    borderRadius: width * 0.045,
-    paddingVertical: height * 0.04,
-    paddingHorizontal: width * 0.06,
-    marginHorizontal: width * 0.02,
-    marginBottom: height * 0.02,
+    backgroundColor: '#f8f8f8',
+    borderRadius: 20,
+    padding: 28,
+    shadowColor: '#6746a8',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+  },
+  emptyCardText: {
+    textAlign: 'center',
+    color: '#888',
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  inputGroup: {
+    marginBottom: 20,
   },
   label: {
+    fontSize: 15,
     fontWeight: 'bold',
-    color: '#6746a8',
-    marginBottom: height * 0.01,
-    fontSize: width * 0.045,
+    color: '#333',
+    marginBottom: 8,
   },
   link: {
-    color: '#07b9ff',
+    color: '#4930a3',
     textDecorationLine: 'underline',
-    marginBottom: height * 0.015,
-    fontSize: width * 0.045,
+    fontSize: 16,
   },
-  offerButton: {
-    width: width * 0.2,
-    alignSelf: 'center',
-    height: height * 0.040,
-    borderRadius: height * 0.027,
+  submitButton: {
+    backgroundColor: '#4930a3',
+    borderRadius: 14,
+    height: 54,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: height * 0.01,
-    overflow: 'hidden',
-    position: 'relative',
+    shadowColor: '#4930a3',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  offerButtonText: {
+  submitButtonText: {
     color: '#fff',
-    fontSize: width * 0.04,
+    fontSize: 17,
     fontWeight: 'bold',
-    zIndex: 1,
+  },
+  secondaryButton: {
+    backgroundColor: '#f8f8f8',
+    borderWidth: 1.5,
+    borderColor: '#4930a3',
+    elevation: 0,
+    shadowOpacity: 0,
+  },
+  secondaryButtonText: {
+    color: '#4930a3',
   },
   formContainer: {
-    marginTop: 24,
-    padding: 16,
-    backgroundColor: '#f7f7fa',
-    borderRadius: width * 0.03,
+    marginTop: 16,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 14,
+    height: 52,
+  },
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: width * 0.02,
-    borderWidth: 1,
-    borderColor: '#eee',
-    padding: 10,
-    marginBottom: 16,
-    fontSize: width * 0.04,
+    flex: 1,
+    fontSize: 15,
+    color: '#333',
+    height: '100%',
+  },
+  placeholder: {
+    color: '#999',
   },
   addIconInCard: {
     position: 'absolute',
-    right: 16,
-    bottom: 16,
+    right: 12,
+    bottom: 12,
     zIndex: 10,
   },
   addIconEmpty: {
     position: 'absolute',
-    right: 16,
-    bottom: 16,
+    right: 12,
+    bottom: 12,
     zIndex: 10,
   },
   trashIcon: {
     position: 'absolute',
-    top: 16,
-    right: 16,
+    top: 12,
+    right: 12,
     zIndex: 10,
+    padding: 8,
   },
   buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginTop: height * 0.01,
+    marginTop: 8,
   },
   formButtonRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginTop: height * 0.02,
+    justifyContent: 'space-between',
+    marginTop: 24,
   },
   modalOverlay: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0006',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
     backgroundColor: '#fff',
-    borderRadius: 8,
+    borderRadius: 12,
     padding: 16,
-    minWidth: 220,
+    width: '80%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   modalOption: {
     paddingVertical: 12,
     alignItems: 'center',
+  },
+  modalOptionText: {
+    fontSize: 18,
+    color: '#333',
+  },
+  offerDetailsContainer: {
+    marginTop: 8,
+  },
+  detailTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+  },
+  detailText: {
+    fontSize: 15,
+    color: '#666',
+    lineHeight: 22,
+    marginBottom: 12,
+  },
+  tagsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  tag: {
+    backgroundColor: '#e8e8e8',
+    color: '#555',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 15,
+    fontSize: 12,
+    overflow: 'hidden', // for iOS to respect borderRadius
   },
 });

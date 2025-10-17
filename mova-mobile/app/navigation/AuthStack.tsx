@@ -84,7 +84,6 @@ export default function AuthStack() {
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
           headerBackTitleVisible: false,
         })}
       />
@@ -113,7 +112,7 @@ export default function AuthStack() {
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
+          headerRight: () => <HomeButton onPress={() => navigation.navigate('Home')} />,
           headerBackTitleVisible: false,
         })}
       />
@@ -124,7 +123,7 @@ export default function AuthStack() {
           headerLeft: () => (
             <BackButton onPress={() => navigation.goBack()} />
           ),
-          headerRight: () => <HomeButton onPress={() => navigation.navigate('UserHome')} />,
+          headerRight: () => <HomeButton onPress={() => navigation.navigate('Home')} />,
           headerBackTitleVisible: false,
         })}
       />

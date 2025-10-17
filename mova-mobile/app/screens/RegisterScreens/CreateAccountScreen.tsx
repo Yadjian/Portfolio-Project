@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Dimensions, KeyboardAvoidingView, Platform, ScrollView, Keyboard } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MovaLogo from '@/components/ui/MovaLogo';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../../../lib/types';
 
-const { width, height } = Dimensions.get('window');
+type CreateAccountProps = NativeStackScreenProps<AuthStackParamList, 'CreateAccount'>;
 
-export default function CreateAccountScreen({ route, navigation }: any) {
+export default function CreateAccountScreen({ route, navigation }: CreateAccountProps) {
   const userType = route?.params?.userType ?? 'candidate';
   const [formData, setFormData] = useState({
     email: '',
@@ -14,26 +16,11 @@ export default function CreateAccountScreen({ route, navigation }: any) {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
-
-  React.useEffect(() => {
-    const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
-      setKeyboardVisible(true);
-    });
-    const hideSubscription = Keyboard.addListener('keyboardDidHide', () => {
-      setKeyboardVisible(false);
-    });
-
-    return () => {
-      showSubscription.remove();
-      hideSubscription.remove();
-    };
-  }, []);
 
   const handleSubmit = () => {
     console.log('Création compte:', formData, userType);
     if (userType === 'recruiter') {
-      navigation.navigate('CreateCompany');
+      navigation.navigate('CreateCompany', { startEditing: true });
     } else {
       navigation.navigate('EditProfileScreen', { userType: 'candidate' });
     }
@@ -45,9 +32,8 @@ export default function CreateAccountScreen({ route, navigation }: any) {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView 
-        contentContainerStyle={keyboardVisible ? styles.scrollContent : styles.content}
+        contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={keyboardVisible}
         keyboardShouldPersistTaps="handled"
       >
         {/* Header avec logo */}
@@ -153,11 +139,6 @@ const styles = StyleSheet.create({
     paddingTop: 40,
     paddingBottom: 40,
     justifyContent: 'flex-start',
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    paddingBottom: 40,
   },
   header: {
     alignItems: 'center',

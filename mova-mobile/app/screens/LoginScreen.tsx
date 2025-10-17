@@ -35,9 +35,9 @@ export default function LoginScreen({ navigation }: any) {
         // Navigation selon le type d'utilisateur
         // Ici, on suppose que res.user.type existe et vaut 'candidate' ou 'recruiter'
         if (res.user && res.user.type === 'candidate') {
-          navigation.navigate('CandidateProfile');
+          navigation.navigate('CandidateProfile', {});
         } else if (res.user && res.user.type === 'recruiter') {
-          navigation.navigate('RecruiterProfile');
+          navigation.navigate('RecruiterProfile', {});
         } else {
           alert('Type utilisateur inconnu, connexion réussie !');
         }
