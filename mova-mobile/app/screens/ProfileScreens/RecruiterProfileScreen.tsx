@@ -1,0 +1,187 @@
+import React, { useState, useEffect } from 'react';
+import { View, StyleSheet, ScrollView, Text, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Feather } from '@expo/vector-icons';
+
+import type { AuthStackParamList } from '../../../lib/types';
+import BottomTabBar from '../../../components/ui/BottomTabBar';
+import { getRecruiterTabs } from '@/constants/tabsConfig';
+import Colors from '../../../constants/Colors';
+import ProfileSection from '../../../components/ui/ProfileSection'; // Correction de l'import
+
+const { width } = Dimensions.get('window');
+
+export default function RecruiterProfileScreen() {
+  const route = useRoute<RouteProp<AuthStackParamList, 'RecruiterProfile'>>();
+  const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+
+  // Mock data for the recruiter profile
+  const [recruiter, setRecruiter] = useState<any>({
+    companyName: '',
+    firstName: '',
+    lastName: '',
+    location: '',
+    avatarUrl: 'https://via.placeholder.com/150',
+    jobSeeking: '',
+    experienceRequired: '',
+    contractType: '',
+    presentation: '',
+  });
+
+  useEffect(() => {
+    // TODO: Remplacer par un appel API pour récupérer les vraies données du recruteur
+    const fetchRecruiterData = () => {
+      const mockData = {
+        companyName: 'TechCorp Solutions',
+        firstName: 'Jean',
+        lastName: 'Dupont',
+        location: 'Lyon, France',
+        avatarUrl: 'https://randomuser.me/api/portraits/men/2.jpg',
+        jobSeeking: 'Développeur React Native',
+        experienceRequired: 'Intermédiaire',
+        contractType: 'CDI',
+        presentation: "Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et innovante ! Notre culture d'entreprise est basée sur la collaboration, la créativité et l'excellence technique. Rejoignez-nous pour travailler sur des projets d'envergure.",
+      };
+      setRecruiter((prev: any) => ({ ...prev, ...mockData }));
+    };
+    fetchRecruiterData();
+  }, []);
+
+  const notificationCount = 0; // Example count
+  const tabs = getRecruiterTabs(navigation, notificationCount);
+
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {/* --- Profile Header --- */}
+        <View style={styles.header}>
+          <View style={styles.headerBackground} />
+          <Image source={{ uri: recruiter.avatarUrl }} style={styles.avatar} />
+          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen', { userType: 'recruiter' })}>
+            <Feather name="edit-2" size={20} color="#4930a3" />
+          </TouchableOpacity>
+          <Text style={styles.name}>{recruiter.companyName}</Text>
+          <Text style={styles.jobTitle}>{`${recruiter.firstName} ${recruiter.lastName}`.trim()}</Text>
+          <View style={styles.locationContainer}>
+            <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
+            <Text style={styles.location}>{recruiter.location}</Text>
+          </View>
+        </View>
+
+        {/* --- Presentation Section --- */}
+        <ProfileSection title="Présentation de l'entreprise" icon="user" iconColor="#4930a3">
+          <Text style={styles.sectionText}>{recruiter.presentation}</Text>
+        </ProfileSection>
+
+        {/* --- Job Details Section --- */}
+        <ProfileSection title="Recherche en cours" icon="briefcase" iconColor="#4930a3">
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Poste recherché:</Text>
+            <Text style={styles.detailValue}>{recruiter.jobSeeking}</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Expérience requise:</Text>
+            <Text style={styles.detailValue}>{recruiter.experienceRequired}</Text>
+          </View>
+          <View style={styles.detailItem}>
+            <Text style={styles.detailLabel}>Type de contrat:</Text>
+            <Text style={styles.detailValue}>{recruiter.contractType}</Text>
+          </View>
+        </ProfileSection>
+
+        {/* Spacer at the bottom */}
+        <View style={{ height: 100 }} />
+      </ScrollView>
+      <BottomTabBar tabs={tabs} activeTabId="profile" />
+    </View>
+  );
+}
+
+// Using the same styles as CandidateProfileScreen for consistency
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  // Header Styles
+  header: {
+    alignItems: 'center',
+    paddingBottom: 20,
+    backgroundColor: Colors.light.backgroundCard,
+  },
+  headerBackground: {
+    backgroundColor: '#4930a3',
+    height: 100,
+    width: '100%',
+    position: 'absolute',
+  },
+  avatar: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    borderWidth: 4,
+    borderColor: Colors.light.backgroundCard,
+    marginTop: 30, // Ajusté pour centrer l'avatar plus grand
+  },
+  editButton: {
+    position: 'absolute',
+    top: 120, // Ajusté pour le nouvel avatar
+    right: 20,
+    backgroundColor: Colors.light.backgroundCard,
+    padding: 8,
+    borderRadius: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  name: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: Colors.light.text,
+    marginTop: 10,
+  },
+  jobTitle: {
+    fontSize: 16,
+    color: Colors.light.textSecondary,
+    marginTop: 4,
+  },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  location: {
+    fontSize: 14,
+    color: Colors.light.textSecondary,
+    marginLeft: 4,
+  },
+  sectionText: {
+    fontSize: 15,
+    color: Colors.light.text,
+    lineHeight: 22,
+  },
+  // Detail Section Styles
+  detailItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  detailLabel: {
+    fontSize: 15,
+    color: Colors.light.textSecondary,
+  },
+  detailValue: {
+    fontSize: 15,
+    color: Colors.light.text,
+    fontWeight: '600',
+    maxWidth: '60%',
+    textAlign: 'right',
+  },
+});
