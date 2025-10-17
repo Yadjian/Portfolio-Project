@@ -89,11 +89,11 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.light.border,
   },
   avatar: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
     marginBottom: 15,
-    backgroundColor: 'pink', // DEBUGGING LINE
+    backgroundColor: '#e5e5e5',
   },
   name: {
     fontSize: 22,

@@ -8,15 +8,30 @@ import Colors from '@/constants/Colors'; // Import our new colors
 
 const { width } = Dimensions.get('window');
 
-// Re-styled ActionButton
-const ActionButton = ({ onPress, small, color, icon, style }: { 
+// ActionButton stylisé façon pro (LinkedIn/Indeed)
+const ActionButton = ({ onPress, small, color, icon, style }: {
   onPress: () => void;
   small?: boolean;
   color: string;
   icon: keyof typeof Feather.glyphMap;
   style?: any;
 }) => (
-  <TouchableOpacity onPress={onPress} style={[styles.button, small ? styles.smallButton : styles.largeButton, { backgroundColor: Colors.light.backgroundCard, shadowColor: '#000' }, style]}>
+  <TouchableOpacity
+    onPress={onPress}
+    activeOpacity={0.85}
+    style={[
+      styles.button,
+      small ? styles.smallButton : styles.largeButton,
+      {
+        backgroundColor: '#fff',
+        shadowColor: color,
+        borderWidth: 2,
+        borderColor: color,
+        elevation: 8,
+      },
+      style,
+    ]}
+  >
     <Feather name={icon} size={small ? 24 : 32} color={color} />
   </TouchableOpacity>
 );
@@ -87,7 +102,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const panResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderMove: Animated.event([null, { dx: position.x, dy: position.y }], { useNativeDriver: false }),
+      onPanResponderMove: Animated.event([null, { dx: position.x }], { useNativeDriver: false }), // Seulement dx, pas dy
       onPanResponderRelease: (_, gesture) => {
         if (gesture.dx > 120) {
           swipe('right');
@@ -107,7 +122,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   });
 
   const animatedStyle = {
-    transform: [{ translateX: position.x }, { translateY: position.y }, { rotate }],
+    transform: [{ translateX: position.x }], // Pas de rotation, juste translation horizontale
   };
 
   const resetPosition = () => {
@@ -145,11 +160,8 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
                 </Animated.View>
               );
             }
-            return (
-              <Animated.View key={profile.id} style={[styles.card, styles.behindCard]}>
-                <SwipeCard userType={userType === 'candidat' ? 'recruiter' : 'candidate'} {...profile} />
-              </Animated.View>
-            );
+            // Ne pas afficher la carte suivante
+            return null;
           }).reverse()
         ) : (
           <View style={styles.noMoreProfiles}>
@@ -162,7 +174,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
       {/* --- Re-styled Footer --- */}
       <View style={styles.footer}>
         <ActionButton icon="x" color={Colors.light.error} onPress={() => swipe('left')} />
-        <ActionButton icon="refresh-cw" color={Colors.light.textSecondary} small onPress={() => { /* TODO: Implement refresh logic */ }} />
+        <ActionButton icon="refresh-cw" color={Colors.light.textSecondary} small onPress={() => { /* TODO: Implement refresh logic */ }} style={{ marginTop: 15 }} />
         <ActionButton icon="check" color={Colors.light.accent} onPress={() => swipe('right')} />
       </View>
       <BottomTabBar tabs={tabs} activeTabId="notifications" />
@@ -182,7 +194,8 @@ const styles = StyleSheet.create({
   },
   card: {
     position: 'absolute',
-    width: width * 0.9, // Slightly smaller width
+    width: width * 0.95, // Carte plus large
+    top: 80, // Descend un peu la carte
   },
   behindCard: {
     // Style for cards that are behind the top one to create a deck effect
@@ -199,27 +212,35 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     flexDirection: 'row',
     justifyContent: 'space-evenly',
     alignItems: 'center',
-    paddingVertical: 15,
-    paddingBottom: 100, // Space for the BottomTabBar
+    paddingVertical: 20,
+    paddingBottom: 140, // Remonte un peu les boutons
+    backgroundColor: 'transparent',
   },
   button: {
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 8,
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+    marginHorizontal: 10,
+    // borderWidth et borderColor sont ajoutés dynamiquement
+    // backgroundColor aussi
+    // elevation aussi
   },
   smallButton: {
-    width: 50,
-    height: 50,
+    width: 54,
+    height: 54,
   },
   largeButton: {
-    width: 65,
-    height: 65,
+    width: 72,
+    height: 72,
   },
 });
