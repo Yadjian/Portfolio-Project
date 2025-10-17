@@ -15,13 +15,14 @@ const { height, width } = Dimensions.get('window');
 
 // Fonction pour obtenir l'URL du backend
 const getApiUrl = () => {
-  return 'http://192.168.1.16:3000'; // ← Mets l’IP Windows actuelle ici
+  // Utilise l'URL ngrok affichée dans le terminal
+  return 'https://tubular-verna-telegraphically.ngrok-free.dev'; // ← Mets ici l'URL ngrok
 };
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { loading } = useAuth();
-  const [backendStatus, setBackendStatus] = useState('🔄 Vérification de la connexion...');
+  const [backendStatus, setBackendStatus] = useState('Vérification de la connexion...');
 
   // Test de connexion au backend
   useEffect(() => {
@@ -49,7 +50,7 @@ export default function HomeScreen() {
       }
     };
 
-    console.log('🚀 [BACKEND TEST] useEffect déclenché');
+    console.log('[BACKEND TEST] useEffect déclenché');
     testBackendConnection();
   }, []);
 

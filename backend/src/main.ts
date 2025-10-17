@@ -48,6 +48,6 @@ async function bootstrap() {
 
   // CORRECTION : Ajoute '0.0.0.0' pour écouter sur toutes les interfaces réseau
   await app.listen(port, '0.0.0.0');
-  console.log(`🚀 Server is running on http://localhost:${port}`);
+  console.log(`Server is running on http://localhost:${port}`);
 }
 bootstrap();
