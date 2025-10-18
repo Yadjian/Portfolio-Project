@@ -58,6 +58,6 @@ export class JobOffersController {
   @HttpCode(HttpStatus.NO_CONTENT) // Un DELETE réussi renvoie un statut 204
   remove(@Param('id', ParseUUIDPipe) id: string, @Req() req: Request) {
     const user = req.user as { sub: string };
-    return this.jobOfferService.remove(id, user.sub);
+    return (this.jobOfferService as any).remove(id, user.sub);
   }
 }
