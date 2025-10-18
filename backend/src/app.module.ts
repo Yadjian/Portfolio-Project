@@ -10,9 +10,10 @@ import { ProfileModule } from './profile/profile.module';
 import { JobOfferModule } from './job-offer/job-offer.module';
 import { CompaniesModule } from './companies/companies.module';
 import { DiscoveryModule } from './discovery/discovery.module';
+import { SwipesModule } from './swipes/swipes.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, ProfileModule, JobOfferModule, CompaniesModule, DiscoveryModule],
+  imports: [AuthModule, PrismaModule, ProfileModule, JobOfferModule, CompaniesModule, DiscoveryModule, SwipesModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
