@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { login } from '../../services/api';
-import { View, StyleSheet, Text, Pressable, TextInput, useWindowDimensions, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Keyboard } from 'react-native';
+import { View, StyleSheet, Text, TextInput, useWindowDimensions, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import MovaLogo from '../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
+import { getApiUrl } from '@/lib/types';
+import * as SecureStore from 'expo-secure-store';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { height, width } = useWindowDimensions();
   const [loading, setLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -27,27 +27,64 @@ export default function LoginScreen({ navigation }: any) {
   }, []);
 
   const handleLogin = async () => {
-    setLoading(true);
-    try {
-      // La logique de connexion reste la même
-      const res = await login(email, password);
-      if (res.success) {
-        // Navigation selon le type d'utilisateur
-        // Ici, on suppose que res.user.type existe et vaut 'candidate' ou 'recruiter'
-        if (res.user && res.user.type === 'candidate') {
-          navigation.navigate('CandidateProfile', {});
-        } else if (res.user && res.user.type === 'recruiter') {
-          navigation.navigate('RecruiterProfile', {});
-        } else {
-          alert('Type utilisateur inconnu, connexion réussie !');
-        }
-      } else {
-        alert(res.message || 'Erreur de connexion');
-      }
-    } catch (err) {
-      alert('Erreur de connexion');
+    if (!email || !password) {
+      Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
+      return;
     }
-    setLoading(false);
+
+    setLoading(true);
+    const API_URL = getApiUrl();
+
+    try {
+      // 1. Appel à l'API de connexion
+      const loginResponse = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        throw new Error(data.message || 'Identifiants incorrects.');
+      }
+
+      const { accessToken, refreshToken } = data;
+
+      // Stockage sécurisé des tokens pour les futures sessions
+      await SecureStore.setItemAsync('auth_token', accessToken);
+      await SecureStore.setItemAsync('refresh_token', refreshToken);
+
+      // 2. Appel à l'API pour récupérer le profil de l'utilisateur
+      const profileResponse = await fetch(`${API_URL}/profile/me`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'ngrok-skip-browser-warning': 'true',
+        },
+      });
+
+      const profileData = await profileResponse.json();
+      if (!profileResponse.ok) {
+        throw new Error(profileData.message || "Impossible de récupérer le profil de l'utilisateur.");
+      }
+
+      // 3. Navigation en fonction du type de profil
+      if (profileData.candidateProfile) {
+        navigation.replace('CandidateProfile', { userType: 'candidate' });
+      } else if (profileData.recruiterProfile) {
+        navigation.replace('RecruiterProfile', { userType: 'recruiter' });
+      } else {
+        throw new Error("Type de profil non reconnu.");
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      Alert.alert('Erreur de connexion', errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -109,9 +146,11 @@ export default function LoginScreen({ navigation }: any) {
           </View>
 
           <TouchableOpacity style={styles.submitButton} onPress={handleLogin} disabled={loading}>
-            <Text style={styles.submitButtonText}>
-                {loading ? 'Connexion...' : 'Se connecter'}
-            </Text>
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitButtonText}>Se connecter</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.footer}>

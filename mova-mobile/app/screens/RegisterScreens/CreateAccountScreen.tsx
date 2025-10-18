@@ -5,6 +5,7 @@ import MovaLogo from '@/components/ui/MovaLogo';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../../lib/types';
 import { getApiUrl } from '@/lib/types'; // Assurez-vous que getApiUrl est exporté depuis types.ts
+import * as SecureStore from 'expo-secure-store';
 import { jwtDecode } from 'jwt-decode';
 
 type CreateAccountProps = NativeStackScreenProps<AuthStackParamList, 'CreateAccount'>;
@@ -71,6 +72,10 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
       }
 
       console.log('Compte créé avec succès:', data);
+
+      // Stockage sécurisé des tokens pour les futures sessions
+      await SecureStore.setItemAsync('auth_token', data.accessToken);
+      await SecureStore.setItemAsync('refresh_token', data.refreshToken);
 
       // On décode le accessToken pour obtenir l'ID de l'utilisateur (le champ 'sub')
       const decodedToken: { sub: string } = jwtDecode(data.accessToken);
