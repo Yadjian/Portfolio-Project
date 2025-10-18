@@ -91,28 +91,10 @@ export async function getMyProfile() {
   return handleResponse(response);
 }
 
-export async function fetchProfile(userId: string, userType: 'candidate' | 'recruiter') {
-  // Route extraite de EditProfileScreen.tsx
-  const endpoint = userType === 'candidate'
-    ? `${API_URL}/api/profiles/candidate/${userId}`
-    : `${API_URL}/api/profiles/recruiter/${userId}`;
-
-  const response = await fetch(endpoint, {
-    headers: await getHeaders(true),
-  });
-
-  if (response.status === 404) return null;
-  return handleResponse(response);
-}
-
-export async function updateProfile(userId: string, userType: 'candidate' | 'recruiter', profileData: any) {
-  // Route extraite de EditProfileScreen.tsx
-  const endpoint = userType === 'candidate'
-    ? `${API_URL}/api/profiles/candidate/${userId}`
-    : `${API_URL}/api/profiles/recruiter/${userId}`;
-
-  const response = await fetch(endpoint, {
-    method: 'PATCH',
+export async function updateProfile(profileData: any) {
+  // La route pour mettre à jour le profil de l'utilisateur courant
+  const response = await fetch(`${API_URL}/profile/me`, {
+    method: 'PUT',
     headers: await getHeaders(true),
     body: JSON.stringify(profileData),
   });

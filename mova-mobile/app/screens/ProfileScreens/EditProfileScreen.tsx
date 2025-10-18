@@ -9,7 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import MovaLogo from '../../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
-import { fetchProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
+import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -84,27 +84,39 @@ export default function EditProfileScreen() {
       setIsLoading(true);
 
       try {
-        const data = await fetchProfile(userId, userType);
+        const data = await getMyProfile();
 
-        // Si data est null, le profil n'existe pas encore (cas de la création).
         if (!data) {
-          console.log("Profil non trouvé, l'utilisateur est en cours de création.");
+          console.log("Profil non trouvé.");
           return;
         }
 
-        setFirstName(data.firstName || '');
-        setLastName(data.lastName || '');
+        const profile = userType === 'candidate' ? data.candidateProfile : data.recruiterProfile;
 
-        setLocation(data.location || '');
-        setAvatarUrl(data.avatarUrl || '');
-        setJob(data.job || '');
-        setExperience(data.experience || '');
-        setContractType(data.contractType || '');
-        setPresentation(data.presentation || '');
-
-        if (userType === 'recruiter' && data.companyName) {
-          setCompanyName(data.companyName);
+        if (profile) {
+          setFirstName(profile.firstName || '');
+          setLastName(profile.lastName || '');
+          setAvatarUrl(profile.photoUrl || '');
+          // Le WKT n'est pas affiché directement, on laisse le champ vide pour que l'utilisateur le remplisse
+          setLocation(''); 
+          
+          if (userType === 'candidate') {
+            setJob(profile.desiredJobTitle || '');
+            setExperience(profile.experienceLevel || '');
+            setPresentation(profile.coverLetterText || '');
+            if (profile.desiredContractTypes && profile.desiredContractTypes.length > 0) {
+              setContractType(profile.desiredContractTypes[0]);
+            }
+          } else { // Recruiter
+            setExperience(profile.desiredExperienceLevel || '');
+             if (profile.desiredContractTypes && profile.desiredContractTypes.length > 0) {
+              setContractType(profile.desiredContractTypes[0]);
+            }
+          }
+        } else {
+            console.log(`Profil de type ${userType} non trouvé.`);
         }
+
       } catch (error) {
         console.error("Erreur lors de la récupération du profil:", error);
       } finally {
@@ -118,22 +130,32 @@ export default function EditProfileScreen() {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const profileData = {
+
+    // On mappe les champs du formulaire vers le DTO attendu par le backend
+    const profileData: any = {
       firstName,
       lastName,
-      location,
-      avatarUrl,
-      job,
-      experience,
-      contractType,
-      presentation,
-      ...(userType === 'recruiter' && { companyName }),
     };
+
+    if (userType === 'candidate') {
+      profileData.coverLetterText = presentation;
+      profileData.desiredJobTitle = job;
+      profileData.experienceLevel = experience;
+      if (contractType) {
+        profileData.desiredContractTypes = [contractType];
+      }
+    } else { // Recruiter
+      profileData.desiredExperienceLevel = experience;
+      if (contractType) {
+        profileData.desiredContractTypes = [contractType];
+      }
+      // Le champ `searchDescription` du DTO n'est pas dans le formulaire, on l'ignore pour l'instant.
+    }
 
     console.log(`Envoi des données pour mise à jour du profil`, profileData);
 
     try {
-      const data = await updateProfile(userId, userType, profileData);
+      const data = await updateProfile(profileData);
 
       console.log('Profil mis à jour avec succès:', data);
 
@@ -147,7 +169,7 @@ export default function EditProfileScreen() {
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       console.error("Erreur lors de l'enregistrement du profil.", errorMessage);
-      alert("Erreur lors de l'enregistrement du profil.");
+      alert("Erreur lors de l'enregistrement du profil: " + errorMessage);
     } finally {
       setIsLoading(false);
     }

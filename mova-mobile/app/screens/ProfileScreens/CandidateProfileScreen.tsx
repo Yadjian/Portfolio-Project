@@ -40,12 +40,12 @@ export default function CandidateProfileScreen() {
               ...prev,
               firstName: userProfile.firstName || '',
               lastName: userProfile.lastName || '',
-              location: userProfile.location || '',
-              avatarUrl: userProfile.avatarUrl || prev.avatarUrl,
-              job: userProfile.job || '',
-              experience: userProfile.experience || '',
-              contractType: userProfile.contractType || '',
-              presentation: userProfile.presentation || '',
+              location: userProfile.locationWKT || '', // TODO: Convertir WKT en une localisation lisible par l'homme
+              avatarUrl: userProfile.photoUrl || '',
+              job: userProfile.desiredJobTitle || '',
+              experience: userProfile.experienceLevel || '',
+              contractType: userProfile.desiredContractTypes ? userProfile.desiredContractTypes.join(', ') : '',
+              presentation: userProfile.coverLetterText || '',
             }));
             setUserId(profileData.id);
           }
@@ -66,7 +66,7 @@ export default function CandidateProfileScreen() {
         {/* --- Profile Header --- */}
         <View style={styles.header}>
           <View style={styles.headerBackground} />
-          <Image source={{ uri: candidate.avatarUrl }} style={styles.avatar} />
+          <Image source={candidate.avatarUrl ? { uri: candidate.avatarUrl } : require('../../../assets/images/icon.png')} style={styles.avatar} />
           <TouchableOpacity 
             style={styles.editButton} 
             onPress={() => {
