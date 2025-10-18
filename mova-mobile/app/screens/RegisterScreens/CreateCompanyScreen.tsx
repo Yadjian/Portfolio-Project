@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions, Pressable, KeyboardAvoidingView, Platform, ScrollView, TextInput, Keyboard, TouchableOpacity } from 'react-native';
 import { createCompany } from '../../../services/api';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../../lib/types';
 import MovaLogo from '../../../components/ui/MovaLogo';
@@ -9,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { height, width } = Dimensions.get('window');
 
-export default function CreateCompanyScreen() {
+export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthStackParamList, 'CreateCompany'> }) {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const [companyName, setCompanyName] = useState('');
   const [siret, setSiret] = useState('');
@@ -30,9 +31,15 @@ export default function CreateCompanyScreen() {
   }, []);
 
   const handleSubmit = async () => {
+    if (!companyName || !siret) {
+      alert("Veuillez remplir tous les champs.");
+      return;
+    }
+    const { userId, accessToken } = route.params;
+
     try {
       // await createCompany({ companyName, siret });
-      navigation.navigate('EditProfileScreen', { userType: 'recruiter', startEditing: true });
+      navigation.navigate('EditProfileScreen', { userType: 'recruiter', userId, accessToken, companyName, startEditing: true });
     } catch (error) {
       console.error(error);
       // alert("Erreur lors de la création de l'entreprise.");

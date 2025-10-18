@@ -87,9 +87,9 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
 
       // Si la création réussit, on navigue vers l'écran de profil pour le compléter
       if (userType === 'recruiter') {
-        navigation.navigate('CreateCompany', { userId: userId, startEditing: true });
+        navigation.navigate('CreateCompany', { userId: userId, accessToken: data.accessToken });
       } else {
-        navigation.navigate('EditProfileScreen', { userType: 'candidate', userId: userId, accessToken: data.accessToken, startEditing: true });
+        navigation.navigate('EditProfileScreen', { userType: 'candidate', userId: userId, accessToken: data.accessToken });
       }
 
     } catch (error) {

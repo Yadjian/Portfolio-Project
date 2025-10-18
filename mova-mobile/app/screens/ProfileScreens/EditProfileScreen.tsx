@@ -13,7 +13,7 @@ import { ActivityIndicator } from 'react-native';
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'EditProfileScreen'>>();
-  const { userType, userId, accessToken } = route.params;
+  const { userType, userId, accessToken, companyName: companyNameFromNav } = route.params;
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -27,6 +27,10 @@ export default function EditProfileScreen() {
   const [experience, setExperience] = useState('');
   const [contractType, setContractType] = useState('');
   const [presentation, setPresentation] = useState('');
+
+  // Champ pour recruteur
+  const [companyName, setCompanyName] = useState(companyNameFromNav || '');
+
   const [experienceModalVisible, setExperienceModalVisible] = useState(false);
   const [contractModalVisible, setContractModalVisible] = useState(false);
 
@@ -77,13 +81,15 @@ export default function EditProfileScreen() {
         setFirstName(data.firstName || '');
         setLastName(data.lastName || '');
 
-        if (userType === 'candidate') {
-          setLocation(data.location || '');
-          setAvatarUrl(data.avatarUrl || '');
-          setJob(data.job || '');
-          setExperience(data.experience || '');
-          setContractType(data.contractType || '');
-          setPresentation(data.presentation || '');
+        setLocation(data.location || '');
+        setAvatarUrl(data.avatarUrl || '');
+        setJob(data.job || '');
+        setExperience(data.experience || '');
+        setContractType(data.contractType || '');
+        setPresentation(data.presentation || '');
+
+        if (userType === 'recruiter' && data.companyName) {
+          setCompanyName(data.companyName);
         }
       } catch (error) {
         console.error("Erreur lors de la récupération du profil:", error);
@@ -106,24 +112,17 @@ export default function EditProfileScreen() {
       ? `${API_URL}/api/profiles/candidate/${userId}` 
       : `${API_URL}/api/profiles/recruiter/${userId}`;
 
-    let profileData;
-    if (userType === 'candidate') {
-      profileData = {
-        firstName,
-        lastName,
-        location,
-        avatarUrl,
-        job,
-        experience,
-        contractType,
-        presentation,
-      };
-    } else { // 'recruiter'
-      profileData = {
-        firstName,
-        lastName,
-      };
-    }
+    const profileData = {
+      firstName,
+      lastName,
+      location,
+      avatarUrl,
+      job,
+      experience,
+      contractType,
+      presentation,
+      ...(userType === 'recruiter' && { companyName }),
+    };
 
     console.log(`Envoi des données au endpoint: ${endpoint}`, profileData);
 
@@ -180,125 +179,112 @@ export default function EditProfileScreen() {
         </View>
 
         <View style={styles.formCard}>
-          {userType === 'candidate' ? (
-            <>
-              {/* Image Picker */}
-              <TouchableOpacity style={styles.imagePicker} onPress={async () => {
-                const result = await ImagePicker.launchImageLibraryAsync({
-                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                  allowsEditing: true,
-                  aspect: [1, 1],
-                  quality: 0.7,
-                });
-                if (!result.canceled && result.assets && result.assets.length > 0) {
-                  setAvatarUrl(result.assets[0].uri);
-                }
-              }}>
-                <Image
-                  source={avatarUrl ? { uri: avatarUrl } : require('../../../assets/images/icon.png')}
-                  style={styles.avatar}
-                />
-                <View style={styles.cameraIcon}>
-                  <Ionicons name="camera" size={24} color="#fff" />
-                </View>
-              </TouchableOpacity>
+          {/* Image Picker */}
+          <TouchableOpacity style={styles.imagePicker} onPress={async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [1, 1],
+              quality: 0.7,
+            });
+            if (!result.canceled && result.assets && result.assets.length > 0) {
+              setAvatarUrl(result.assets[0].uri);
+            }
+          }}>
+            <Image
+              source={avatarUrl ? { uri: avatarUrl } : require('../../../assets/images/icon.png')}
+              style={styles.avatar}
+            />
+            <View style={styles.cameraIcon}>
+              <Ionicons name="camera" size={24} color="#fff" />
+            </View>
+          </TouchableOpacity>
 
-              {/* Prénom */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Prénom</Text>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <TextInput style={styles.input} placeholder="Votre prénom" placeholderTextColor="#999" value={firstName} onChangeText={setFirstName} />
-                </View>
+          {/* Raison Sociale (Recruteur seulement) */}
+          {userType === 'recruiter' && (
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Raison Sociale</Text>
+              <View style={styles.inputContainer}>
+                <Ionicons name="business-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                <TextInput style={[styles.input, { color: '#888' }]} value={companyName} editable={false} />
               </View>
-
-              {/* Nom */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nom</Text>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <TextInput style={styles.input} placeholder="Votre nom" placeholderTextColor="#999" value={lastName} onChangeText={setLastName} />
-                </View>
-              </View>
-
-              {/* Localisation */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Localisation</Text>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <TextInput style={styles.input} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} onChangeText={setLocation} />
-                </View>
-              </View>
-
-              {/* Poste */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Poste recherché</Text>
-                <TouchableOpacity style={styles.inputContainer} onPress={() => setJobModalVisible(true)}>
-                  <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <Text style={[styles.input, !job && styles.placeholder]}>{job || 'Sélectionner un poste'}</Text>
-                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Expérience */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Expérience</Text>
-                <TouchableOpacity style={styles.inputContainer} onPress={() => setExperienceModalVisible(true)}>
-                  <Ionicons name="analytics-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <Text style={[styles.input, !experience && styles.placeholder]}>{experience || 'Sélectionner une expérience'}</Text>
-                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Contrat */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Type de contrat</Text>
-                <TouchableOpacity style={styles.inputContainer} onPress={() => setContractModalVisible(true)}>
-                  <Ionicons name="document-text-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <Text style={[styles.input, !contractType && styles.placeholder]}>{contractType || 'Sélectionner un contrat'}</Text>
-                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
-                </TouchableOpacity>
-              </View>
-
-              {/* Présentation */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Présentation (max 5 lignes)</Text>
-                <View style={[styles.inputContainer, { height: 120, alignItems: 'flex-start' }]}>
-                  <Ionicons name="chatbox-ellipses-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
-                  <TextInput 
-                    style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} 
-                    placeholder="Parlez-nous de vous..." 
-                    placeholderTextColor="#999" 
-                    value={presentation} 
-                    onChangeText={setPresentation} 
-                    multiline 
-                    maxLength={250}
-                    numberOfLines={5}
-                  />
-                </View>
-              </View>
-            </>
-          ) : (
-            <>
-              {/* Recruiter Form */}
-              {/* Prénom du contact */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Prénom du contact</Text>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <TextInput style={styles.input} placeholder="Votre prénom" placeholderTextColor="#999" value={firstName} onChangeText={setFirstName} />
-                </View>
-              </View>
-              {/* Nom du contact */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Nom du contact</Text>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <TextInput style={styles.input} placeholder="Votre nom" placeholderTextColor="#999" value={lastName} onChangeText={setLastName} />
-                </View>
-              </View>
-            </>
+            </View>
           )}
+
+          {/* Prénom */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>{userType === 'recruiter' ? 'Prénom du contact' : 'Prénom'}</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <TextInput style={styles.input} placeholder="Votre prénom" placeholderTextColor="#999" value={firstName} onChangeText={setFirstName} />
+            </View>
+          </View>
+
+          {/* Nom */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>{userType === 'recruiter' ? 'Nom du contact' : 'Nom'}</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <TextInput style={styles.input} placeholder="Votre nom" placeholderTextColor="#999" value={lastName} onChangeText={setLastName} />
+            </View>
+          </View>
+
+          {/* Localisation */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Localisation</Text>
+            <View style={styles.inputContainer}>
+              <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <TextInput style={styles.input} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} onChangeText={setLocation} />
+            </View>
+          </View>
+
+          {/* Poste */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>{userType === 'recruiter' ? 'Poste à pourvoir' : 'Poste recherché'}</Text>
+            <TouchableOpacity style={styles.inputContainer} onPress={() => setJobModalVisible(true)}>
+              <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <Text style={[styles.input, !job && styles.placeholder]}>{job || 'Sélectionner un poste'}</Text>
+              <Ionicons name="chevron-down-outline" size={20} color="#999" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Expérience */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Expérience</Text>
+            <TouchableOpacity style={styles.inputContainer} onPress={() => setExperienceModalVisible(true)}>
+              <Ionicons name="analytics-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <Text style={[styles.input, !experience && styles.placeholder]}>{experience || 'Sélectionner une expérience'}</Text>
+              <Ionicons name="chevron-down-outline" size={20} color="#999" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Contrat */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Type de contrat</Text>
+            <TouchableOpacity style={styles.inputContainer} onPress={() => setContractModalVisible(true)}>
+              <Ionicons name="document-text-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              <Text style={[styles.input, !contractType && styles.placeholder]}>{contractType || 'Sélectionner un contrat'}</Text>
+              <Ionicons name="chevron-down-outline" size={20} color="#999" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Présentation */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Présentation (max 5 lignes)</Text>
+            <View style={[styles.inputContainer, { height: 120, alignItems: 'flex-start' }]}>
+              <Ionicons name="chatbox-ellipses-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
+              <TextInput 
+                style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} 
+                placeholder="Parlez-nous de vous..." 
+                placeholderTextColor="#999" 
+                value={presentation} 
+                onChangeText={setPresentation} 
+                multiline 
+                maxLength={250}
+                numberOfLines={5}
+              />
+            </View>
+          </View>
 
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
             {isLoading ? (

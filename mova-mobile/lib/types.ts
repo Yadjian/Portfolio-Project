@@ -15,9 +15,9 @@ export type AuthStackParamList = {
   CandidateProfile: { startEditing?: boolean };
   RecruiterProfile: { startEditing?: boolean };
   SwipeNotification: { userType: UserType };
-  EditProfileScreen: { userType: UserType; userId: string; accessToken: string; startEditing?: boolean };
+  EditProfileScreen: { userType: UserType; userId: string; accessToken: string; startEditing?: boolean; companyName?: string; };
   RecruiterOnboarding: undefined;
-  CreateCompany: { userId: string; startEditing?: boolean };
+  CreateCompany: { userId: string; accessToken: string; };
   JoinCompany: undefined;
   CandidateCVScreen: undefined;
   RecruiterJobOfferScreen: undefined;
