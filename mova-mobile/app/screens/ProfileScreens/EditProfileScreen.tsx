@@ -3,17 +3,18 @@ import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Plat
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import { AuthStackParamList, getApiUrl } from '../../../lib/types';
+import { AuthStackParamList } from '../../../lib/types';
 import * as ImagePicker from 'expo-image-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MovaLogo from '../../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
+import { fetchProfile, updateProfile } from '../../../services/api';
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'EditProfileScreen'>>();
-  const { userType, userId, accessToken, companyName: companyNameFromNav } = route.params;
+  const { userType, userId, companyName: companyNameFromNav } = route.params;
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -55,28 +56,15 @@ export default function EditProfileScreen() {
     const fetchProfileData = async () => {
       if (!userId) return;
       setIsLoading(true);
-      const API_URL = getApiUrl();
-      const endpoint = userType === 'candidate' 
-        ? `${API_URL}/api/profiles/candidate/${userId}` 
-        : `${API_URL}/api/profiles/recruiter/${userId}`;
 
       try {
-        // On utilise une méthode GET par défaut, pas besoin de la spécifier
-        const response = await fetch(endpoint, {
-          headers: {
-            'ngrok-skip-browser-warning': 'true',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-        });
-        if (!response.ok) {
-          // Si le profil n'existe pas encore (cas de la création), on ne fait rien.
-          if (response.status === 404) {
-            console.log("Profil non trouvé, l'utilisateur est en cours de création.");
-            return;
-          }
-          throw new Error("Erreur lors de la récupération du profil.");
+        const data = await fetchProfile(userId, userType);
+
+        // Si data est null, le profil n'existe pas encore (cas de la création).
+        if (!data) {
+          console.log("Profil non trouvé, l'utilisateur est en cours de création.");
+          return;
         }
-        const data = await response.json();
 
         setFirstName(data.firstName || '');
         setLastName(data.lastName || '');
@@ -104,14 +92,6 @@ export default function EditProfileScreen() {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const API_URL = getApiUrl();
-
-    // Déterminez le endpoint et les données en fonction du type d'utilisateur.
-    // Adaptez ces URLs à la structure de votre API.
-    const endpoint = userType === 'candidate' 
-      ? `${API_URL}/api/profiles/candidate/${userId}` 
-      : `${API_URL}/api/profiles/recruiter/${userId}`;
-
     const profileData = {
       firstName,
       lastName,
@@ -124,24 +104,10 @@ export default function EditProfileScreen() {
       ...(userType === 'recruiter' && { companyName }),
     };
 
-    console.log(`Envoi des données au endpoint: ${endpoint}`, profileData);
+    console.log(`Envoi des données pour mise à jour du profil`, profileData);
 
     try {
-      const response = await fetch(endpoint, {
-        method: 'PATCH', // ou 'PUT'
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true', // Ajout de ce header pour ngrok
-          'Authorization': `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(profileData),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Une erreur est survenue lors de la mise à jour du profil.");
-      }
+      const data = await updateProfile(userId, userType, profileData);
 
       console.log('Profil mis à jour avec succès:', data);
 

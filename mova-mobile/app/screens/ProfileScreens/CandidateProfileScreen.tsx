@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Text, Dimensions, Image, TouchableOpacity } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Feather } from '@expo/vector-icons';
 import type { AuthStackParamList } from '../../../lib/types';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
-import { getCurrentUser } from '../../../services/api';
+import { getMyProfile } from '../../../services/api';
 import { getCandidateTabs } from '@/constants/tabsConfig';
 import Colors from '../../../constants/Colors';
 import ProfileSection from '../../../components/ui/ProfileSection';
@@ -16,13 +16,6 @@ const { width } = Dimensions.get('window');
 export default function CandidateProfileScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'CandidateProfile'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
-
-  // This useEffect to navigate to EditProfileScreen remains the same
-  useEffect(() => {
-    if (route.params?.startEditing) {
-      navigation.replace('EditProfileScreen', { userType: 'candidate' });
-    }
-  }, [route.params?.startEditing, navigation]);
 
   const [candidate, setCandidate] = useState({
     firstName: '',
@@ -34,28 +27,36 @@ export default function CandidateProfileScreen() {
     contractType: '',
     presentation: '',
   });
+  const [userId, setUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    async function fetchUser() {
+  useFocusEffect(
+    useCallback(() => {
+      const fetchUser = async () => {
       try {
-        const user = await getCurrentUser();
-        setCandidate(prev => ({
-          ...prev,
-          firstName: user.firstName || prev.firstName,
-          lastName: user.lastName || prev.lastName,
-          location: user.location || prev.location,
-          avatarUrl: user.avatarUrl || prev.avatarUrl,
-          job: user.job || prev.job,
-          experience: user.experience || prev.experience,
-          contractType: user.contractType || prev.contractType,
-          presentation: user.presentation || prev.presentation,
-        }));
+          const profileData = await getMyProfile();
+          if (profileData && profileData.candidateProfile) {
+            const userProfile = profileData.candidateProfile;
+            setCandidate(prev => ({
+              ...prev,
+              firstName: userProfile.firstName || '',
+              lastName: userProfile.lastName || '',
+              location: userProfile.location || '',
+              avatarUrl: userProfile.avatarUrl || prev.avatarUrl,
+              job: userProfile.job || '',
+              experience: userProfile.experience || '',
+              contractType: userProfile.contractType || '',
+              presentation: userProfile.presentation || '',
+            }));
+            setUserId(profileData.id);
+          }
       } catch (error) {
         console.error('Erreur chargement profil:', error);
+          // Optionnel: Gérer l'erreur, par ex. déconnexion si token invalide
       }
-    }
-    fetchUser();
-  }, []);
+      };
+      fetchUser();
+    }, [])
+  );
 
   const tabs = getCandidateTabs(navigation, 0);
 
@@ -66,7 +67,11 @@ export default function CandidateProfileScreen() {
         <View style={styles.header}>
           <View style={styles.headerBackground} />
           <Image source={{ uri: candidate.avatarUrl }} style={styles.avatar} />
-          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen', { userType: 'candidate' })}>
+          <TouchableOpacity 
+            style={styles.editButton} 
+            onPress={() => {
+              if (userId) navigation.navigate('EditProfileScreen', { userType: 'candidate', userId: userId });
+            }}>
             <Feather name="edit-2" size={20} color="#4930a3" />
           </TouchableOpacity>
           <Text style={styles.name}>{`${candidate.firstName} ${candidate.lastName}`.trim()}</Text>

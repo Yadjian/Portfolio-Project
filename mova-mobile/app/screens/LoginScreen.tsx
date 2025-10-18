@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Text, TextInput, useWindowDimensions, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import MovaLogo from '../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
-import { getApiUrl } from '@/lib/types';
-import * as SecureStore from 'expo-secure-store';
+import { login, getMyProfile } from '../../services/api';
 
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
@@ -33,43 +32,13 @@ export default function LoginScreen({ navigation }: any) {
     }
 
     setLoading(true);
-    const API_URL = getApiUrl();
 
     try {
-      // 1. Appel à l'API de connexion
-      const loginResponse = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      // 1. Connexion et stockage des tokens via le service API
+      await login(email, password);
 
-      const data = await loginResponse.json();
-
-      if (!loginResponse.ok) {
-        throw new Error(data.message || 'Identifiants incorrects.');
-      }
-
-      const { accessToken, refreshToken } = data;
-
-      // Stockage sécurisé des tokens pour les futures sessions
-      await SecureStore.setItemAsync('auth_token', accessToken);
-      await SecureStore.setItemAsync('refresh_token', refreshToken);
-
-      // 2. Appel à l'API pour récupérer le profil de l'utilisateur
-      const profileResponse = await fetch(`${API_URL}/profile/me`, {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'ngrok-skip-browser-warning': 'true',
-        },
-      });
-
-      const profileData = await profileResponse.json();
-      if (!profileResponse.ok) {
-        throw new Error(profileData.message || "Impossible de récupérer le profil de l'utilisateur.");
-      }
+      // 2. Récupération du profil pour la redirection
+      const profileData = await getMyProfile();
 
       // 3. Navigation en fonction du type de profil
       if (profileData.candidateProfile) {
@@ -77,7 +46,9 @@ export default function LoginScreen({ navigation }: any) {
       } else if (profileData.recruiterProfile) {
         navigation.replace('RecruiterProfile', { userType: 'recruiter' });
       } else {
-        throw new Error("Type de profil non reconnu.");
+        // Ce cas peut arriver si l'utilisateur a un compte mais n'a pas encore finalisé son profil.
+        // Pour l'instant, on le traite comme une erreur.
+        throw new Error("Profil utilisateur introuvable ou type non reconnu.");
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';

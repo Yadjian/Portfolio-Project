@@ -2,11 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MovaLogo from '@/components/ui/MovaLogo';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { AuthStackParamList } from '../../../lib/types';
-import { getApiUrl } from '@/lib/types'; // Assurez-vous que getApiUrl est exporté depuis types.ts
-import * as SecureStore from 'expo-secure-store';
-import { jwtDecode } from 'jwt-decode';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { AuthStackParamList } from '../../../lib/types';
+import { register } from '../../../services/api';
 
 type CreateAccountProps = NativeStackScreenProps<AuthStackParamList, 'CreateAccount'>;
 
@@ -48,48 +46,20 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
     }
 
     setIsLoading(true);
-    const API_URL = getApiUrl();
 
     try {
-      const response = await fetch(`${API_URL}/auth/signup`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'ngrok-skip-browser-warning': 'true', // Ajout de ce header pour ngrok
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          role: userType.toUpperCase(),
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        // Si le backend renvoie un message d'erreur, on l'affiche
-        throw new Error(data.message || 'Une erreur est survenue lors de la création du compte.');
-      }
+      const data = await register(
+        formData.email,
+        formData.password,
+        userType.toUpperCase() as 'CANDIDATE' | 'RECRUITER'
+      );
 
       console.log('Compte créé avec succès:', data);
 
-      // Stockage sécurisé des tokens pour les futures sessions
-      await SecureStore.setItemAsync('auth_token', data.accessToken);
-      await SecureStore.setItemAsync('refresh_token', data.refreshToken);
-
-      // On décode le accessToken pour obtenir l'ID de l'utilisateur (le champ 'sub')
-      const decodedToken: { sub: string } = jwtDecode(data.accessToken);
-      const userId = decodedToken.sub;
-
-      if (!userId) {
-        throw new Error("L'ID de l'utilisateur n'a pas été reçu après l'inscription.");
-      }
-
-      // Si la création réussit, on navigue vers l'écran de profil pour le compléter
       if (userType === 'recruiter') {
-        navigation.navigate('CreateCompany', { userId: userId, accessToken: data.accessToken });
+        navigation.navigate('CreateCompany', { userId: data.userId });
       } else {
-        navigation.navigate('EditProfileScreen', { userType: 'candidate', userId: userId, accessToken: data.accessToken });
+        navigation.navigate('EditProfileScreen', { userType: 'candidate', userId: data.userId, startEditing: true });
       }
 
     } catch (error) {

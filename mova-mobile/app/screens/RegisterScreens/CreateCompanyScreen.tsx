@@ -35,14 +35,15 @@ export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthSt
       alert("Veuillez remplir tous les champs.");
       return;
     }
-    const { userId, accessToken } = route.params;
+    const { userId } = route.params;
 
     try {
-      // await createCompany({ companyName, siret });
-      navigation.navigate('EditProfileScreen', { userType: 'recruiter', userId, accessToken, companyName, startEditing: true });
+      await createCompany({ companyName, siret });
+      navigation.navigate('EditProfileScreen', { userType: 'recruiter', userId, companyName, startEditing: true });
     } catch (error) {
-      console.error(error);
-      // alert("Erreur lors de la création de l'entreprise.");
+      const errorMessage = error instanceof Error ? error.message : "Une erreur inattendue est survenue.";
+      console.error("Erreur lors de la création de l'entreprise:", errorMessage);
+      alert(`Erreur: ${errorMessage}`);
     }
   };
 

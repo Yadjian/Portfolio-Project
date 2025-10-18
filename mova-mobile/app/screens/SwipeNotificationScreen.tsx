@@ -1,10 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { View, StyleSheet, Dimensions, Animated, PanResponder, TouchableOpacity, Text } from 'react-native';
 import { Feather } from '@expo/vector-icons'; // Changed from Ionicons
 import SwipeCard from '@/components/ui/SwipeCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
 import { UserType } from '@/lib/types';
+import { getProfilesToSwipe } from '../../services/api';
 import Colors from '@/constants/Colors'; // Import our new colors
 
 const { width } = Dimensions.get('window');
@@ -40,57 +41,21 @@ const ActionButton = ({ onPress, small, color, icon, style }: {
 export default function SwipeNotificationScreen({ route, navigation }: any) {
   const userType: UserType = route?.params?.userType ?? 'candidate'; // On garde cette ligne, qui est la bonne
 
-  // --- Mock data remains the same ---
-  const contacts: any[] = userType === 'candidate' // On utilise la variable userType ici
-    ? [
-        {
-          id: '1',
-          companyName: 'Stark Industries',
-          location: 'New York',
-          jobSeeking: 'Développeur React Native',
-          experienceRequired: 'Confirmé',
-          contractType: 'CDI',
-          avatarUrl: 'https://img.phonandroid.com/2023/04/iron-man-avengers-endgame.jpg',
-          presentation: 'Génie, milliardaire, playboy, philanthrope. Cherche des talents exceptionnels pour changer le monde. Nous offrons un environnement de travail stimulant, des projets innovants et une armure de haute technologie (en option). Le candidat idéal maîtrisera l\'arc-réacteur et aura une bonne connaissance des protocoles de vol. Le travail d\'équipe est essentiel, car vous collaborerez étroitement avec les autres Avengers. Rejoignez-nous pour construire le futur, aujourd\'hui.',
-        },
-        {
-          id: '2',
-          companyName: 'Wayne Enterprises',
-          location: 'Gotham City',
-          jobSeeking: 'Chef de Projet Mobile',
-          experienceRequired: 'Intermédiaire',
-          contractType: 'CDD',
-          avatarUrl: 'https://www.presse-citron.net/app/uploads/2022/03/batman-robert-pattinson.jpg',
-          presentation: 'Nous construisons un avenir meilleur. Et parfois, nous travaillons la nuit.',
-        },
-      ]
-    : [
-        {
-          id: '3',
-          firstName: 'Peter',
-          lastName: 'Parker',
-          location: 'New York',
-          job: 'Développeur Full-Stack',
-          experience: 'Débutant',
-          contractType: 'Alternance',
-          avatarUrl: 'https://static.posters.cz/image/1300/affiches/spider-man-no-way-home-i121225.jpg',
-          presentation: 'Photographe le jour, super-héros la nuit. Grande agilité avec les frameworks JavaScript.',
-        },
-        {
-          id: '4',
-          firstName: 'Diana',
-          lastName: 'Prince',
-          location: 'Themyscira',
-          job: 'Product Owner',
-          experience: 'Confirmé',
-          contractType: 'CDI',
-          avatarUrl: 'https://www.ecranlarge.com/media/cache/1600x1200/uploads/image/001/498/wonder-woman-1984-photo-1498168.jpg',
-          presentation: 'Passionnée par la justice, la paix et les sprints bien menés. Expérience millénaire.',
-        },
-      ];
-
-  const [profiles, setProfiles] = useState(contacts);
+  const [profiles, setProfiles] = useState<any[]>([]);
   const position = useRef(new Animated.ValueXY()).current;
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      try {
+        const data = await getProfilesToSwipe();
+        setProfiles(data || []);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des profils à swiper:", error);
+        setProfiles([]);
+      }
+    };
+    fetchProfiles();
+  }, []);
 
   // --- All the logic (tabs, panResponder, animations) remains the same ---
   const baseTabs = userType === 'recruiter' ? getRecruiterTabs(navigation, 0) : getCandidateTabs(navigation, 0);

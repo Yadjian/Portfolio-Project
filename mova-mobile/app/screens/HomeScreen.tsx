@@ -6,7 +6,7 @@ import * as Location from 'expo-location';
 
 import MovaLogo from '@/components/ui/MovaLogo';
 import { useAuth } from '../../contexts/AuthContext';
-import { sendLocationToBackend } from '../../services/api';
+import { sendLocationToBackend, checkBackendHealth } from '../../services/api';
 import Colors from '../../constants/Colors';
 import { AuthStackParamList, getApiUrl } from '@/lib/types';
 
@@ -24,21 +24,10 @@ export default function HomeScreen() {
       console.log('🔍 [BACKEND TEST] URL détectée:', API_URL);
       
       try {
-        console.log('🔍 [BACKEND TEST] Début de la requête...');
-        const response = await fetch(`${API_URL}/health`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true',
-          },
-        });
-        
-        console.log('🔍 [BACKEND TEST] Statut de la réponse:', response.status);
-        const data = await response.json();
+        const data = await checkBackendHealth();
         console.log('✅ [BACKEND TEST] Réponse reçue:', data);
         setBackendStatus(`✅ Backend connecté (${API_URL})`);
       } catch (error) {
-        console.error('❌ [BACKEND TEST] Erreur complète:', error);
         console.error('❌ [BACKEND TEST] Message:', error instanceof Error ? error.message : 'Erreur inconnue');
         setBackendStatus(`❌ Backend non accessible (${API_URL})`);
       }

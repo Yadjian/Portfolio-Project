@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, StyleSheet, ScrollView, Text, Dimensions, Image, TouchableOpacity } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Feather } from '@expo/vector-icons';
 
 import type { AuthStackParamList } from '../../../lib/types';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
+import { getMyProfile } from '../../../services/api';
 import { getRecruiterTabs } from '@/constants/tabsConfig';
 import Colors from '../../../constants/Colors';
 import ProfileSection from '../../../components/ui/ProfileSection'; // Correction de l'import
@@ -17,37 +18,52 @@ export default function RecruiterProfileScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'RecruiterProfile'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
-  // Mock data for the recruiter profile
-  const [recruiter, setRecruiter] = useState<any>({
+  const [profile, setProfile] = useState({
     companyName: '',
     firstName: '',
     lastName: '',
     location: '',
     avatarUrl: 'https://via.placeholder.com/150',
-    jobSeeking: '',
-    experienceRequired: '',
-    contractType: '',
     presentation: '',
   });
+  const [jobOffer, setJobOffer] = useState({
+    title: '',
+    experience: '',
+    contractType: '',
+  });
+  const [userId, setUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    // TODO: Remplacer par un appel API pour récupérer les vraies données du recruteur
-    const fetchRecruiterData = () => {
-      const mockData = {
-        companyName: 'TechCorp Solutions',
-        firstName: 'Jean',
-        lastName: 'Dupont',
-        location: 'Lyon, France',
-        avatarUrl: 'https://randomuser.me/api/portraits/men/2.jpg',
-        jobSeeking: 'Développeur React Native',
-        experienceRequired: 'Intermédiaire',
-        contractType: 'CDI',
-        presentation: "Nous recherchons un développeur passionné pour rejoindre notre équipe dynamique et innovante ! Notre culture d'entreprise est basée sur la collaboration, la créativité et l'excellence technique. Rejoignez-nous pour travailler sur des projets d'envergure.",
+  useFocusEffect(
+    useCallback(() => {
+      const fetchRecruiterData = async () => {
+        try {
+          const profileData = await getMyProfile();
+          if (profileData && profileData.recruiterProfile) {
+            const userProfile = profileData.recruiterProfile;
+            setProfile(prev => ({
+              ...prev,
+              companyName: userProfile.company?.name || '',
+              firstName: userProfile.firstName || '',
+              lastName: userProfile.lastName || '',
+              location: userProfile.location || '',
+              avatarUrl: userProfile.avatarUrl || prev.avatarUrl,
+              presentation: userProfile.presentation || '',
+            }));
+            setUserId(profileData.id);
+            // TODO: Remplacer par un appel API pour récupérer les offres du recruteur
+            setJobOffer({
+              title: 'Développeur React Native',
+              experience: 'Intermédiaire',
+              contractType: 'CDI',
+            });
+          }
+        } catch (error) {
+          console.error("Erreur lors du chargement du profil recruteur:", error);
+        }
       };
-      setRecruiter((prev: any) => ({ ...prev, ...mockData }));
-    };
-    fetchRecruiterData();
-  }, []);
+      fetchRecruiterData();
+    }, [])
+  );
 
   const notificationCount = 0; // Example count
   const tabs = getRecruiterTabs(navigation, notificationCount);
@@ -58,36 +74,40 @@ export default function RecruiterProfileScreen() {
         {/* --- Profile Header --- */}
         <View style={styles.header}>
           <View style={styles.headerBackground} />
-          <Image source={{ uri: recruiter.avatarUrl }} style={styles.avatar} />
-          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen', { userType: 'recruiter' })}>
+          <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
+          <TouchableOpacity style={styles.editButton} onPress={() => {
+            if (userId) {
+              navigation.navigate('EditProfileScreen', { userType: 'recruiter', userId: userId, companyName: profile.companyName });
+            }
+          }}>
             <Feather name="edit-2" size={20} color="#4930a3" />
           </TouchableOpacity>
-          <Text style={styles.name}>{recruiter.companyName}</Text>
-          <Text style={styles.jobTitle}>{`${recruiter.firstName} ${recruiter.lastName}`.trim()}</Text>
+          <Text style={styles.name}>{profile.companyName}</Text>
+          <Text style={styles.jobTitle}>{`${profile.firstName} ${profile.lastName}`.trim()}</Text>
           <View style={styles.locationContainer}>
             <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
-            <Text style={styles.location}>{recruiter.location}</Text>
+            <Text style={styles.location}>{profile.location}</Text>
           </View>
         </View>
 
         {/* --- Presentation Section --- */}
         <ProfileSection title="Présentation de l'entreprise" icon="user" iconColor="#4930a3">
-          <Text style={styles.sectionText}>{recruiter.presentation}</Text>
+          <Text style={styles.sectionText}>{profile.presentation}</Text>
         </ProfileSection>
 
         {/* --- Job Details Section --- */}
         <ProfileSection title="Recherche en cours" icon="briefcase" iconColor="#4930a3">
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Poste recherché:</Text>
-            <Text style={styles.detailValue}>{recruiter.jobSeeking}</Text>
+            <Text style={styles.detailValue}>{jobOffer.title}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Expérience requise:</Text>
-            <Text style={styles.detailValue}>{recruiter.experienceRequired}</Text>
+            <Text style={styles.detailValue}>{jobOffer.experience}</Text>
           </View>
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Type de contrat:</Text>
-            <Text style={styles.detailValue}>{recruiter.contractType}</Text>
+            <Text style={styles.detailValue}>{jobOffer.contractType}</Text>
           </View>
         </ProfileSection>
 
