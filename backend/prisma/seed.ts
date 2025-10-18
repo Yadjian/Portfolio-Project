@@ -8,37 +8,31 @@ async function main() {
 
   // La liste des catégories de postes que vous voulez ajouter
   const jobCategoriesToCreate = [
-    // Postes saisonniers d'été
+    // Hôtellerie, Restauration, Tourisme, Vente
     'Serveur / Serveuse',
-    'Plagiste',
-    'Animateur / Animatrice',
-    'Moniteur de sports nautiques',
-    'Vendeur / Vendeuse',
-    'Glacier / Vendeur de glaces',
-    'Employé polyvalent en hôtellerie',
-    'Guide touristique',
-    'Ouvrier agricole / Cueilleur',
-    "Hôte d'accueil en événementiel",
+    'Cuisinier / Cuisinière',
     'Barman / Barmaid',
-
-    // Postes saisonniers d'hiver
-    'Moniteur de ski / snowboard',
-    'Employé de remontées mécaniques',
-    'Vendeur / Loueur de matériel de ski',
-    "Cuisinier / Commis de cuisine en station",
-
-    // Autres catégories générales
-    'Développement Web',
-    'Marketing Digital',
-    'Design UX/UI',
-    'Data Science',
-    'Gestion de projet',
+    'Commis de cuisine',
+    'Plongeur / Plongeuse',
+    'Employé polyvalent en restauration',
+    'Réceptionniste',
+    'Valet / Femme de chambre',
+    'Vendeur / Vendeuse',
+    'Animateur / Animatrice',
+    'Moniteur de sports',
+    'Plagiste',
+    'Guide touristique',
+    'Ouvrier agricole',
+    'Croupier / Croupière',
+    'Agent de sécurité',
+    "Hôte / Hôtesse d'accueil",
   ];
 
   // On transforme la liste de noms en objets pour createMany
   const dataToInsert = jobCategoriesToCreate.map(name => ({ name }));
 
   // On utilise createMany avec skipDuplicates pour ne pas créer de doublons
+  // On utilise createMany pour insérer toutes les nouvelles catégories
   const result = await prisma.jobCategory.createMany({
     data: dataToInsert,
     skipDuplicates: true, // Très important ! Évite les erreurs si une catégorie existe déjà.

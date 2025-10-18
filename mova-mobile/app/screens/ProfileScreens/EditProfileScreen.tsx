@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform, TextInput, Keyboard } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform, TextInput, Keyboard, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
@@ -9,7 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import MovaLogo from '../../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
-import { fetchProfile, updateProfile } from '../../../services/api';
+import { fetchProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -37,6 +37,11 @@ export default function EditProfileScreen() {
 
   const [isLoading, setIsLoading] = useState(false);
 
+  // State for dropdowns
+  const [contractTypes, setContractTypes] = useState<string[]>([]);
+  const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
+  const [jobCategories, setJobCategories] = useState<{ id: string; name: string }[]>([]);
+
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -49,6 +54,27 @@ export default function EditProfileScreen() {
       showSubscription.remove();
       hideSubscription.remove();
     };
+  }, []);
+
+  useEffect(() => {
+    const fetchMetaData = async () => {
+      try {
+        const [contracts, experiences, categories] = await Promise.all([
+          getContractTypes(),
+          getExperienceLevels(),
+          getJobCategories(),
+        ]);
+        setContractTypes(contracts);
+        setExperienceLevels(experiences);
+        // Trier les catégories par ordre alphabétique
+        const sortedCategories = [...categories].sort((a, b) => a.name.localeCompare(b.name));
+        setJobCategories(sortedCategories);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des métadonnées:", error);
+      }
+    };
+
+    fetchMetaData();
   }, []);
 
   // Pré-remplir les champs avec les données de l'utilisateur actuel
@@ -269,22 +295,68 @@ export default function EditProfileScreen() {
           >
             <TouchableOpacity style={styles.modalOverlay} onPress={() => setJobModalVisible(false)}>
               <View style={styles.modalContent}>
-                {[
-                  'Serveur(se)',
-                  'Vendeur(se) en boutique',
-                  'Animateur(trice) de colonie',
-                  'Cueilleur(se) de fruits',
-                  'Plagiste'
-                ].map(opt => (
+                <ScrollView>
+                  {jobCategories.map(cat => (
+                    <Pressable
+                      key={cat.id}
+                      style={styles.modalOption}
+                      onPress={() => {
+                        setJob(cat.name);
+                        setJobModalVisible(false);
+                      }}
+                    >
+                      <Text style={{ fontSize: 18 }}>{cat.name}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* Modal for Experience */}
+          <Modal
+            visible={experienceModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setExperienceModalVisible(false)}
+          >
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setExperienceModalVisible(false)}>
+              <View style={styles.smallModalContent}>
+                {experienceLevels.map((level, index) => (
                   <Pressable
-                    key={opt}
+                    key={index}
                     style={styles.modalOption}
                     onPress={() => {
-                      setJob(opt);
-                      setJobModalVisible(false);
+                      setExperience(level);
+                      setExperienceModalVisible(false);
                     }}
                   >
-                    <Text style={{ fontSize: 18 }}>{opt}</Text>
+                    <Text style={{ fontSize: 18 }}>{level}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </TouchableOpacity>
+          </Modal>
+
+          {/* Modal for Contract Type */}
+          <Modal
+            visible={contractModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setContractModalVisible(false)}
+          >
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
+              <View style={styles.smallModalContent}>
+                {contractTypes.map((type, index) => (
+                  <Pressable
+                    key={index}
+                    style={styles.modalOption}
+                    onPress={() => {
+                      setContractType(type);
+                      setContractModalVisible(false);
+                    }}
+                  >
+                    <Text style={{ fontSize: 18 }}>{type}</Text>
                   </Pressable>
                 ))}
               </View>
@@ -406,6 +478,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   modalOverlay: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0006' },
-  modalContent: { backgroundColor: '#fff', borderRadius: 8, padding: 16, minWidth: 220 },
-  modalOption: { paddingVertical: 12, alignItems: 'center' },
+  modalContent: { backgroundColor: '#fff', borderRadius: 8, padding: 16, minWidth: 220, maxHeight: '60%' },
+  smallModalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 16,
+    minWidth: 220,
+  },
+  modalOption: { paddingVertical: 12, alignItems: 'flex-start' },
 });

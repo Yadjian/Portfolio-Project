@@ -151,6 +151,31 @@ export async function joinCompany(data: { siret: string }) {
 }
 
 // ----------------------
+// META DATA
+// ----------------------
+
+export async function getContractTypes() {
+  const response = await fetch(`${API_URL}/meta/contract-types`, {
+    headers: await getHeaders(),
+  });
+  return handleResponse(response);
+}
+
+export async function getExperienceLevels() {
+  const response = await fetch(`${API_URL}/meta/experience-levels`, {
+    headers: await getHeaders(),
+  });
+  return handleResponse(response);
+}
+
+export async function getJobCategories() {
+  const response = await fetch(`${API_URL}/meta/job-categories`, {
+    headers: await getHeaders(),
+  });
+  return handleResponse(response);
+}
+
+// ----------------------
 // UTILITAIRES
 // ----------------------
 export async function checkBackendHealth() {
