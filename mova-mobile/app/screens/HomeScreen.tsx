@@ -29,6 +29,7 @@ export default function HomeScreen() {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
           },
         });
         

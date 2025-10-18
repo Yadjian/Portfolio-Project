@@ -5,6 +5,7 @@ import MovaLogo from '@/components/ui/MovaLogo';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../../lib/types';
 import { getApiUrl } from '@/lib/types'; // Assurez-vous que getApiUrl est exporté depuis types.ts
+import { jwtDecode } from 'jwt-decode';
 
 type CreateAccountProps = NativeStackScreenProps<AuthStackParamList, 'CreateAccount'>;
 
@@ -40,11 +41,16 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
       return;
     }
 
+    if (formData.password.length < 6) {
+      Alert.alert('Erreur', 'Le mot de passe doit faire au moins 6 caractères.');
+      return;
+    }
+
     setIsLoading(true);
     const API_URL = getApiUrl();
 
     try {
-      const response = await fetch(`${API_URL}/api/auth/register`, {
+      const response = await fetch(`${API_URL}/auth/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,7 +59,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
         body: JSON.stringify({
           email: formData.email,
           password: formData.password,
-          role: userType,
+          role: userType.toUpperCase(),
         }),
       });
 
@@ -66,9 +72,10 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
 
       console.log('Compte créé avec succès:', data);
 
-      // On récupère l'ID de l'utilisateur depuis la réponse de l'API.
-      // Adaptez "data.user.id" si votre API renvoie une structure différente (ex: data.userId)
-      const userId = data.user?.id;
+      // On décode le accessToken pour obtenir l'ID de l'utilisateur (le champ 'sub')
+      const decodedToken: { sub: string } = jwtDecode(data.accessToken);
+      const userId = decodedToken.sub;
+
       if (!userId) {
         throw new Error("L'ID de l'utilisateur n'a pas été reçu après l'inscription.");
       }
@@ -77,7 +84,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
       if (userType === 'recruiter') {
         navigation.navigate('CreateCompany', { userId: userId, startEditing: true });
       } else {
-        navigation.navigate('EditProfileScreen', { userType: 'candidate', userId: userId, startEditing: true });
+        navigation.navigate('EditProfileScreen', { userType: 'candidate', userId: userId, accessToken: data.accessToken, startEditing: true });
       }
 
     } catch (error) {

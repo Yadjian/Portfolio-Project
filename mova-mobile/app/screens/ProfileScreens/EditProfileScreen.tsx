@@ -13,7 +13,7 @@ import { ActivityIndicator } from 'react-native';
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'EditProfileScreen'>>();
-  const { userType, userId } = route.params;
+  const { userType, userId, accessToken } = route.params;
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -58,7 +58,12 @@ export default function EditProfileScreen() {
 
       try {
         // On utilise une méthode GET par défaut, pas besoin de la spécifier
-        const response = await fetch(endpoint);
+        const response = await fetch(endpoint, {
+          headers: {
+            'ngrok-skip-browser-warning': 'true',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+        });
         if (!response.ok) {
           // Si le profil n'existe pas encore (cas de la création), on ne fait rien.
           if (response.status === 404) {
@@ -127,7 +132,8 @@ export default function EditProfileScreen() {
         method: 'PATCH', // ou 'PUT'
         headers: {
           'Content-Type': 'application/json',
-          // 'Authorization': 'Bearer VOTRE_TOKEN_JWT' // À ajouter plus tard
+          'ngrok-skip-browser-warning': 'true', // Ajout de ce header pour ngrok
+          'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify(profileData),
       });
