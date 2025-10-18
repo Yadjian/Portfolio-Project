@@ -3,17 +3,17 @@ import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Plat
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RouteProp } from '@react-navigation/native';
-import type { AuthStackParamList } from '../../../lib/types';
-import { updateProfile } from '../../../services/api';
+import { AuthStackParamList, getApiUrl } from '../../../lib/types';
 import * as ImagePicker from 'expo-image-picker';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import MovaLogo from '../../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
+import { ActivityIndicator } from 'react-native';
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'EditProfileScreen'>>();
-  const { userType } = route.params;
+  const { userType, userId } = route.params;
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -30,17 +30,7 @@ export default function EditProfileScreen() {
   const [experienceModalVisible, setExperienceModalVisible] = useState(false);
   const [contractModalVisible, setContractModalVisible] = useState(false);
 
-  // Champs pour recruteur
-  const [companyName, setCompanyName] = useState('');
-  const [companyLocation, setCompanyLocation] = useState('');
-  const [companyAvatarUrl, setCompanyAvatarUrl] = useState('');
-  const [jobSeeking, setJobSeeking] = useState('');
-  const [experienceRequired, setExperienceRequired] = useState('');
-  const [companyContractType, setCompanyContractType] = useState('');
-  const [companyPresentation, setCompanyPresentation] = useState('');
-  const [siret, setSiret] = useState('');
-
-  // TODO: Pré-remplir les champs avec les données de l'utilisateur actuel
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -56,10 +46,64 @@ export default function EditProfileScreen() {
     };
   }, []);
 
+  // Pré-remplir les champs avec les données de l'utilisateur actuel
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      if (!userId) return;
+      setIsLoading(true);
+      const API_URL = getApiUrl();
+      const endpoint = userType === 'candidate' 
+        ? `${API_URL}/api/profiles/candidate/${userId}` 
+        : `${API_URL}/api/profiles/recruiter/${userId}`;
+
+      try {
+        // On utilise une méthode GET par défaut, pas besoin de la spécifier
+        const response = await fetch(endpoint);
+        if (!response.ok) {
+          // Si le profil n'existe pas encore (cas de la création), on ne fait rien.
+          if (response.status === 404) {
+            console.log("Profil non trouvé, l'utilisateur est en cours de création.");
+            return;
+          }
+          throw new Error("Erreur lors de la récupération du profil.");
+        }
+        const data = await response.json();
+
+        setFirstName(data.firstName || '');
+        setLastName(data.lastName || '');
+
+        if (userType === 'candidate') {
+          setLocation(data.location || '');
+          setAvatarUrl(data.avatarUrl || '');
+          setJob(data.job || '');
+          setExperience(data.experience || '');
+          setContractType(data.contractType || '');
+          setPresentation(data.presentation || '');
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération du profil:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProfileData();
+  }, [userId, userType]);
+
 
   const handleSubmit = async () => {
+    setIsLoading(true);
+    const API_URL = getApiUrl();
+
+    // Déterminez le endpoint et les données en fonction du type d'utilisateur.
+    // Adaptez ces URLs à la structure de votre API.
+    const endpoint = userType === 'candidate' 
+      ? `${API_URL}/api/profiles/candidate/${userId}` 
+      : `${API_URL}/api/profiles/recruiter/${userId}`;
+
+    let profileData;
     if (userType === 'candidate') {
-      const candidateData = {
+      profileData = {
         firstName,
         lastName,
         location,
@@ -69,38 +113,46 @@ export default function EditProfileScreen() {
         contractType,
         presentation,
       };
-      console.log('Updating candidate profile:', candidateData);
-      // try {
-      //   await updateProfile(candidateData);
-      // } catch (error) {
-      //   console.error("Erreur lors de l'enregistrement du profil candidat.", error);
-      //   alert("Erreur lors de l'enregistrement du profil.");
-      //   return;
-      // }
-      navigation.replace('CandidateProfile', { startEditing: false });
-    } else {
-      const recruiterData = {
-        companyName,
-        location,
-        avatarUrl: companyAvatarUrl,
-        jobSeeking,
-        experienceRequired,
-        contractType: companyContractType,
-        presentation: companyPresentation,
-        siret,
-        // Les champs `firstName` et `lastName` sont aussi pour le recruteur (contact person)
+    } else { // 'recruiter'
+      profileData = {
         firstName,
         lastName,
       };
-      console.log('Updating recruiter profile:', recruiterData);
-      // try {
-      //   await updateProfile(recruiterData);
-      // } catch (error) {
-      //   console.error("Erreur lors de l'enregistrement du profil recruteur.", error);
-      //   alert("Erreur lors de l'enregistrement du profil.");
-      //   return;
-      // }
-      navigation.replace('RecruiterProfile', { startEditing: false });
+    }
+
+    console.log(`Envoi des données au endpoint: ${endpoint}`, profileData);
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'PATCH', // ou 'PUT'
+        headers: {
+          'Content-Type': 'application/json',
+          // 'Authorization': 'Bearer VOTRE_TOKEN_JWT' // À ajouter plus tard
+        },
+        body: JSON.stringify(profileData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Une erreur est survenue lors de la mise à jour du profil.");
+      }
+
+      console.log('Profil mis à jour avec succès:', data);
+
+      // Naviguer vers l'écran de profil final
+      if (userType === 'candidate') {
+        navigation.replace('CandidateProfile', { startEditing: false });
+      } else {
+        // Pour le recruteur, après avoir complété son profil perso, on va vers son profil final
+        navigation.replace('RecruiterProfile', { startEditing: false });
+      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      console.error("Erreur lors de l'enregistrement du profil.", errorMessage);
+      alert("Erreur lors de l'enregistrement du profil.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -129,7 +181,7 @@ export default function EditProfileScreen() {
                 const result = await ImagePicker.launchImageLibraryAsync({
                   mediaTypes: ImagePicker.MediaTypeOptions.Images,
                   allowsEditing: true,
-                  aspect: [3, 4],
+                  aspect: [1, 1],
                   quality: 0.7,
                 });
                 if (!result.canceled && result.assets && result.assets.length > 0) {
@@ -223,26 +275,7 @@ export default function EditProfileScreen() {
           ) : (
             <>
               {/* Recruiter Form */}
-              <TouchableOpacity style={styles.imagePicker} onPress={async () => {
-                const result = await ImagePicker.launchImageLibraryAsync({
-                  mediaTypes: ImagePicker.MediaTypeOptions.Images,
-                  allowsEditing: true,
-                  aspect: [1, 1],
-                  quality: 0.7,
-                });
-                if (!result.canceled && result.assets && result.assets.length > 0) {
-                  setCompanyAvatarUrl(result.assets[0].uri);
-                }
-              }}>
-                <Image
-                  source={companyAvatarUrl ? { uri: companyAvatarUrl } : require('../../../assets/images/icon.png')}
-                  style={styles.avatar}
-                />
-                <View style={styles.cameraIcon}>
-                  <Ionicons name="camera" size={24} color="#fff" />
-                </View>
-              </TouchableOpacity>
-
+              {/* Prénom du contact */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Prénom du contact</Text>
                 <View style={styles.inputContainer}>
@@ -250,7 +283,7 @@ export default function EditProfileScreen() {
                   <TextInput style={styles.input} placeholder="Votre prénom" placeholderTextColor="#999" value={firstName} onChangeText={setFirstName} />
                 </View>
               </View>
-
+              {/* Nom du contact */}
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Nom du contact</Text>
                 <View style={styles.inputContainer}>
@@ -258,64 +291,15 @@ export default function EditProfileScreen() {
                   <TextInput style={styles.input} placeholder="Votre nom" placeholderTextColor="#999" value={lastName} onChangeText={setLastName} />
                 </View>
               </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Localisation de l'entreprise</Text>
-                <View style={styles.inputContainer}>
-                  <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <TextInput style={styles.input} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} onChangeText={setLocation} />
-                </View>
-              </View>
-
-              {/* Other recruiter fields */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Poste recherché</Text>
-                <TouchableOpacity style={styles.inputContainer} onPress={() => setJobModalVisible(true)}>
-                  <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <Text style={[styles.input, !jobSeeking && styles.placeholder]}>{jobSeeking || 'Sélectionner un poste'}</Text>
-                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Expérience requise</Text>
-                <TouchableOpacity style={styles.inputContainer} onPress={() => setExperienceModalVisible(true)}>
-                  <Ionicons name="analytics-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <Text style={[styles.input, !experienceRequired && styles.placeholder]}>{experienceRequired || 'Sélectionner une expérience'}</Text>
-                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Type de contrat</Text>
-                <TouchableOpacity style={styles.inputContainer} onPress={() => setContractModalVisible(true)}>
-                  <Ionicons name="document-text-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                  <Text style={[styles.input, !companyContractType && styles.placeholder]}>{companyContractType || 'Sélectionner un contrat'}</Text>
-                  <Ionicons name="chevron-down-outline" size={20} color="#999" />
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Présentation de l'entreprise (max 5 lignes)</Text>
-                <View style={[styles.inputContainer, { height: 120, alignItems: 'flex-start' }]}>
-                  <Ionicons name="chatbox-ellipses-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
-                  <TextInput 
-                    style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} 
-                    placeholder="Présentez votre entreprise..." 
-                    placeholderTextColor="#999" 
-                    value={companyPresentation} 
-                    onChangeText={setCompanyPresentation} 
-                    multiline 
-                    maxLength={250}
-                    numberOfLines={5}
-                  />
-                </View>
-              </View>
             </>
           )}
 
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Enregistrer</Text>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitButtonText}>Enregistrer</Text>
+            )}
           </TouchableOpacity>
 
           {/* Modals */}

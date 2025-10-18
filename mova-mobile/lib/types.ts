@@ -1,5 +1,12 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+// Fonction pour obtenir l'URL du backend
+export const getApiUrl = () => {
+  return 'https://tubular-verna-telegraphically.ngrok-free.dev'; // ← Mettez ici votre URL ngrok
+};
+
+export type UserType = 'candidate' | 'recruiter';
+
 // Définir les types des paramètres pour AuthStack
 export type AuthStackParamList = {
   Home: undefined;
@@ -7,10 +14,10 @@ export type AuthStackParamList = {
   ChooseRegisterType: undefined;
   CandidateProfile: { startEditing?: boolean };
   RecruiterProfile: { startEditing?: boolean };
-  SwipeNotification: { userType: string };
-  EditProfileScreen: { userType: 'candidate' | 'recruiter'; startEditing?: boolean };
+  SwipeNotification: { userType: UserType };
+  EditProfileScreen: { userType: UserType; userId: string; startEditing?: boolean };
   RecruiterOnboarding: undefined;
-  CreateCompany: { startEditing?: boolean };
+  CreateCompany: { userId: string; startEditing?: boolean };
   JoinCompany: undefined;
   CandidateCVScreen: undefined;
   RecruiterJobOfferScreen: undefined;

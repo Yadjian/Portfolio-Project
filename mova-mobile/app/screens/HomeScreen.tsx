@@ -8,16 +8,9 @@ import MovaLogo from '@/components/ui/MovaLogo';
 import { useAuth } from '../../contexts/AuthContext';
 import { sendLocationToBackend } from '../../services/api';
 import Colors from '../../constants/Colors';
-import { AuthStackParamList } from '@/lib/types';
-import Constants from 'expo-constants';
+import { AuthStackParamList, getApiUrl } from '@/lib/types';
 
 const { height, width } = Dimensions.get('window');
-
-// Fonction pour obtenir l'URL du backend
-const getApiUrl = () => {
-  // Utilise l'URL ngrok affichée dans le terminal
-  return 'https://tubular-verna-telegraphically.ngrok-free.dev'; // ← Mets ici l'URL ngrok
-};
 
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();

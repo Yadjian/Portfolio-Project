@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MovaLogo from '@/components/ui/MovaLogo';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../../lib/types';
+import { getApiUrl } from '@/lib/types'; // Assurez-vous que getApiUrl est exporté depuis types.ts
 
 type CreateAccountProps = NativeStackScreenProps<AuthStackParamList, 'CreateAccount'>;
 
@@ -17,6 +18,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -32,12 +34,58 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
     };
   }, []);
 
-  const handleSubmit = () => {
-    console.log('Création compte:', formData, userType);
-    if (userType === 'recruiter') {
-      navigation.navigate('CreateCompany', { startEditing: true });
-    } else {
-      navigation.navigate('EditProfileScreen', { userType: 'candidate' });
+  const handleSubmit = async () => {
+    if (formData.password !== formData.confirmPassword) {
+      Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    setIsLoading(true);
+    const API_URL = getApiUrl();
+
+    try {
+      const response = await fetch(`${API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true', // Ajout de ce header pour ngrok
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password,
+          role: userType,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Si le backend renvoie un message d'erreur, on l'affiche
+        throw new Error(data.message || 'Une erreur est survenue lors de la création du compte.');
+      }
+
+      console.log('Compte créé avec succès:', data);
+
+      // On récupère l'ID de l'utilisateur depuis la réponse de l'API.
+      // Adaptez "data.user.id" si votre API renvoie une structure différente (ex: data.userId)
+      const userId = data.user?.id;
+      if (!userId) {
+        throw new Error("L'ID de l'utilisateur n'a pas été reçu après l'inscription.");
+      }
+
+      // Si la création réussit, on navigue vers l'écran de profil pour le compléter
+      if (userType === 'recruiter') {
+        navigation.navigate('CreateCompany', { userId: userId, startEditing: true });
+      } else {
+        navigation.navigate('EditProfileScreen', { userType: 'candidate', userId: userId, startEditing: true });
+      }
+
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      console.error('Erreur lors de la création du compte:', errorMessage);
+      Alert.alert('Erreur', errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -127,8 +175,12 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
           </View>
 
           {/* Bouton Créer */}
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Créer mon compte</Text>
+          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.submitButtonText}>Créer mon compte</Text>
+            )}
           </TouchableOpacity>
 
           {/* Lien connexion */}

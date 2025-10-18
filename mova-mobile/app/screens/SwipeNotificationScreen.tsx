@@ -4,6 +4,7 @@ import { Feather } from '@expo/vector-icons'; // Changed from Ionicons
 import SwipeCard from '@/components/ui/SwipeCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
+import { UserType } from '@/lib/types';
 import Colors from '@/constants/Colors'; // Import our new colors
 
 const { width } = Dimensions.get('window');
@@ -37,10 +38,10 @@ const ActionButton = ({ onPress, small, color, icon, style }: {
 );
 
 export default function SwipeNotificationScreen({ route, navigation }: any) {
-  const userType = route?.params?.userType ?? 'candidat';
+  const userType: UserType = route?.params?.userType ?? 'candidate'; // On garde cette ligne, qui est la bonne
 
   // --- Mock data remains the same ---
-  const contacts: any[] = userType === 'candidat'
+  const contacts: any[] = userType === 'candidate' // On utilise la variable userType ici
     ? [
         {
           id: '1',
@@ -92,7 +93,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const position = useRef(new Animated.ValueXY()).current;
 
   // --- All the logic (tabs, panResponder, animations) remains the same ---
-  const baseTabs = userType === 'recruteur' ? getRecruiterTabs(navigation, 0) : getCandidateTabs(navigation, 0);
+  const baseTabs = userType === 'recruiter' ? getRecruiterTabs(navigation, 0) : getCandidateTabs(navigation, 0);
   const tabs = baseTabs.map(tab => 
     tab.id === 'notifications' 
       ? { ...tab, onPress: () => {} } // Désactive le clic sur l'onglet actif
@@ -156,7 +157,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
                   style={[styles.card, animatedStyle]}
                   {...panResponder.panHandlers}
                 >
-                  <SwipeCard userType={userType === 'candidat' ? 'recruiter' : 'candidate'} {...profile} />
+                  <SwipeCard userType={userType === 'candidate' ? 'recruiter' : 'candidate'} {...profile} />
                 </Animated.View>
               );
             }
