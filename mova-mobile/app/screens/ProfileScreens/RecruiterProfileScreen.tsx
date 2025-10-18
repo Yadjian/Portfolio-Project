@@ -23,7 +23,7 @@ export default function RecruiterProfileScreen() {
     firstName: '',
     lastName: '',
     location: '',
-    avatarUrl: 'https://via.placeholder.com/150',
+    avatarUrl: '',
     presentation: '',
   });
   const [jobOffer, setJobOffer] = useState({

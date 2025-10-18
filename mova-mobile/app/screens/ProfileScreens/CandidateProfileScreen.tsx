@@ -21,7 +21,7 @@ export default function CandidateProfileScreen() {
     firstName: '',
     lastName: '',
     location: '',
-    avatarUrl: 'https://randomuser.me/api/portraits/women/2.jpg', // Placeholder
+    avatarUrl: '', // Plus de placeholder
     job: '',
     experience: '',
     contractType: '',
