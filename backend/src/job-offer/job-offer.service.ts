@@ -37,14 +37,14 @@ export class JobOfferService {
     const jobOffer = await this.prisma.jobOffer.create({
       data: {
         ...createJobOfferDto,
-        contractType: recruiterProfile.desiredContractTypes[0], // Héritage du profil
-        experienceLevel: recruiterProfile.desiredExperienceLevel, // Héritage du profil
         company: {
           connect: { id: companyId },
         },
         createdBy: {
           connect: { id: recruiterProfile.id },
         },
+        contractType: recruiterProfile.desiredContractTypes[0],
+        experienceLevel: recruiterProfile.desiredExperienceLevel,
         categories: {
           connect: categoryIds,
         },
@@ -201,38 +201,6 @@ export class JobOfferService {
         categories: true,
       },
     });
-  }
-
-  async remove(id: string, userId: string) {
-    // 1. On cherche l'offre pour vérifier qu'elle existe et qui l'a créée
-    const jobOffer = await this.prisma.jobOffer.findUnique({
-      where: { id },
-      select: {
-        createdBy: {
-          select: {
-            userId: true,
-          },
-        },
-      },
-    });
-
-    // 2. Si l'offre n'existe pas, on renvoie une erreur "Non trouvé" (404)
-    if (!jobOffer) {
-      throw new NotFoundException(`Offre d'emploi avec l'ID "${id}" introuvable.`);
-    }
-
-    // 3. On vérifie que l'utilisateur qui demande la suppression est bien celui qui a créé l'offre
-    if (jobOffer.createdBy.userId !== userId) {
-      throw new ForbiddenException('Vous n\'êtes pas autorisé à supprimer cette offre.');
-    }
-
-    // On supprime d'abord les swipes associés à cette offre pour éviter les erreurs de contrainte
-    await this.prisma.swipe.deleteMany({
-      where: { jobId: id },
-    });
-
-    // 4. Si tout est bon, on supprime l'offre de la base de données
-    await this.prisma.jobOffer.delete({ where: { id } });
   }
 
   async findAllByRecruiter(userId: string) {
