@@ -20,7 +20,8 @@
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:studio": "dotenv -e .env -- prisma studio --port 5555",
     "studio:docker": "docker-compose exec backend npx prisma studio",
-    "migrate:docker": "docker-compose exec backend npx prisma migrate dev"
+    "migrate:docker": "docker-compose exec backend npx prisma migrate dev",
+    "db:seed": "docker-compose exec backend npx prisma db seed"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -87,5 +88,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }
