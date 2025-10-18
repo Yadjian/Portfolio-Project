@@ -213,7 +213,7 @@ export default function EditProfileScreen() {
 
           {/* Prénom */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{userType === 'recruiter' ? 'Prénom du contact' : 'Prénom'}</Text>
+            <Text style={styles.label}>Prénom</Text>
             <View style={styles.inputContainer}>
               <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
               <TextInput style={styles.input} placeholder="Votre prénom" placeholderTextColor="#999" value={firstName} onChangeText={setFirstName} />
@@ -222,7 +222,7 @@ export default function EditProfileScreen() {
 
           {/* Nom */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{userType === 'recruiter' ? 'Nom du contact' : 'Nom'}</Text>
+            <Text style={styles.label}>Nom</Text>
             <View style={styles.inputContainer}>
               <Ionicons name="person-outline" size={20} color='#4930a3' style={styles.inputIcon} />
               <TextInput style={styles.input} placeholder="Votre nom" placeholderTextColor="#999" value={lastName} onChangeText={setLastName} />
@@ -240,7 +240,7 @@ export default function EditProfileScreen() {
 
           {/* Poste */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>{userType === 'recruiter' ? 'Poste à pourvoir' : 'Poste recherché'}</Text>
+            <Text style={styles.label}>Poste</Text>
             <TouchableOpacity style={styles.inputContainer} onPress={() => setJobModalVisible(true)}>
               <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
               <Text style={[styles.input, !job && styles.placeholder]}>{job || 'Sélectionner un poste'}</Text>
