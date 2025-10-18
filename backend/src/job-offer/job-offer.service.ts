@@ -46,6 +46,8 @@ export class JobOfferService {
         createdBy: {
           connect: { id: recruiterProfile.id },
         },
+        contractType: recruiterProfile.desiredContractTypes[0],
+        experienceLevel: recruiterProfile.desiredExperienceLevel,
         categories: {
           connect: categoryIds,
         },
@@ -143,6 +145,7 @@ export class JobOfferService {
     if (jobOffer.createdBy.userId !== userId) {
       throw new ForbiddenException('Vous ne pouvez modifier que vos propres offres.');
     }
+    const candidateId = candidateProfile.id;
 
     return this.prisma.jobOffer.update({
       where: { id },
