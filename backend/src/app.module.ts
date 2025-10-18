@@ -9,9 +9,10 @@ import { AuthModule } from './auth/auth.module';
 import { ProfileModule } from './profile/profile.module';
 import { JobOfferModule } from './job-offer/job-offer.module';
 import { CompaniesModule } from './companies/companies.module';
+import { DiscoveryModule } from './discovery/discovery.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, ProfileModule, JobOfferModule, CompaniesModule],
+  imports: [AuthModule, PrismaModule, ProfileModule, JobOfferModule, CompaniesModule, DiscoveryModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
