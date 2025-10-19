@@ -63,7 +63,7 @@ export default function RecruiterProfileScreen() {
               firstName: userProfile.firstName || '',
               lastName: userProfile.lastName || '',
               location: userProfile.locationWKT || 'Non définie',
-              avatarUrl: prev.avatarUrl,
+              avatarUrl: userProfile.photoUrl || '',
               presentation: presentationText,
             }));
 
