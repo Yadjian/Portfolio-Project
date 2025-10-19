@@ -1,5 +1,6 @@
 // Fichier: backend/src/job-offer/job-offer.service.ts
 
+import { Prisma } from '@prisma/client';
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobOfferDto } from './dto/create-job-offer.dto';
@@ -26,9 +27,7 @@ export class JobOfferService {
       throw new ForbiddenException('Vous devez être associé à une entreprise.'); 
     }
 
-    if (!recruiterProfile.searchedCategories?.length || 
-        !recruiterProfile.desiredContractTypes?.length || 
-        !recruiterProfile.desiredExperienceLevel) {
+    if (!recruiterProfile.searchedCategories?.length || !recruiterProfile.desiredContractTypes?.length || !recruiterProfile.desiredExperienceLevel) {
       throw new ForbiddenException("Veuillez finaliser votre profil (contrats, expérience, catégories) avant de poster une offre.");
     }
 
@@ -38,14 +37,14 @@ export class JobOfferService {
     const jobOffer = await this.prisma.jobOffer.create({
       data: {
         ...createJobOfferDto,
+        contractType: recruiterProfile.desiredContractTypes[0], // Héritage du profil
+        experienceLevel: recruiterProfile.desiredExperienceLevel, // Héritage du profil
         company: {
           connect: { id: companyId },
         },
         createdBy: {
           connect: { id: recruiterProfile.id },
         },
-        contractType: recruiterProfile.desiredContractTypes[0],
-        experienceLevel: recruiterProfile.desiredExperienceLevel,
         categories: {
           connect: categoryIds,
         },
@@ -227,7 +226,50 @@ export class JobOfferService {
       throw new ForbiddenException('Vous n\'êtes pas autorisé à supprimer cette offre.');
     }
 
+    // On supprime d'abord les swipes associés à cette offre pour éviter les erreurs de contrainte
+    await this.prisma.swipe.deleteMany({
+      where: { jobId: id },
+    });
+
     // 4. Si tout est bon, on supprime l'offre de la base de données
     await this.prisma.jobOffer.delete({ where: { id } });
+  }
+
+  async findAllByRecruiter(userId: string) {
+    const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!recruiterProfile) {
+      throw new NotFoundException('Recruiter profile not found.');
+    }
+
+    return this.prisma.jobOffer.findMany({
+      where: {
+        createdById: recruiterProfile.id,
+      },
+      include: {
+        company: true,
+        categories: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
+
+  async updateOffersForRecruiter(recruiterProfileId: string, data: Prisma.JobOfferUpdateInput) {
+    // Cette fonction met à jour TOUTES les offres d'un recruteur.
+    // C'est la magie de la mise à jour en cascade.
+    await this.prisma.jobOffer.updateMany({
+      where: {
+        createdById: recruiterProfileId,
+      },
+      data: {
+        experienceLevel: data.experienceLevel,
+        contractType: data.contractType,
+        // On pourrait ajouter d'autres champs ici si nécessaire
+      },
+    });
   }
 }

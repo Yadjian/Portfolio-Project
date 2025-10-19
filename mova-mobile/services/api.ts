@@ -110,6 +110,46 @@ export async function getProfilesToSwipe() {
 }
 
 // ----------------------
+// JOB OFFERS
+// ----------------------
+export async function getMyJobOffers() {
+  const response = await fetch(`${API_URL}/job-offers/my-offers`, {
+    headers: await getHeaders(true),
+  });
+  return handleResponse(response);
+}
+
+export async function createJobOffer(data: any) {
+  const response = await fetch(`${API_URL}/job-offers`, {
+    method: 'POST',
+    headers: await getHeaders(true),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+}
+
+export async function updateJobOffer(id: string, data: any) {
+  const response = await fetch(`${API_URL}/job-offers/${id}`, {
+    method: 'PUT',
+    headers: await getHeaders(true),
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+}
+
+export async function deleteJobOffer(id: string) {
+  const response = await fetch(`${API_URL}/job-offers/${id}`, {
+    method: 'DELETE',
+    headers: await getHeaders(true),
+  });
+  // For DELETE, we might not get a JSON body, so handle differently if needed
+  if (response.status === 204) {
+    return {}; // Or some other indicator of success
+  }
+  return handleResponse(response);
+}
+
+// ----------------------
 // ENTREPRISE
 // ----------------------
 export async function createCompany(data: { companyName: string; siret: string }) {

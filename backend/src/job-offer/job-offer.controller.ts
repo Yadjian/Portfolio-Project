@@ -28,6 +28,14 @@ export class JobOffersController {
     return this.jobOfferService.findAll();
   }
 
+  @Get('my-offers')
+  @UseGuards(AuthGuard('jwt'))
+  findMyOffers(@Req() req: Request) {
+    const user = req.user as { sub: string };
+    const userId = user.sub;
+    return this.jobOfferService.findAllByRecruiter(userId);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: string) {
     return this.jobOfferService.findOne(id);

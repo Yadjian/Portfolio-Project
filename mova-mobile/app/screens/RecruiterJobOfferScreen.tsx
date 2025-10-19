@@ -1,60 +1,173 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Linking, Alert, StyleSheet, Dimensions, ScrollView, TextInput, Modal, Pressable } from 'react-native';
-import * as DocumentPicker from 'expo-document-picker';
+import React, { useState, useCallback } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, Dimensions, ScrollView, TextInput, Modal, Pressable } from 'react-native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { Ionicons } from '@expo/vector-icons';
+
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getRecruiterTabs } from '../../constants/tabsConfig';
-import MovaLogo from '../../components/ui/MovaLogo';
-import { Ionicons } from '@expo/vector-icons';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { useAuth } from '../../contexts/AuthContext';
+import { getMyJobOffers, createJobOffer, updateJobOffer, deleteJobOffer } from '../../services/api';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-type OfferCard = {
-  offerUrl?: string | null;
-  showForm?: boolean;
+// Le type pour une offre d'emploi, incluant l'état de l'UI
+type JobOfferUI = {
+  id?: string; // L'ID n'existe que pour les offres déjà créées
+  title: string;
+  description: string;
+  contractType: string;
+  workHours: string;
+  experienceLevel?: string; // Ajout du niveau d'expérience
+  locationWKT: string;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  // États pour l'UI
+  isNew?: boolean; // Marqueur pour une nouvelle offre non sauvegardée
+  showForm: boolean;
   loading?: boolean;
   error?: string;
-  title?: string;
-  description?: string;
-  contractType?: string;
-  hoursPerWeek?: string;
-  location?: string;
-  salaryMin?: string;
-  salaryMax?: string;
 };
 
-export default function RecruiterJobOfferScreen({ navigation }: any) {
-  const [cards, setCards] = useState<OfferCard[]>([]);
+export default function RecruiterJobOfferScreen() {
+  const navigation = useNavigation();
+  const { user } = useAuth(); // On récupère l'utilisateur connecté
+  const [offers, setOffers] = useState<JobOfferUI[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [contractModalVisible, setContractModalVisible] = useState(false);
-  const [contractIdx, setContractIdx] = useState<number | null>(null);
+  const [editingOfferIndex, setEditingOfferIndex] = useState<number | null>(null);
 
-  // Ajoute une nouvelle card vide EN HAUT
-  const addCard = () => setCards(cards => [{} , ...cards]);
+  // --- DATA FETCHING ---
+  const fetchOffers = useCallback(async (isActive = true) => {
+    try {
+      setIsLoading(true);
+      const fetchedOffers = await getMyJobOffers(); // API call
 
-  // Helpers pour gérer le state de chaque card
-  const updateCard = (idx: number, changes: Partial<OfferCard>) => {
-    setCards(cards =>
-      cards.map((card, i) => (i === idx ? { ...card, ...changes } : card))
+      if (isActive) {
+        const uiOffers: JobOfferUI[] = fetchedOffers.map((offer: any) => ({
+          ...offer,
+          salaryMin: offer.salaryMin, // Garder en nombre
+          salaryMax: offer.salaryMax, // Garder en nombre
+          showForm: false, // Par défaut, les formulaires sont cachés
+        }));
+        setOffers(uiOffers);
+      }
+    } catch (error) {
+      if (isActive) {
+        console.error("Erreur lors de la récupération des offres:", error);
+        Alert.alert("Erreur", "Impossible de charger vos offres.");
+      }
+    } finally {
+      if (isActive) {
+        setIsLoading(false);
+      }
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true; // Flag to prevent state updates if component is unmounted
+      fetchOffers(isActive);
+
+      return () => {
+        isActive = false; // Cleanup function
+      };
+    }, [fetchOffers])
+  );
+
+  // --- UI STATE HELPERS ---
+  const updateOfferState = (index: number, changes: Partial<JobOfferUI>) => {
+    setOffers(currentOffers =>
+      currentOffers.map((offer, i) => (i === index ? { ...offer, ...changes } : offer))
     );
   };
 
-  // Gestion des actions pour chaque card
-  const handleUpload = async (idx: number) => {
-    const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      updateCard(idx, { loading: true, error: '' });
-      try {
-        const asset = result.assets[0];
-        setTimeout(() => {
-          updateCard(idx, { offerUrl: asset.uri, loading: false });
-        }, 1200);
-      } catch (e) {
-        updateCard(idx, { error: "Erreur lors de l'upload", loading: false });
+  const addOfferCard = () => {
+    const recruiterProfile = user?.recruiterProfile;
+
+    // On vérifie que le profil est complet avant de permettre la création
+    if (!recruiterProfile || !recruiterProfile.searchedCategories?.length || !recruiterProfile.desiredContractTypes?.length || !recruiterProfile.desiredExperienceLevel) {
+      Alert.alert(
+        "Profil incomplet",
+        "Veuillez compléter votre profil (poste, contrat, expérience) avant d'ajouter une offre.",
+        [{ text: "OK", onPress: () => navigation.navigate('RecruiterProfile' as never) }]
+      );
+      return;
+    }
+
+    // Ajoute une carte de formulaire vide en haut de la liste
+    const newOffer: JobOfferUI = {
+      isNew: true,
+      showForm: true,
+      title: recruiterProfile.searchedCategories[0]?.name || '', // Titre hérité du profil
+      description: '',
+      contractType: recruiterProfile.desiredContractTypes[0] || '', // Contrat hérité du profil
+      experienceLevel: recruiterProfile.desiredExperienceLevel || '', // Expérience héritée du profil
+      workHours: '',
+      locationWKT: 'POINT(2.3522 48.8566)', // Valeur par défaut, cachée de l'utilisateur
+      salaryMin: null,
+      salaryMax: null,
+    };
+    setOffers(currentOffers => [newOffer, ...currentOffers]);
+  };
+
+  // --- API ACTIONS ---
+  const handleSave = async (index: number) => {
+    const offer = offers[index];
+    updateOfferState(index, { loading: true, error: '' });
+
+    // Validation simple
+    if (!offer.title || !offer.description) {
+      updateOfferState(index, { loading: false, error: 'Titre, description et contrat sont requis.' });
+      return;
+    }
+
+    const payload = {
+      title: offer.title,
+      description: offer.description,
+      workHours: offer.workHours,
+      locationWKT: 'POINT(2.3522 48.8566)', // On force une valeur valide
+      salaryMin: offer.salaryMin ? parseInt(offer.salaryMin.toString(), 10) : undefined,
+      salaryMax: offer.salaryMax ? parseInt(offer.salaryMax.toString(), 10) : undefined,
+    };
+
+    try {
+      if (offer.isNew) {
+        const newOffer = await createJobOffer(payload);
+
+        // Remplace la carte "new" par la carte de l'offre sauvegardée
+        updateOfferState(index, {
+          ...newOffer,
+          isNew: false,
+          showForm: false,
+          loading: false,
+        });
+      } else {
+        const updatedOffer = await updateJobOffer(offer.id!, payload);
+
+        // Met à jour l'offre existante et ferme le formulaire
+        updateOfferState(index, {
+          ...updatedOffer,
+          showForm: false,
+          loading: false,
+        });
       }
+      Alert.alert('Succès', `Offre ${offer.isNew ? 'créée' : 'mise à jour'} !`);
+      // Le rechargement complet n'est plus nécessaire, l'état est mis à jour localement.
+    } catch (error: any) {
+      console.error("Erreur sauvegarde offre:", error);
+      updateOfferState(index, { loading: false, error: error.message || 'Une erreur est survenue.' });
     }
   };
 
-  const handleDelete = (idx: number) => {
+  const handleDelete = async (index: number) => {
+    const offer = offers[index];
+    if (offer.isNew) {
+      // Si c'est une nouvelle carte non sauvegardée, on la retire juste de l'UI
+      setOffers(current => current.filter((_, i) => i !== index));
+      return;
+    }
+
     Alert.alert(
       "Supprimer l'offre",
       "Voulez-vous vraiment supprimer cette offre ?",
@@ -63,48 +176,39 @@ export default function RecruiterJobOfferScreen({ navigation }: any) {
         {
           text: "Supprimer",
           style: "destructive",
-          onPress: () => setCards(cards => cards.filter((_, i) => i !== idx)),
-        }
+          onPress: async () => {
+            try {
+              await deleteJobOffer(offer.id!);
+              // Retire l'offre de la liste au lieu de tout recharger
+              setOffers(current => current.filter((_, i) => i !== index));
+              Alert.alert('Succès', 'Offre supprimée.');
+            } catch (error: any) {
+              Alert.alert("Erreur", error.message || "Impossible de supprimer l'offre.");
+            }
+          },
+        },
       ]
     );
   };
 
-  const handleCreateOffer = (idx: number) => {
-    const card = cards[idx];
-    if (
-      !card.title ||
-      !card.contractType ||
-      !card.hoursPerWeek ||
-      !card.location ||
-      !card.salaryMin ||
-      !card.salaryMax
-    ) {
-      updateCard(idx, { error: 'Tous les champs sont obligatoires sauf la description.' });
-      return;
-    }
-    updateCard(idx, { loading: true, error: '' });
-    setTimeout(() => {
-      setCards(cards => {
-        const newCard = { ...cards[idx], loading: false, showForm: false };
-        return cards.map((card, i) => (i === idx ? newCard : card));
-      });
-      Alert.alert('Succès', 'Offre créée !');
-    }, 800);
-  };
-
-  // Sélecteur déroulant pour type de contrat
-  const openContractModal = (idx: number) => {
-    setContractIdx(idx);
+  // --- MODAL HELPERS ---
+  const openContractModal = (index: number) => {
+    setEditingOfferIndex(index);
     setContractModalVisible(true);
   };
 
   const selectContractType = (type: string) => {
-    if (contractIdx !== null) {
-      updateCard(contractIdx, { contractType: type });
+    if (editingOfferIndex !== null) {
+      updateOfferState(editingOfferIndex, { contractType: type });
     }
     setContractModalVisible(false);
-    setContractIdx(null);
+    setEditingOfferIndex(null);
   };
+
+  // --- RENDER ---
+  if (isLoading) {
+    return <View style={styles.container}><ActivityIndicator size="large" color="#4930a3" /></View>;
+  }
 
   return (
     <View style={styles.container}>
@@ -118,207 +222,142 @@ export default function RecruiterJobOfferScreen({ navigation }: any) {
           <Text style={styles.title}>Mes Offres</Text>
           <Text style={styles.subtitle}>Gérez vos offres d'emploi ici.</Text>
         </View>
-            {cards.length === 0 && (
-              <View style={styles.emptyCard}>
-                <Text style={styles.emptyCardText}>
-                  Aucune offre ajoutée pour l'instant.
-                </Text>
-                <TouchableOpacity
-                  style={styles.addIconEmpty}
-                  onPress={addCard}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="add-circle" size={40} color="#4930a3" />
-                </TouchableOpacity>
-              </View>
-            )}
-            {cards.map((card, idx) => (
-              <View key={idx} style={styles.card}>
-                {/* Icone poubelle pour supprimer la card */}
-                <TouchableOpacity
-                  style={styles.trashIcon}
-                  onPress={() => handleDelete(idx)}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="trash-outline" size={20} color="#e74c3c" />
-                </TouchableOpacity>
-                {card.offerUrl ? (
-                  <View style={{ marginBottom: 24 }}>
-                    <Text style={styles.label}>Offre importée :</Text>
-                    <TouchableOpacity onPress={() => Linking.openURL(card.offerUrl!)}>
-                      <Text style={styles.link}>Voir mon offre</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => updateCard(idx, { offerUrl: null })}
-                      style={[styles.submitButton, styles.secondaryButton, { marginTop: 12 }]}
-                      activeOpacity={0.8}
-                    >
-                      <Text style={[styles.submitButtonText, styles.secondaryButtonText]}>Remplacer l'offre</Text>
-                    </TouchableOpacity>
+
+        {offers.length === 0 && (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyCardText}>Aucune offre pour le moment.</Text>
+          </View>
+        )}
+
+        {/* Bouton pour ajouter une offre, toujours visible en haut */}
+        <TouchableOpacity style={styles.addOfferButton} onPress={addOfferCard} activeOpacity={0.8}>
+          <Ionicons name="add-circle-outline" size={24} color="#fff" />
+          <Text style={styles.addOfferButtonText}>Ajouter une offre</Text>
+        </TouchableOpacity>
+
+        {offers.map((offer, idx) => (
+          <View key={offer.id || `new-${idx}`} style={styles.card}>
+            <TouchableOpacity style={styles.trashIcon} onPress={() => handleDelete(idx)} activeOpacity={0.7}>
+              <Ionicons name="trash-outline" size={20} color="#e74c3c" />
+            </TouchableOpacity>
+
+            {offer.loading && <ActivityIndicator color="#6746a8" />}
+
+            {offer.showForm ? (
+              // --- FORMULAIRE D'ÉDITION/CRÉATION ---
+              <View style={styles.formContainer}>
+                 <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Poste (défini dans le profil)</Text>
+                  <View style={[styles.inputContainer, styles.readOnlyContainer]}>
+                    <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                    <Text style={[styles.input, styles.readOnlyText]}>{offer.title}</Text>
                   </View>
-                ) : (
-                  // Affiche "Aucune offre importée" seulement si la fiche n'est pas créée
-                  !card.title && <Text style={{ marginBottom: 24 }}>Ajoutez une offre.</Text>
-                )}
-                {card.loading ? (
-                  <ActivityIndicator color="#6746a8" />
-                ) : (
-                  // Affiche les boutons seulement si la card n'a pas de fiche créée et pas d'offre importée
-                  !card.title && !card.offerUrl && (
-                    <View style={styles.buttonRow}>
-                      <TouchableOpacity
-                        onPress={() => updateCard(idx, { showForm: !card.showForm })}
-                        activeOpacity={0.8}
-                        style={styles.submitButton}
-                      >                        
-                        <Text style={styles.submitButtonText}>Créer une offre</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => handleUpload(idx)}
-                        activeOpacity={0.8}
-                        style={[styles.submitButton, styles.secondaryButton, { marginTop: 12 }]}
-                      >
-                        <Text style={[styles.submitButtonText, styles.secondaryButtonText]}>Importer une offre</Text>
-                      </TouchableOpacity>
-                    </View>
-                  )
-                )}
-                {card.showForm && (
-                  <View style={styles.formContainer}>
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Titre de l'offre</Text>
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                        <TextInput style={styles.input} value={card.title || ''} onChangeText={text => updateCard(idx, { title: text })} placeholder="Développeur React Native" placeholderTextColor="#999" />
-                      </View>
-                    </View>
+                </View>
 
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Description (optionnel)</Text>
-                      <View style={[styles.inputContainer, { height: 100, alignItems: 'flex-start' }]}>
-                        <Ionicons name="document-text-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
-                        <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} value={card.description || ''} onChangeText={text => updateCard(idx, { description: text })} placeholder="Description du poste..." placeholderTextColor="#999" multiline />
-                      </View>
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Type de contrat</Text>
-                      <TouchableOpacity style={styles.inputContainer} onPress={() => openContractModal(idx)}>
-                        <Ionicons name="document-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                        <Text style={[styles.input, !card.contractType && styles.placeholder]}>{card.contractType || 'Sélectionner un type'}</Text>
-                        <Ionicons name="chevron-down-outline" size={20} color="#999" />
-                      </TouchableOpacity>
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Heures / semaine</Text>
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="time-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                        <TextInput style={styles.input} value={card.hoursPerWeek || ''} onChangeText={text => updateCard(idx, { hoursPerWeek: text })} placeholder="Ex: 35" keyboardType="numeric" />
-                      </View>
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Localisation</Text>
-                      <View style={styles.inputContainer}>
-                        <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                        <TextInput style={styles.input} value={card.location || ''} onChangeText={text => updateCard(idx, { location: text })} placeholder="Ville, Région..." />
-                      </View>
-                    </View>
-
-                    <View style={styles.inputGroup}>
-                      <Text style={styles.label}>Salaire (Brut Annuel)</Text>
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <View style={[styles.inputContainer, { width: '48%' }]}>
-                          <Ionicons name="cash-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                          <TextInput style={styles.input} value={card.salaryMin || ''} onChangeText={text => updateCard(idx, { salaryMin: text })} placeholder="Min" keyboardType="numeric" />
-                        </View>
-                        <View style={[styles.inputContainer, { width: '48%' }]}>
-                          <Ionicons name="cash-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                          <TextInput style={styles.input} value={card.salaryMax || ''} onChangeText={text => updateCard(idx, { salaryMax: text })} placeholder="Max" keyboardType="numeric" />
-                        </View>
-                      </View>
-                    </View>
-
-                    <View style={styles.formButtonRow}>
-                      <TouchableOpacity
-                        onPress={() => handleCreateOffer(idx)}
-                        activeOpacity={0.8}
-                        style={[styles.submitButton, { flex: 1 }]}
-                      >
-                        <Text style={styles.submitButtonText}>Valider</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        onPress={() => updateCard(idx, { showForm: false })}
-                        activeOpacity={0.8}
-                        style={[styles.submitButton, styles.secondaryButton, { flex: 1, marginLeft: 12 }]}
-                      >
-                        <Text style={[styles.submitButtonText, styles.secondaryButtonText]}>Annuler</Text>
-                      </TouchableOpacity>
-                    </View>
-                    {card.error ? <Text style={{ color: 'red', marginTop: 8 }}>{card.error}</Text> : null}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Description</Text>
+                  <View style={[styles.inputContainer, { height: 100, alignItems: 'flex-start' }]}>
+                    <Ionicons name="document-text-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
+                    <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} value={offer.description} onChangeText={text => updateOfferState(idx, { description: text })} placeholder="Description du poste..." placeholderTextColor="#999" multiline />
                   </View>
-                )}
-                {card.error && !card.showForm ? <Text style={{ color: 'red', marginTop: 16 }}>{card.error}</Text> : null}
-                {/* Ajoute le bouton + seulement sur la première card si elle est remplie */}
-                {idx === 0 && (card.title || card.offerUrl) && (
-                  <TouchableOpacity
-                    style={styles.addIconInCard}
-                    onPress={addCard}
-                    activeOpacity={0.8}
-                  >
-                    <Ionicons name="add-circle" size={40} color="#4930a3" />
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Type de contrat</Text>
+                  <View style={[styles.inputContainer, styles.readOnlyContainer]}>
+                    <Ionicons name="document-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                    <Text style={[styles.input, styles.readOnlyText]}>{offer.contractType}</Text>
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Niveau d'expérience</Text>
+                  <View style={[styles.inputContainer, styles.readOnlyContainer]}>
+                    <Ionicons name="analytics-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                    <Text style={[styles.input, styles.readOnlyText]}>{offer.experienceLevel}</Text>
+                  </View>
+                </View>
+
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Heures / semaine</Text>
+                  <View style={styles.inputContainer}>
+                    <Ionicons name="time-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                    <TextInput style={styles.input} value={offer.workHours} onChangeText={text => updateOfferState(idx, { workHours: text })} placeholder="Ex: 35" keyboardType="numeric" />
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Salaire (Brut Annuel)</Text>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <View style={[styles.inputContainer, { width: '48%' }]}>
+                      <Ionicons name="cash-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                      <TextInput style={styles.input} value={offer.salaryMin?.toString() ?? ''} onChangeText={text => updateOfferState(idx, { salaryMin: text ? parseInt(text) : null })} placeholder="Min" keyboardType="numeric" />
+                    </View>
+                    <View style={[styles.inputContainer, { width: '48%' }]}>
+                      <Ionicons name="cash-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                      <TextInput style={styles.input} value={offer.salaryMax?.toString() ?? ''} onChangeText={text => updateOfferState(idx, { salaryMax: text ? parseInt(text) : null })} placeholder="Max" keyboardType="numeric" />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={styles.formButtonRow}>
+                  <TouchableOpacity onPress={() => handleSave(idx)} activeOpacity={0.8} style={[styles.submitButton, { flex: 1 }]} disabled={offer.loading}>
+                    <Text style={styles.submitButtonText}>Valider</Text>
                   </TouchableOpacity>
-                )}
-                {/* Affiche la fiche du poste et le bouton Modifier */}
-                {!card.showForm && card.title && (
-                  <>
-                    <View style={styles.offerDetailsContainer}>
-                      <Text style={styles.detailTitle}>{card.title}</Text>
-                      {card.description ? (
-                        <Text style={styles.detailText}>{card.description}</Text>
-                      ) : null}
-                      <View style={styles.tagsContainer}>
-                        {card.contractType && <Text style={styles.tag}>{card.contractType}</Text>}
-                        {card.hoursPerWeek && <Text style={styles.tag}>{card.hoursPerWeek}h/sem</Text>}
-                        {card.location && <Text style={styles.tag}>{card.location}</Text>}
-                        {(card.salaryMin || card.salaryMax) && <Text style={styles.tag}>{card.salaryMin}€ - {card.salaryMax}€</Text>}
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      style={[styles.submitButton, { alignSelf: 'flex-start', paddingHorizontal: 20, height: 44, marginTop: 16 }]}
-                      activeOpacity={0.8}
-                      onPress={() => updateCard(idx, { showForm: true })}
-                    >
-                      <Text style={styles.submitButtonText}>Modifier</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
+                  <TouchableOpacity onPress={() => offer.isNew ? handleDelete(idx) : updateOfferState(idx, { showForm: false })} activeOpacity={0.8} style={[styles.submitButton, styles.secondaryButton, { flex: 1, marginLeft: 12 }]}>
+                    <Text style={[styles.submitButtonText, styles.secondaryButtonText]}>Annuler</Text>
+                  </TouchableOpacity>
+                </View>
+                {offer.error ? <Text style={{ color: 'red', marginTop: 8 }}>{offer.error}</Text> : null}
               </View>
-            ))}
-            <View style={{ height: 100 }} />
-        {/* Modal déroulant pour type de contrat */}
-        <Modal
-          visible={contractModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setContractModalVisible(false)}
-        >
-          <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
-            <Pressable style={styles.modalContent}>
-              {['CDI', 'CDD', 'STAGE', 'ALTERNANCE'].map(opt => (
+            ) : (
+              // --- AFFICHAGE DE L'OFFRE ---
+              <>
+                <View style={styles.offerDetailsContainer}>
+                  <Text style={styles.detailTitle}>{offer.title}</Text>
+                  {offer.description ? <Text style={styles.detailText}>{offer.description}</Text> : null}
+                  <View style={styles.tagsContainer}>
+                    {offer.contractType && <Text style={styles.tag}>{offer.contractType}</Text>}
+                    {offer.workHours && <Text style={styles.tag}>{offer.workHours}h/sem</Text>}
+                    {offer.experienceLevel && <Text style={styles.tag}>{offer.experienceLevel}</Text>}
+                    {/* La localisation est gérée en arrière-plan, pas besoin de l'afficher pour l'instant */}
+                    {(offer.salaryMin || offer.salaryMax) && <Text style={styles.tag}>{offer.salaryMin}€ - {offer.salaryMax}€</Text>}
+                  </View>
+                </View>
                 <TouchableOpacity
-                  key={opt}
-                  style={styles.modalOption}
-                  onPress={() => selectContractType(opt)}
+                  style={[styles.submitButton, { alignSelf: 'flex-start', paddingHorizontal: 20, height: 44, marginTop: 16 }]}
+                  activeOpacity={0.8}
+                  onPress={() => updateOfferState(idx, { showForm: true })}
                 >
-                  <Text style={styles.modalOptionText}>{opt}</Text>
+                  <Text style={styles.submitButtonText}>Modifier</Text>
                 </TouchableOpacity>
-              ))}
-            </Pressable>
-          </TouchableOpacity>
-        </Modal>
+              </>
+            )}
+          </View>
+        ))}
+
+        <View style={{ height: 100 }} />
       </KeyboardAwareScrollView>
+
+      {/* Modal pour le type de contrat */}
+      <Modal
+        visible={contractModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setContractModalVisible(false)}
+      >
+        <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
+          <Pressable style={styles.modalContent}>
+            {['CDI', 'CDD', 'STAGE', 'ALTERNANCE', 'FREELANCE', 'AUTRE'].map(opt => (
+              <TouchableOpacity key={opt} style={styles.modalOption} onPress={() => selectContractType(opt)}>
+                <Text style={styles.modalOptionText}>{opt}</Text>
+              </TouchableOpacity>
+            ))}
+          </Pressable>
+        </TouchableOpacity>
+      </Modal>
+
       <BottomTabBar tabs={getRecruiterTabs(navigation)} activeTabId="offre" />
     </View>
   );
@@ -328,6 +367,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    justifyContent: 'center',
   },
   content: {
     flexGrow: 1,
@@ -337,10 +377,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
-  },
-  scrollContainer: {
-    flex: 1,
+    marginBottom: 24,
   },
   title: {
     fontSize: 26,
@@ -353,6 +390,27 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#666',
     fontWeight: '500',
+  },
+  addOfferButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4930a3',
+    borderRadius: 14,
+    height: 50,
+    paddingHorizontal: 20,
+    marginBottom: 24,
+    shadowColor: '#4930a3',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  addOfferButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
   card: {
     backgroundColor: '#f8f8f8',
@@ -371,22 +429,16 @@ const styles = StyleSheet.create({
   emptyCard: {
     backgroundColor: '#f8f8f8',
     borderRadius: 20,
-    padding: 28,
-    shadowColor: '#6746a8',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 10,
-    elevation: 5,
-    borderWidth: 1,
-    borderColor: '#e8e8e8',
+    padding: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+    marginBottom: 24,
   },
   emptyCardText: {
     textAlign: 'center',
     color: '#888',
-    marginBottom: 16,
     fontSize: 16,
   },
   inputGroup: {
@@ -397,11 +449,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 8,
-  },
-  link: {
-    color: '#4930a3',
-    textDecorationLine: 'underline',
-    fontSize: 16,
   },
   submitButton: {
     backgroundColor: '#4930a3',
@@ -455,17 +502,12 @@ const styles = StyleSheet.create({
   placeholder: {
     color: '#999',
   },
-  addIconInCard: {
-    position: 'absolute',
-    right: 12,
-    bottom: 12,
-    zIndex: 10,
+  readOnlyContainer: {
+    backgroundColor: '#f0f0f0',
+    borderColor: '#e0e0e0',
   },
-  addIconEmpty: {
-    position: 'absolute',
-    right: 12,
-    bottom: 12,
-    zIndex: 10,
+  readOnlyText: {
+    color: '#777',
   },
   trashIcon: {
     position: 'absolute',
@@ -473,9 +515,6 @@ const styles = StyleSheet.create({
     right: 12,
     zIndex: 10,
     padding: 8,
-  },
-  buttonRow: {
-    marginTop: 8,
   },
   formButtonRow: {
     flexDirection: 'row',
@@ -534,6 +573,6 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 15,
     fontSize: 12,
-    overflow: 'hidden', // for iOS to respect borderRadius
+    overflow: 'hidden',
   },
 });

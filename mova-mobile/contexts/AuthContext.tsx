@@ -51,9 +51,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setLoading(true);
     try {
       const response = await apiLogin(email, password);
-      if (response && response.token) {
-        await SecureStore.setItemAsync('auth_token', response.token);
-        setToken(response.token);
+      if (response && response.accessToken) {
+        await SecureStore.setItemAsync('auth_token', response.accessToken);
+        setToken(response.accessToken);
         setIsAuthenticated(true);
         try {
           const userData = await getMyProfile();
