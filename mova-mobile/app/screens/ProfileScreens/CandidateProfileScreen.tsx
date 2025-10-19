@@ -40,7 +40,7 @@ export default function CandidateProfileScreen() {
               ...prev,
               firstName: userProfile.firstName || '',
               lastName: userProfile.lastName || '',
-              location: userProfile.locationWKT || '', // TODO: Convertir WKT en une localisation lisible par l'homme
+              location: userProfile.locationWKT || 'Non définie',
               avatarUrl: userProfile.photoUrl || '',
               job: userProfile.desiredJobTitle || '',
               experience: userProfile.experienceLevel || '',
@@ -75,7 +75,7 @@ export default function CandidateProfileScreen() {
             <Feather name="edit-2" size={20} color="#4930a3" />
           </TouchableOpacity>
           <Text style={styles.name}>{`${candidate.firstName} ${candidate.lastName}`.trim()}</Text>
-          <Text style={styles.jobTitle}>{candidate.job}</Text>
+
           <View style={styles.locationContainer}>
             <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
             <Text style={styles.location}>{candidate.location}</Text>
