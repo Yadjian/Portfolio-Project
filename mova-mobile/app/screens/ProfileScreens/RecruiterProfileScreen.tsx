@@ -51,8 +51,10 @@ export default function RecruiterProfileScreen() {
             const searchDesc = userProfile.searchDescription || '';
             const parts = searchDesc.split('\n\n');
             let jobTitle = 'Non défini';
+            let presentationText = searchDesc;
             if (parts.length > 1 && parts[0]) {
               jobTitle = parts[0];
+              presentationText = parts.slice(1).join('\n\n');
             }
 
             setProfile(prev => ({
@@ -62,7 +64,7 @@ export default function RecruiterProfileScreen() {
               lastName: userProfile.lastName || '',
               location: userProfile.locationWKT || 'Non définie',
               avatarUrl: prev.avatarUrl,
-              presentation: searchDesc, // The full description is used for the presentation section
+              presentation: presentationText,
             }));
 
             setJobOffer({
@@ -114,7 +116,7 @@ export default function RecruiterProfileScreen() {
         {/* --- Job Details Section --- */}
         <ProfileSection title="Recherche en cours" icon="briefcase" iconColor="#4930a3">
           <View style={styles.detailItem}>
-            <Text style={styles.detailLabel}>Poste recherché:</Text>
+            <Text style={styles.detailLabel}>Poste disponible:</Text>
             <Text style={styles.detailValue}>{jobOffer.title}</Text>
           </View>
           <View style={styles.detailItem}>
