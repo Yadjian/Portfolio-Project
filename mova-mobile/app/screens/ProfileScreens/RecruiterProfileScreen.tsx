@@ -6,9 +6,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Feather } from '@expo/vector-icons';
 
 import type { AuthStackParamList } from '../../../lib/types';
+import BottomTabBar from '../../../components/ui/BottomTabBar';
 import { getMyProfile } from '../../../services/api';
+import { getRecruiterTabs } from '@/constants/tabsConfig';
 import Colors from '../../../constants/Colors';
-import ProfileSection from '../../../components/ui/ProfileSection';
+import ProfileSection from '../../../components/ui/ProfileSection'; // Correction de l'import
 
 const { width } = Dimensions.get('window');
 
@@ -39,10 +41,13 @@ export default function RecruiterProfileScreen() {
           if (profileData && profileData.recruiterProfile) {
             const userProfile = profileData.recruiterProfile;
 
-            const company = userProfile.memberships?.[0]?.company;
-            const companyName = company?.name || 'Entreprise non définie';
-            const companyLogo = company?.logoUrl || '';
+            // Get Company Name
+            const companyName =
+              userProfile.memberships && userProfile.memberships.length > 0
+                ? userProfile.memberships[0].company.name
+                : 'Entreprise non définie';
 
+            // Parse searchDescription to get job title and presentation
             const searchDesc = userProfile.searchDescription || '';
             const parts = searchDesc.split('\n\n');
             let jobTitle = 'Non défini';
@@ -58,7 +63,7 @@ export default function RecruiterProfileScreen() {
               firstName: userProfile.firstName || '',
               lastName: userProfile.lastName || '',
               location: userProfile.locationWKT || 'Non définie',
-              avatarUrl: companyLogo,
+              avatarUrl: prev.avatarUrl,
               presentation: presentationText,
             }));
 
@@ -77,6 +82,9 @@ export default function RecruiterProfileScreen() {
       fetchRecruiterData();
     }, [])
   );
+
+  const notificationCount = 0; // Example count
+  const tabs = getRecruiterTabs(navigation, notificationCount);
 
   return (
     <View style={styles.container}>
@@ -124,6 +132,7 @@ export default function RecruiterProfileScreen() {
         {/* Spacer at the bottom */}
         <View style={{ height: 100 }} />
       </ScrollView>
+      <BottomTabBar tabs={tabs} activeTabId="profile" />
     </View>
   );
 }

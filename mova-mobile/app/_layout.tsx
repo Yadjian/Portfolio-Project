@@ -8,7 +8,6 @@ import { Stack } from 'expo-router';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import AuthStack from './navigation/AuthStack';
-import AppTabs from './navigation/AppTabs';
 import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
 
 export {
@@ -62,7 +61,12 @@ function RootLayoutNav() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {isAuthenticated ? <AppTabs /> : <AuthStack />}
+      {/* 
+        Cette logique est la clé :
+        - Si l'utilisateur n'est PAS authentifié, on affiche le AuthStack (Login, Register, etc.)
+        - Si l'utilisateur EST authentifié, on le redirige vers son profil (géré par AuthStack après la connexion)
+      */}
+      {isAuthenticated ? <AuthStack /> : <AuthStack />}
     </ThemeProvider>
   );
 }
