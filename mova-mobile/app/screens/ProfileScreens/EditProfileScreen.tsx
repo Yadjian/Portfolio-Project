@@ -9,7 +9,8 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import MovaLogo from '../../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
-import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
+import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories, getGoogleGeolocation } from '../../../services/api';
+import * as Location from 'expo-location';
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -41,6 +42,34 @@ export default function EditProfileScreen() {
   const [contractTypes, setContractTypes] = useState<string[]>([]);
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
   const [jobCategories, setJobCategories] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.error('Permission to access location was denied');
+        return;
+      }
+
+      try {
+        let location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
+        const geoData = await getGoogleGeolocation(latitude, longitude);
+
+        if (geoData && geoData.results && geoData.results.length > 0) {
+          const addressComponents = geoData.results[0].address_components || [];
+          const cityComponent = addressComponents.find(
+            (comp: { types: string[]; long_name: string }) => comp.types.includes('locality')
+          );
+          if (cityComponent) {
+            setLocation(cityComponent.long_name);
+          }
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération de la ville:", error);
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -97,8 +126,6 @@ export default function EditProfileScreen() {
           setFirstName(profile.firstName || '');
           setLastName(profile.lastName || '');
           setAvatarUrl(profile.photoUrl || '');
-          // Le WKT n'est pas affiché directement, on laisse le champ vide pour que l'utilisateur le remplisse
-          setLocation(''); 
           
           if (userType === 'candidate') {
             setJob(profile.desiredJobTitle || '');
@@ -248,7 +275,7 @@ export default function EditProfileScreen() {
             <Text style={styles.label}>Localisation</Text>
             <View style={styles.inputContainer}>
               <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-              <TextInput style={styles.input} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} onChangeText={setLocation} />
+              <TextInput style={[styles.input, { color: '#888' }]} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} editable={false} />
             </View>
           </View>
 
