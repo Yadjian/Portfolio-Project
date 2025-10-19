@@ -158,7 +158,7 @@ export default function RecruiterJobOfferScreen({ navigation }: any) {
                   </View>
                 ) : (
                   // Affiche "Aucune offre importée" seulement si la fiche n'est pas créée
-                  !card.title && <Text style={{ marginBottom: 24 }}>Aucune offre importée.</Text>
+                  !card.title && <Text style={{ marginBottom: 24 }}>Ajoutez une offre.</Text>
                 )}
                 {card.loading ? (
                   <ActivityIndicator color="#6746a8" />
