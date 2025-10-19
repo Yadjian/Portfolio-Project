@@ -40,22 +40,38 @@ export default function RecruiterProfileScreen() {
           const profileData = await getMyProfile();
           if (profileData && profileData.recruiterProfile) {
             const userProfile = profileData.recruiterProfile;
+
+            // Get Company Name
+            const companyName =
+              userProfile.memberships && userProfile.memberships.length > 0
+                ? userProfile.memberships[0].company.name
+                : 'Entreprise non définie';
+
+            // Parse searchDescription to get job title and presentation
+            const searchDesc = userProfile.searchDescription || '';
+            const parts = searchDesc.split('\n\n');
+            let jobTitle = 'Non défini';
+            if (parts.length > 1 && parts[0]) {
+              jobTitle = parts[0];
+            }
+
             setProfile(prev => ({
               ...prev,
-              companyName: userProfile.company?.name || '',
+              companyName: companyName,
               firstName: userProfile.firstName || '',
               lastName: userProfile.lastName || '',
-              location: userProfile.location || '',
-              avatarUrl: userProfile.avatarUrl || prev.avatarUrl,
-              presentation: userProfile.presentation || '',
+              location: userProfile.locationWKT || 'Non définie',
+              avatarUrl: prev.avatarUrl,
+              presentation: searchDesc, // The full description is used for the presentation section
             }));
-            setUserId(profileData.id);
-            // TODO: Remplacer par un appel API pour récupérer les offres du recruteur
+
             setJobOffer({
-              title: 'Développeur React Native',
-              experience: 'Intermédiaire',
-              contractType: 'CDI',
+              title: jobTitle,
+              experience: userProfile.desiredExperienceLevel || 'Non défini',
+              contractType: userProfile.desiredContractTypes ? userProfile.desiredContractTypes.join(', ') : 'Non défini',
             });
+
+            setUserId(profileData.id);
           }
         } catch (error) {
           console.error("Erreur lors du chargement du profil recruteur:", error);

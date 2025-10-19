@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { login as apiLogin, getCurrentUser } from '../services/api';
+import { login as apiLogin, getMyProfile } from '../services/api';
 
 
 interface AuthContextType {
@@ -30,7 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(storedToken);
           setIsAuthenticated(true);
           try {
-            const userData = await getCurrentUser();
+            const userData = await getMyProfile();
             setUser(userData);
           } catch (error) {
             setUser(null);
@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(response.token);
         setIsAuthenticated(true);
         try {
-          const userData = await getCurrentUser();
+          const userData = await getMyProfile();
           setUser(userData);
         } catch (error) {
           setUser(null);

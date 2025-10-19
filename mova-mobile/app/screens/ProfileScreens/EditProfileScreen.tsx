@@ -136,8 +136,16 @@ export default function EditProfileScreen() {
             }
           } else { // Recruiter
             setExperience(profile.desiredExperienceLevel || '');
-             if (profile.desiredContractTypes && profile.desiredContractTypes.length > 0) {
-              setContractType(profile.desiredContractTypes[0]);
+            if (profile.desiredContractTypes && profile.desiredContractTypes.length > 0) {
+              setContractType(profile.desiredContractTypes.join(', '));
+            }
+            const searchDesc = profile.searchDescription || '';
+            const parts = searchDesc.split('\n\n');
+            if (parts.length > 1) {
+              setJob(parts[0]);
+              setPresentation(parts.slice(1).join('\n\n'));
+            } else {
+              setPresentation(searchDesc);
             }
           }
         } else {
@@ -172,11 +180,11 @@ export default function EditProfileScreen() {
         profileData.desiredContractTypes = [contractType];
       }
     } else { // Recruiter
+      profileData.searchDescription = `${job}\n\n${presentation}`;
       profileData.desiredExperienceLevel = experience;
       if (contractType) {
-        profileData.desiredContractTypes = [contractType];
+        profileData.desiredContractTypes = contractType.split(',').map(s => s.trim());
       }
-      // Le champ `searchDescription` du DTO n'est pas dans le formulaire, on l'ignore pour l'instant.
     }
 
     console.log(`Envoi des données pour mise à jour du profil`, profileData);
