@@ -35,4 +35,9 @@ export class ProfileController {
     const userId = req.user.sub;
     return this.profileService.updateUserLocation(userId, updateLocationDto);
   }
+
+  @Get('categories')
+  async getJobCategories() {
+    return this.profileService.getJobCategories();
+  }
 }
