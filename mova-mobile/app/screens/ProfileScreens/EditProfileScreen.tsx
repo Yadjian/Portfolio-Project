@@ -25,7 +25,6 @@ export default function EditProfileScreen() {
   const [location, setLocation] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [job, setJob] = useState('');
-  const [jobCategoryId, setJobCategoryId] = useState<string | null>(null); // Ajout pour stocker l'ID
   const [jobModalVisible, setJobModalVisible] = useState(false);
   const [experience, setExperience] = useState('');
   const [contractType, setContractType] = useState('');
@@ -45,31 +44,31 @@ export default function EditProfileScreen() {
   const [jobCategories, setJobCategories] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
-    // (async () => {
-    //   let { status } = await Location.requestForegroundPermissionsAsync();
-    //   if (status !== 'granted') {
-    //     console.error('Permission to access location was denied');
-    //     return;
-    //   }
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        console.error('Permission to access location was denied');
+        return;
+      }
 
-    //   try {
-    //     let location = await Location.getCurrentPositionAsync({});
-    //     const { latitude, longitude } = location.coords;
-    //     const geoData = await getGoogleGeolocation(latitude, longitude);
+      try {
+        let location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
+        const geoData = await getGoogleGeolocation(latitude, longitude);
 
-    //     if (geoData && geoData.results && geoData.results.length > 0) {
-    //       const addressComponents = geoData.results[0].address_components || [];
-    //       const cityComponent = addressComponents.find(
-    //         (comp: { types: string[]; long_name: string }) => comp.types.includes('locality')
-    //       );
-    //       if (cityComponent) {
-    //         setLocation(cityComponent.long_name);
-    //       }
-    //     }
-    //   } catch (error) {
-    //     console.error("Erreur lors de la récupération de la ville:", error);
-    //   }
-    // })();
+        if (geoData && geoData.results && geoData.results.length > 0) {
+          const addressComponents = geoData.results[0].address_components || [];
+          const cityComponent = addressComponents.find(
+            (comp: { types: string[]; long_name: string }) => comp.types.includes('locality')
+          );
+          if (cityComponent) {
+            setLocation(cityComponent.long_name);
+          }
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération de la ville:", error);
+      }
+    })();
   }, []);
 
   useEffect(() => {
@@ -135,12 +134,6 @@ export default function EditProfileScreen() {
             if (profile.desiredContractTypes && profile.desiredContractTypes.length > 0) {
               setContractType(profile.desiredContractTypes[0]);
             }
-            // Pré-remplir la catégorie de métier si elle existe
-            if (profile.searchedCategories && profile.searchedCategories.length > 0) {
-              const mainCategory = profile.searchedCategories[0];
-              setJob(mainCategory.name);
-              setJobCategoryId(mainCategory.id);
-            }
           } else { // Recruiter
             setExperience(profile.desiredExperienceLevel || '');
             if (profile.desiredContractTypes && profile.desiredContractTypes.length > 0) {
@@ -153,12 +146,6 @@ export default function EditProfileScreen() {
               setPresentation(parts.slice(1).join('\n\n'));
             } else {
               setPresentation(searchDesc);
-            }
-            // Pré-remplir la catégorie de métier si elle existe
-            if (profile.searchedCategories && profile.searchedCategories.length > 0) {
-              const mainCategory = profile.searchedCategories[0];
-              setJob(mainCategory.name);
-              setJobCategoryId(mainCategory.id);
             }
           }
         } else {
@@ -198,14 +185,6 @@ export default function EditProfileScreen() {
       if (contractType) {
         profileData.desiredContractTypes = contractType.split(',').map(s => s.trim());
       }
-      if (jobCategoryId) {
-        profileData.searchedCategoryIds = [jobCategoryId];
-      }
-      // On ajoute les données pour la mise à jour en cascade
-      profileData.cascadeUpdateData = {
-        experienceLevel: experience,
-        contractType: contractType,
-      };
     }
 
     console.log(`Envoi des données pour mise à jour du profil`, profileData);
@@ -304,7 +283,7 @@ export default function EditProfileScreen() {
             <Text style={styles.label}>Localisation</Text>
             <View style={styles.inputContainer}>
               <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-              <TextInput style={[styles.input, { color: '#888' }]} placeholder="Non définie" placeholderTextColor="#999" value={location} editable={false} />
+              <TextInput style={[styles.input, { color: '#888' }]} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} editable={false} />
             </View>
           </View>
 
@@ -380,7 +359,6 @@ export default function EditProfileScreen() {
                       style={styles.modalOption}
                       onPress={() => {
                         setJob(cat.name);
-                        setJobCategoryId(cat.id); // On sauvegarde l'ID
                         setJobModalVisible(false);
                       }}
                     >
