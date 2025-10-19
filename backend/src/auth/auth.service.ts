@@ -45,18 +45,16 @@ export class AuthService {
         await tx.candidateProfile.create({
           data: {
             userId: user.id,
-            // Vous pouvez mettre des valeurs par défaut si nécessaire
-            // Par exemple, firstName et lastName peuvent être vides au début
-            firstName: 'Prénom à compléter',
-            lastName: 'Nom à compléter',
+            firstName: '',
+            lastName: '',
           },
         });
       } else if (role === UserRole.RECRUITER) {
         await tx.recruiterProfile.create({
           data: {
             userId: user.id,
-            firstName: 'Prénom à compléter',
-            lastName: 'Nom à compléter',
+            firstName: '',
+            lastName: '',
           },
         });
       }
