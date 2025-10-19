@@ -21,12 +21,7 @@ export class ProfileService {
         recruiterProfile: {
           include: {
             searchedCategories: true, // ✅ Ajouter les catégories du recruteur
-            memberships: {
-              include: {
-                company: true,
-              },
-            },
-          },
+          }
         }
       },
     });
