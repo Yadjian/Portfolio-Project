@@ -31,7 +31,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsAuthenticated(true);
           try {
             const userData = await getMyProfile();
-            setUser(userData);
+            if (userData) {
+              const userType = userData.candidateProfile ? 'candidate' : userData.recruiterProfile ? 'recruiter' : null;
+              setUser({ ...userData, type: userType });
+            } else {
+              setUser(null);
+            }
           } catch (error) {
             setUser(null);
           }
@@ -57,7 +62,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(true);
         try {
           const userData = await getMyProfile();
-          setUser(userData);
+          if (userData) {
+            const userType = userData.candidateProfile ? 'candidate' : userData.recruiterProfile ? 'recruiter' : null;
+            setUser({ ...userData, type: userType });
+          } else {
+            setUser(null);
+          }
         } catch (error) {
           setUser(null);
         }
