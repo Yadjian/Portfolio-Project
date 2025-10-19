@@ -50,6 +50,21 @@ export class JobOfferService {
           connect: categoryIds,
         },
       },
+      include: {
+        company: {
+          select: {
+            name: true,
+            logoUrl: true,
+          },
+        },
+        categories: true,
+        createdBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+      },
     });
 
     return jobOffer;
