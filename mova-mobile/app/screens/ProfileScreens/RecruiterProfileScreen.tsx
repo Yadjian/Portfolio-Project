@@ -92,7 +92,7 @@ export default function RecruiterProfileScreen() {
         {/* --- Profile Header --- */}
         <View style={styles.header}>
           <View style={styles.headerBackground} />
-          <Image source={{ uri: profile.avatarUrl }} style={styles.avatar} />
+          <Image source={profile.avatarUrl ? { uri: profile.avatarUrl } : require('../../../assets/images/icon.png')} style={styles.avatar} />
           <TouchableOpacity style={styles.editButton} onPress={() => {
             if (userId) {
               navigation.navigate('EditProfileScreen', { userType: 'recruiter', userId: userId, companyName: profile.companyName });
