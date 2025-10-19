@@ -60,6 +60,6 @@ export const getRecruiterTabs = (navigation: any, notificationCount: number = 0)
     iconName: 'notifications-outline',
     iconNameActive: 'notifications',
     badge: notificationCount,
-    onPress: () => navigation.navigate('SwipeNotification', { userType: 'recruteur' }),
+    onPress: () => navigation.navigate('SwipeNotification', { userType: 'recruiter' }),
   },
 ];
