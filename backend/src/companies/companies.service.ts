@@ -1,27 +1,49 @@
 // Fichier: backend/src/companies/companies.service.ts
+
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+// Assurez-vous que le nom du DTO correspond à ce que vous avez créé
 import { CreateCompanyOnboardingDto } from './dto/create-company-onboarding.dto';
 
 @Injectable()
 export class CompaniesService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async createCompanyAndProfile(auth0Id: string, dto: CreateCompanyOnboardingDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { auth0Id },
-      include: { recruiterProfile: true },
+  /**
+   * Crée une entreprise et y associe un recruteur existant.
+   * C'est l'étape d'onboarding qui suit l'inscription d'un recruteur.
+   * @param dto Les informations sur l'entreprise (nom, SIRET)
+   * @param userId L'ID de l'utilisateur (recruteur) qui effectue l'action
+   */
+  async createCompanyForRecruiter(dto: CreateCompanyOnboardingDto, userId: string) {
+    // 1. Trouver le profil du recruteur qui fait la demande
+    const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
+      where: { userId },
+      include: { memberships: true }, // On inclut ses adhésions actuelles
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found.');
-    }
-    if (user.recruiterProfile) {
-      throw new ConflictException('Recruiter profile already exists for this user.');
+    // Erreur si l'utilisateur n'a pas de profil recruteur
+    if (!recruiterProfile) {
+      throw new NotFoundException('Profil recruteur introuvable pour cet utilisateur.');
     }
 
-    // On exécute toutes les créations dans une seule transaction
-    const newProfileId = await this.prisma.$transaction(async (tx) => {
+    // Erreur si le recruteur est déjà membre d'une entreprise
+    if (recruiterProfile.memberships.length > 0) {
+      throw new ConflictException('Ce recruteur est déjà associé à une entreprise.');
+    }
+
+    // 2. Vérifier que l'entreprise n'existe pas déjà avec ce SIRET
+    const existingCompany = await this.prisma.company.findUnique({
+      where: { siret: dto.siret },
+    });
+
+    if (existingCompany) {
+      throw new ConflictException('Une entreprise avec ce numéro SIRET existe déjà.');
+    }
+
+    // 3. Utiliser une transaction pour créer l'entreprise ET l'adhésion
+    return this.prisma.$transaction(async (tx) => {
+      // Créer la nouvelle entreprise
       const company = await tx.company.create({
         data: {
           name: dto.companyName,
@@ -29,41 +51,18 @@ export class CompaniesService {
         },
       });
 
-      // On crée le profil recruteur avec des valeurs par défaut
-      const recruiterProfile = await tx.recruiterProfile.create({
+      // Créer l'adhésion pour lier le recruteur à cette nouvelle entreprise
+      const membership = await tx.recruiterMembership.create({
         data: {
-          firstName: "Prénom", // <-- VALEUR PAR DÉFAUT
-          lastName: "Nom",     // <-- VALEUR PAR DÉFAUT
-          user: { connect: { id: user.id } },
+          recruiterId: recruiterProfile.id,
+          companyId: company.id,
+          isPrimary: true, // Le créateur est l'admin principal
+          internalRole: 'Admin', // Rôle par défaut
         },
       });
 
-      await tx.recruiterMembership.create({
-        data: {
-          isPrimary: true,
-          internalRole: 'Admin',
-          recruiter: { connect: { id: recruiterProfile.id } },
-          company: { connect: { id: company.id } },
-        },
-      });
-
-      return recruiterProfile.id;
+      // On retourne l'entreprise et l'adhésion créées
+      return { company, membership };
     });
-
-    // On va chercher le profil complet
-    const completeProfile = await this.prisma.recruiterProfile.findUnique({
-      where: { id: newProfileId },
-      include: {
-        memberships: { include: { company: true } },
-      },
-    });
-
-    // On prépare une réponse personnalisée pour le frontend
-    const company = completeProfile.memberships[0]?.company;
-
-    return {
-      profile: completeProfile,
-      company: company,
-    };
   }
 }

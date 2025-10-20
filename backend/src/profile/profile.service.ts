@@ -9,116 +9,124 @@ import { UpdateLocationDto } from './dto/update-location.dto';
 export class ProfileService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getUserProfile(auth0Id: string) {
+  async getUserProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
-      where: { auth0Id },
-      include: {
-        // Pour un candidat, on inclut son profil simple
-        candidateProfile: true,
-
-        // Pour un recruteur, on va plus en profondeur pour récupérer l'entreprise
-        recruiterProfile: { // <-- MODIFICATION 1 : Include imbriqué
+      where: { id: userId },
+      include: { 
+        candidateProfile: {
           include: {
-            memberships: { // Inclure les adhésions du recruteur
+            interestedInCategories: true, // ✅ Ajouter les catégories du candidat
+          }
+        }, 
+        recruiterProfile: {
+          include: {
+            searchedCategories: true, // ✅ Ajouter les catégories du recruteur
+            memberships: {
               include: {
-                company: true, // Pour chaque adhésion, inclure l'entreprise
+                company: true,
               },
             },
           },
-        },
+        }
       },
     });
-
-    if (!user) {
-      throw new NotFoundException('User not found.');
-    }
-
+    if (!user) { throw new NotFoundException('Utilisateur non trouvé.'); }
     return user;
   }
 
-  async updateUserProfile(auth0Id: string, data: UpdateProfileDto) {
-    // On récupère l'utilisateur pour savoir quel profil mettre à jour.
-    // L'include ici est juste pour la condition, pas pour la réponse finale.
+  async updateUserProfile(userId: string, data: UpdateProfileDto) {
     const user = await this.prisma.user.findUnique({
-      where: { auth0Id },
+      where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
     });
-    if (!user) throw new NotFoundException('User not found.');
+    if (!user) throw new NotFoundException('Utilisateur non trouvé.');
 
-    // --- MODIFICATION 2 : Logique de mise à jour ---
+    if (user.recruiterProfile) {
+      const { interestedInCategoryIds, ...restOfData } = data;
+      const dataToUpdate: any = { ...restOfData };
+      
+      delete dataToUpdate.coverLetterText;
 
-    if (user.candidateProfile) {
-      const { interestedInCategoryIds, ...profileData } = data;
-      // On attend la fin de la mise à jour, sans retourner son résultat
-      await this.prisma.candidateProfile.update({
-        where: { id: user.candidateProfile.id },
-        data: {
-          ...profileData,
-          interestedInCategories: {
-            set: interestedInCategoryIds?.map((id) => ({ id })),
-          },
-        },
-      });
-
-    } else if (user.recruiterProfile) {
-      const { interestedInCategoryIds, experienceLevel, ...profileData } = data;
-      // On attend la fin de la mise à jour, sans retourner son résultat
       await this.prisma.recruiterProfile.update({
         where: { id: user.recruiterProfile.id },
         data: {
-          ...profileData,
-          desiredExperienceLevel: experienceLevel,
+          ...dataToUpdate,
           searchedCategories: {
             set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
+        include: {
+          searchedCategories: true, // ✅ Inclure les catégories dans la réponse
+        }
       });
-      
+    } else if (user.candidateProfile) {
+      const { interestedInCategoryIds, ...restOfData } = data;
+      const dataToUpdate: any = { ...restOfData };
+
+      await this.prisma.candidateProfile.update({
+        where: { id: user.candidateProfile.id },
+        data: {
+          ...dataToUpdate,
+          interestedInCategories: {
+            set: interestedInCategoryIds?.map((id) => ({ id })),
+          },
+        },
+        include: {
+          interestedInCategories: true, // ✅ Inclure les catégories dans la réponse
+        }
+      });
     } else {
-      throw new NotFoundException('No profile found to update.');
+      throw new NotFoundException('Aucun profil à mettre à jour trouvé pour cet utilisateur.');
     }
 
-    // --- MODIFICATION 3 : La réponse unifiée ---
-
-    // Après la mise à jour, on appelle notre méthode getUserProfile pour renvoyer l'objet complet.
-    return this.getUserProfile(auth0Id);
+    return this.getUserProfile(userId); // ✅ Retourne maintenant les catégories
   }
-  async updateUserLocation(auth0Id: string, locationDto: UpdateLocationDto) {
+
+  /**
+   * Met à jour la localisation GPS d'un candidat.
+   * @param userId L'ID de l'utilisateur provenant du token JWT.
+   * @param locationDto Les coordonnées GPS.
+   */
+  async updateUserLocation(userId: string, locationDto: UpdateLocationDto) {
+    // FIX : On cherche l'utilisateur par son 'id'.
     const user = await this.prisma.user.findUniqueOrThrow({
-      where: { auth0Id },
+      where: { id: userId },
       include: { candidateProfile: true },
     });
 
     if (!user.candidateProfile) {
-      throw new NotFoundException('Candidate profile not found for this user.');
+      throw new NotFoundException('Profil candidat non trouvé pour cet utilisateur.');
     }
 
-    // On stocke la localisation au format WKT (Well-Known Text)
     const locationWKT = `POINT(${locationDto.longitude} ${locationDto.latitude})`;
 
-    // ✅ AJOUT: Validation PostGIS
+    // La validation PostGIS est une bonne pratique, on la garde.
     try {
       await this.prisma.$executeRaw`SELECT ST_GeomFromText(${locationWKT}, 4326)`;
     } catch (error) {
-      throw new BadRequestException('Invalid GPS coordinates');
+      throw new BadRequestException('Coordonnées GPS invalides');
     }
 
     return this.prisma.candidateProfile.update({
       where: { id: user.candidateProfile.id },
-      data: {
-        locationWKT: locationWKT, // On sauvegarde la chaîne de caractères
-      },
+      data: { locationWKT },
     });
   }
 
-  async updateRecruiterLocation(auth0Id: string, locationDto: UpdateLocationDto) {
+  /**
+   * Met à jour la localisation GPS d'un recruteur.
+   * @param userId L'ID de l'utilisateur provenant du token JWT.
+   * @param locationDto Les coordonnées GPS.
+   */
+  async updateRecruiterLocation(userId: string, locationDto: UpdateLocationDto) {
+    // FIX : On cherche l'utilisateur par son 'id'.
     const user = await this.prisma.user.findUniqueOrThrow({
-      where: { auth0Id },
+      where: { id: userId },
       include: { recruiterProfile: true },
     });
 
     if (!user.recruiterProfile) {
-      throw new NotFoundException('Recruiter profile not found for this user.');
+      throw new NotFoundException('Profil recruteur non trouvé pour cet utilisateur.');
     }
 
     const locationWKT = `POINT(${locationDto.longitude} ${locationDto.latitude})`;
@@ -126,6 +134,16 @@ export class ProfileService {
     return this.prisma.recruiterProfile.update({
       where: { id: user.recruiterProfile.id },
       data: { locationWKT },
+    });
+  }
+
+  async getJobCategories() {
+    return this.prisma.jobCategory.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: { name: 'asc' }
     });
   }
 }
