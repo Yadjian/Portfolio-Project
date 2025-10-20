@@ -246,7 +246,7 @@ export default function RecruiterJobOfferScreen() {
               // --- FORMULAIRE D'ÉDITION/CRÉATION ---
               <View style={styles.formContainer}>
                  <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Poste (défini dans le profil)</Text>
+                  <Text style={styles.label}>Poste</Text>
                   <View style={[styles.inputContainer, styles.readOnlyContainer]}>
                     <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
                     <Text style={[styles.input, styles.readOnlyText]}>{offer.title}</Text>
@@ -497,6 +497,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#333',
     height: '100%',
+    textAlignVertical: 'center',
   },
   placeholder: {
     color: '#999',
