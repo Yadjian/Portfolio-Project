@@ -20,7 +20,7 @@ export const getCandidateTabs = (navigation: any, notificationCount: number = 0)
     label: 'Matchs',
     iconName: 'heart-outline',
     iconNameActive: 'heart',
-    onPress: () => {},
+    onPress: () => navigation.navigate('HistoricalScreen'),
   },
   {
     id: 'notifications',
@@ -52,7 +52,7 @@ export const getRecruiterTabs = (navigation: any, notificationCount: number = 0)
     label: 'Matchs',
     iconName: 'heart-outline',
     iconNameActive: 'heart',
-    onPress: () => {},
+    onPress: () => navigation.navigate('HistoricalScreen'),
   },
   {
     id: 'notifications',

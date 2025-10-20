@@ -23,6 +23,7 @@ export type AuthStackParamList = {
   RecruiterJobOfferScreen: undefined;
   CreateAccount: { userType: 'candidate' | 'recruiter' };
   UserHome: undefined;
+  HistoricalScreen: undefined;
 };
 
 // Définir les props pour chaque écran
