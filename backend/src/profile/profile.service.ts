@@ -10,16 +10,30 @@ export class ProfileService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getUserProfile(userId: string) {
-    // ... (cette fonction est correcte et ne change pas)
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: { candidateProfile: true, recruiterProfile: true },
+      include: { 
+        candidateProfile: {
+          include: {
+            interestedInCategories: true, // ✅ Ajouter les catégories du candidat
+          }
+        }, 
+        recruiterProfile: {
+          include: {
+            searchedCategories: true, // ✅ Ajouter les catégories du recruteur
+            memberships: {
+              include: {
+                company: true,
+              },
+            },
+          },
+        }
+      },
     });
     if (!user) { throw new NotFoundException('Utilisateur non trouvé.'); }
     return user;
   }
 
-  // --- VERSION FINALE CORRIGÉE ---
   async updateUserProfile(userId: string, data: UpdateProfileDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -28,11 +42,9 @@ export class ProfileService {
     if (!user) throw new NotFoundException('Utilisateur non trouvé.');
 
     if (user.recruiterProfile) {
-      // FIX : On ne prend que les champs qui existent dans le DTO ET dans le modèle RecruiterProfile
       const { interestedInCategoryIds, ...restOfData } = data;
       const dataToUpdate: any = { ...restOfData };
       
-      // On retire les champs spécifiques aux candidats qui pourraient être dans le DTO
       delete dataToUpdate.coverLetterText;
 
       await this.prisma.recruiterProfile.update({
@@ -43,14 +55,13 @@ export class ProfileService {
             set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
+        include: {
+          searchedCategories: true, // ✅ Inclure les catégories dans la réponse
+        }
       });
     } else if (user.candidateProfile) {
-      // FIX : Logique similaire pour le candidat
       const { interestedInCategoryIds, ...restOfData } = data;
       const dataToUpdate: any = { ...restOfData };
-      
-      // On retire les champs spécifiques aux recruteurs qui pourraient être dans le DTO
-      // (aucun dans ce cas, mais c'est une bonne pratique)
 
       await this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
@@ -60,12 +71,15 @@ export class ProfileService {
             set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
+        include: {
+          interestedInCategories: true, // ✅ Inclure les catégories dans la réponse
+        }
       });
     } else {
       throw new NotFoundException('Aucun profil à mettre à jour trouvé pour cet utilisateur.');
     }
 
-    return this.getUserProfile(userId);
+    return this.getUserProfile(userId); // ✅ Retourne maintenant les catégories
   }
 
   /**
@@ -120,6 +134,16 @@ export class ProfileService {
     return this.prisma.recruiterProfile.update({
       where: { id: user.recruiterProfile.id },
       data: { locationWKT },
+    });
+  }
+
+  async getJobCategories() {
+    return this.prisma.jobCategory.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: { name: 'asc' }
     });
   }
 }
