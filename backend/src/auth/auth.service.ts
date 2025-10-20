@@ -1,6 +1,6 @@
 // src/auth/auth.service.ts
 
-import { Injectable, UnauthorizedException, ForbiddenException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -18,11 +18,21 @@ export class AuthService {
   async signup(dto: SignupDto): Promise<{ accessToken: string; refreshToken:string }> {
     const { email, password, role } = dto;
 
+    // 1. Vérifier si un utilisateur avec cet email existe déjà
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: email.toLowerCase() },
+    });
+
+    // 2. Si l'utilisateur existe, lever une erreur claire (HTTP 409 Conflict)
+    if (existingUser) {
+      throw new ConflictException('Un utilisateur avec cet email existe déjà.');
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // On utilise une transaction pour s'assurer que le User ET le Profil sont créés
     const newUser = await this.prisma.$transaction(async (tx) => {
-      // 1. Créer l'utilisateur
+      // 3. Créer l'utilisateur
       const user = await tx.user.create({
         data: {
           email: email.toLowerCase(),
@@ -30,23 +40,21 @@ export class AuthService {
         },
       });
 
-      // 2. Créer le profil associé en fonction du rôle
+      // 4. Créer le profil associé en fonction du rôle
       if (role === UserRole.CANDIDATE) {
         await tx.candidateProfile.create({
           data: {
             userId: user.id,
-            // Vous pouvez mettre des valeurs par défaut si nécessaire
-            // Par exemple, firstName et lastName peuvent être vides au début
-            firstName: 'Prénom à compléter',
-            lastName: 'Nom à compléter',
+            firstName: '',
+            lastName: '',
           },
         });
       } else if (role === UserRole.RECRUITER) {
         await tx.recruiterProfile.create({
           data: {
             userId: user.id,
-            firstName: 'Prénom à compléter',
-            lastName: 'Nom à compléter',
+            firstName: '',
+            lastName: '',
           },
         });
       }

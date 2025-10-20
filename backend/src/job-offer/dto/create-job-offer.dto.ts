@@ -1,6 +1,6 @@
 // Fichier: backend/src/job-offer/dto/create-job-offer.dto.ts
-import { IsNotEmpty, IsString, IsUUID, IsEnum, IsOptional, IsInt, Matches } from 'class-validator';
-import { ContractType } from '@prisma/client'; // Importez l'enum généré par Prisma
+import { IsNotEmpty, IsString, IsOptional, IsInt, Matches } from 'class-validator';
+import { ContractType, ExperienceLevel } from '@prisma/client';
 
 export class CreateJobOfferDto {
   @IsString()
