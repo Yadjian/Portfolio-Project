@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,9 +7,19 @@ import { useAuth } from '../../contexts/AuthContext';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '../../constants/tabsConfig';
 
-// --- Données Mock Réalistes ---
+// --- Types ---
+type Match = {
+  id: string;
+  title: string;
+  subtitle: string;
+  contractType: string;
+  matchDate: string;
+  avatarUrl: string;
+};
 
-const RECRUITER_MATCHES = [
+// --- Données Mock (en attendant l'API) ---
+// Ce que verrait un candidat (une liste d'offres)
+const CANDIDATE_MATCHES_MOCK = [
   {
     id: '4',
     companyName: 'Zara',
@@ -60,7 +70,8 @@ const RECRUITER_MATCHES = [
   },
 ];
 
-const CANDIDATE_MATCHES = [
+// Ce que verrait un recruteur (une liste de candidats)
+const RECRUITER_MATCHES_MOCK = [
   {
     id: '10',
     candidateName: 'Jean Dupont',
@@ -94,8 +105,7 @@ const formatDate = (dateString: string) => {
   return `Match le ${date.toLocaleDateString('fr-FR')}`;
 };
 
-// Ce composant reçoit maintenant un objet avec une structure de données unifiée
-const MatchCard = ({ item }: { item: any }) => {
+const MatchCard = ({ item }: { item: Match }) => {
   const { title, subtitle, contractType, matchDate, avatarUrl } = item;
 
   return (
@@ -113,64 +123,84 @@ const MatchCard = ({ item }: { item: any }) => {
   );
 };
 
-// --- Écran Principal ---
+// --- VUE POUR LE CANDIDAT ---
+const CandidateHistoryView = () => {
+  // 1. On récupère les données brutes pour un candidat
+  const rawMatches = CANDIDATE_MATCHES_MOCK; // TODO: Remplacer par un appel API
 
-export default function HistoricalScreen() {
-  const { user } = useAuth();
-  const navigation = useNavigation();
-  
-  // NOTE: La logique est temporairement inversée pour corriger un bug de détection de rôle
-  const isRecruiter = !!user?.recruiterProfile;
-  
-  // Un recruteur devrait voir CANDIDATE_MATCHES. Comme isRecruiter est faussement `false`, on inverse la condition.
-  const rawMatches = !isRecruiter ? CANDIDATE_MATCHES : RECRUITER_MATCHES;
-
-  // On normalise les données pour que chaque objet ait la même forme
-  const normalizedMatches = rawMatches.map(match => {
-    // La condition ici doit aussi être inversée pour correspondre à la logique ci-dessus
-    if (!isRecruiter) { // L'utilisateur est un recruteur (mais détecté comme candidat)
-      return {
-        id: match.id,
-        title: match.candidateName,
-        subtitle: match.desiredJobTitle,
-        contractType: match.contractType,
-        matchDate: match.matchDate,
-        avatarUrl: match.avatarUrl,
-      };
-    } else { // L'utilisateur est un candidat
-      return {
-        id: match.id,
-        title: match.companyName,
-        subtitle: match.jobTitle,
-        contractType: match.contractType,
-        matchDate: match.matchDate,
-        avatarUrl: match.avatarUrl,
-      };
-    }
-  });
-
-  const tabs = !isRecruiter ? getRecruiterTabs(navigation) : getCandidateTabs(navigation);
+  // 2. On normalise les données pour le composant MatchCard
+  const normalizedMatches: Match[] = rawMatches.map(match => ({
+    id: match.id,
+    title: match.companyName,
+    subtitle: match.jobTitle,
+    contractType: match.contractType,
+    matchDate: match.matchDate,
+    avatarUrl: match.avatarUrl,
+  }));
 
   return (
-    <View style={styles.container}>
+    <>
       <View style={styles.header}>
         <Text style={styles.title}>Historique des Matchs</Text>
-        <Text style={styles.subtitle}>
-          {isRecruiter ? 'Retrouvez les offres qui ont matché avec votre profil.' : 'Retrouvez les candidats qui ont matché avec vos offres.'}
-        </Text>
+        <Text style={styles.subtitle}>Retrouvez les offres qui ont matché avec votre profil.</Text>
       </View>
-
       <FlatList
-        data={normalizedMatches} // On utilise les données normalisées
+        data={normalizedMatches}
         renderItem={({ item }) => <MatchCard item={item} />}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={() => (
-          <View style={styles.emptyCard}>
-            <Text style={styles.emptyCardText}>Aucun match pour le moment.</Text>
-          </View>
+          <View style={styles.emptyCard}><Text style={styles.emptyCardText}>Aucun match pour le moment.</Text></View>
         )}
       />
+    </>
+  );
+};
+
+// --- VUE POUR LE RECRUTEUR ---
+const RecruiterHistoryView = () => {
+  // 1. On récupère les données brutes pour un recruteur
+  const rawMatches = RECRUITER_MATCHES_MOCK; // TODO: Remplacer par un appel API
+
+  // 2. On normalise les données pour le composant MatchCard
+  const normalizedMatches: Match[] = rawMatches.map(match => ({
+    id: match.id,
+    title: match.candidateName,
+    subtitle: match.desiredJobTitle,
+    contractType: match.contractType,
+    matchDate: match.matchDate,
+    avatarUrl: match.avatarUrl,
+  }));
+
+  return (
+    <>
+      <View style={styles.header}>
+        <Text style={styles.title}>Historique des Matchs</Text>
+        <Text style={styles.subtitle}>Retrouvez les candidats qui ont matché avec vos offres.</Text>
+      </View>
+      <FlatList
+        data={normalizedMatches}
+        renderItem={({ item }) => <MatchCard item={item} />}
+        keyExtractor={item => item.id}
+        contentContainerStyle={styles.listContainer}
+        ListEmptyComponent={() => (
+          <View style={styles.emptyCard}><Text style={styles.emptyCardText}>Aucun match pour le moment.</Text></View>
+        )}
+      />
+    </>
+  );
+};
+
+// --- Écran Principal (qui choisit quelle vue afficher) ---
+export default function HistoricalScreen() {
+  const { user } = useAuth();
+  const navigation = useNavigation();
+  const isRecruiter = !!user?.recruiterProfile;
+  const tabs = isRecruiter ? getRecruiterTabs(navigation) : getCandidateTabs(navigation);
+
+  return (
+    <View style={styles.container}>
+      {isRecruiter ? <RecruiterHistoryView /> : <CandidateHistoryView />}
       <BottomTabBar tabs={tabs} activeTabId="matches" />
     </View>
   );
