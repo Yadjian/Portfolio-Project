@@ -18,7 +18,12 @@ async function handleResponse(response: Response) {
   }
 
   if (!response.ok) {
-    // En cas d'erreur, on log la réponse brute pour avoir plus de contexte.
+    // Gestion silencieuse du cas 401 Unauthorized
+    if (response.status === 401) {
+      // Ne rien afficher, ne pas perturber l'utilisateur
+      return null;
+    }
+    // En cas d'autre erreur, on log la réponse brute pour avoir plus de contexte.
     console.error("Réponse d'erreur brute du serveur:", text);
     throw new Error(data.message || `Erreur HTTP ${response.status}`);
   }
