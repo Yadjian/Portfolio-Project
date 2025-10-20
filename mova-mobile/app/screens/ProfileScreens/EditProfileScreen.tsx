@@ -11,11 +11,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
 import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories, getGoogleGeolocation } from '../../../services/api';
 import * as Location from 'expo-location';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'EditProfileScreen'>>();
   const { userType, userId, companyName: companyNameFromNav } = route.params;
+  const { refreshUser } = useAuth();
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
@@ -25,6 +27,7 @@ export default function EditProfileScreen() {
   const [location, setLocation] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [job, setJob] = useState('');
+  const [selectedJobCategoryId, setSelectedJobCategoryId] = useState<string | null>(null);
   const [jobModalVisible, setJobModalVisible] = useState(false);
   const [experience, setExperience] = useState('');
   const [contractType, setContractType] = useState('');
@@ -185,14 +188,14 @@ export default function EditProfileScreen() {
       if (contractType) {
         profileData.desiredContractTypes = contractType.split(',').map(s => s.trim());
       }
+      if (selectedJobCategoryId) {
+        profileData.interestedInCategoryIds = [selectedJobCategoryId];
+      }
     }
 
-    console.log(`Envoi des données pour mise à jour du profil`, profileData);
-
     try {
-      const data = await updateProfile(profileData);
-
-      console.log('Profil mis à jour avec succès:', data);
+      await updateProfile(profileData);
+      await refreshUser(); // On rafraîchit les données utilisateur
 
       // Naviguer vers l'écran de profil final
       if (userType === 'candidate') {
@@ -359,6 +362,7 @@ export default function EditProfileScreen() {
                       style={styles.modalOption}
                       onPress={() => {
                         setJob(cat.name);
+                        setSelectedJobCategoryId(cat.id);
                         setJobModalVisible(false);
                       }}
                     >

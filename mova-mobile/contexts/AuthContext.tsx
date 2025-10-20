@@ -10,6 +10,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   loading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +22,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refreshUser = async () => {
+    try {
+      const userData = await getMyProfile();
+      setUser(userData);
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement de l'utilisateur:", error);
+      // Optionnel: déconnecter l'utilisateur si le profil est inaccessible
+      // logout(); 
+    }
+  };
+
   // Vérifier le token stocké au démarrage
   useEffect(() => {
     const checkToken = async () => {
@@ -29,12 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (storedToken) {
           setToken(storedToken);
           setIsAuthenticated(true);
-          try {
-            const userData = await getMyProfile();
-            setUser(userData);
-          } catch (error) {
-            setUser(null);
-          }
+          await refreshUser(); // On utilise notre nouvelle fonction
         }
       } catch (error) {
         setUser(null);
@@ -55,12 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await SecureStore.setItemAsync('auth_token', response.accessToken);
         setToken(response.accessToken);
         setIsAuthenticated(true);
-        try {
-          const userData = await getMyProfile();
-          setUser(userData);
-        } catch (error) {
-          setUser(null);
-        }
+        await refreshUser(); // On utilise aussi notre fonction ici
         return true;
       } else {
         setIsAuthenticated(false);
@@ -96,6 +98,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     login,
     logout,
     loading,
+    refreshUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

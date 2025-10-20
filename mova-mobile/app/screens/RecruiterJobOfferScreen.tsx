@@ -130,7 +130,6 @@ export default function RecruiterJobOfferScreen() {
       salaryMin: offer.salaryMin ? parseInt(offer.salaryMin.toString(), 10) : undefined,
       salaryMax: offer.salaryMax ? parseInt(offer.salaryMax.toString(), 10) : undefined,
     };
-
     try {
       if (offer.isNew) {
         const newOffer = await createJobOffer(payload);
