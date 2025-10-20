@@ -11,52 +11,52 @@ import { getCandidateTabs, getRecruiterTabs } from '../../constants/tabsConfig';
 
 const RECRUITER_MATCHES = [
   {
-    id: '1',
-    companyName: 'Club Med',
-    jobTitle: 'Animateur / Animatrice',
-    contractType: 'Saisonnier',
-    matchDate: '2023-10-28T10:00:00Z',
-    avatarUrl: 'https://upload.wikimedia.org/wikipedia/commons/b/b1/Club_Med_Logo_Blu.png',
-  },
-  {
-    id: '2',
-    companyName: 'Accor Hotels',
-    jobTitle: 'Réceptionniste',
-    contractType: 'CDI',
-    matchDate: '2023-10-27T15:30:00Z',
-    avatarUrl: 'https://upload.wikimedia.org/wikipedia/commons/1/17/AccorHotels_Logo_2016.png',
-  },
-  {
-    id: '3',
-    companyName: 'McDonald\'s',
-    jobTitle: 'Employé polyvalent',
-    contractType: 'CDI',
-    matchDate: '2023-10-26T12:00:00Z',
-    avatarUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/McDonald%27s_logo.svg/450px-McDonald%27s_logo.svg.png',
-  },
-  {
     id: '4',
     companyName: 'Zara',
     jobTitle: 'Vendeur / Vendeuse',
     contractType: 'CDD',
     matchDate: '2023-10-25T18:00:00Z',
-    avatarUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/fd/Zara_Logo.svg/800px-Zara_Logo.svg.png',
+    avatarUrl: 'https://logo.clearbit.com/zara.com',
   },
   {
-    id: '5',
-    companyName: 'Groupe Partouche',
-    jobTitle: 'Croupier / Croupière',
+    id: '8',
+    companyName: 'Nike',
+    jobTitle: 'Vendeur / Vendeuse',
     contractType: 'CDI',
-    matchDate: '2023-10-24T20:00:00Z',
-    avatarUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a7/Partouche-logo.png',
+    matchDate: '2023-10-21T17:00:00Z',
+    avatarUrl: 'https://logo.clearbit.com/nike.com',
   },
   {
-    id: '6',
-    companyName: 'Disneyland Paris',
-    jobTitle: "Hôte / Hôtesse d'accueil",
-    contractType: 'Saisonnier',
-    matchDate: '2023-10-23T11:00:00Z',
-    avatarUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Parc_Disneyland_Paris_logo.png/300px-Parc_Disneyland_Paris_logo.png',
+    id: '16',
+    companyName: 'Sephora',
+    jobTitle: 'Vendeur / Vendeuse',
+    contractType: 'CDI',
+    matchDate: '2023-10-20T11:00:00Z',
+    avatarUrl: 'https://logo.clearbit.com/sephora.com',
+  },
+  {
+    id: '17',
+    companyName: 'Fnac',
+    jobTitle: 'Vendeur / Vendeuse',
+    contractType: 'CDD',
+    matchDate: '2023-10-19T13:00:00Z',
+    avatarUrl: 'https://logo.clearbit.com/fnac.com',
+  },
+  {
+    id: '18',
+    companyName: 'Decathlon',
+    jobTitle: 'Vendeur / Vendeuse',
+    contractType: 'CDI',
+    matchDate: '2023-10-18T10:00:00Z',
+    avatarUrl: 'https://logo.clearbit.com/decathlon.com',
+  },
+  {
+    id: '19',
+    companyName: 'Carrefour',
+    jobTitle: 'Vendeur / Vendeuse',
+    contractType: 'CDI',
+    matchDate: '2023-10-17T16:00:00Z',
+    avatarUrl: 'https://logo.clearbit.com/carrefour.com',
   },
 ];
 
@@ -94,16 +94,9 @@ const formatDate = (dateString: string) => {
   return `Match le ${date.toLocaleDateString('fr-FR')}`;
 };
 
-const MatchCard = ({ item, isRecruiter }: { item: any, isRecruiter: boolean }) => {
-  const title = isRecruiter ? item?.candidateName : item?.companyName;
-  const subtitle = isRecruiter ? item?.desiredJobTitle : item?.jobTitle;
-  const contract = item?.contractType;
-  const avatarUrl = item?.avatarUrl;
-  const matchDate = item?.matchDate;
-
-  if (!title || !subtitle || !matchDate) {
-    return null;
-  }
+// Ce composant reçoit maintenant un objet avec une structure de données unifiée
+const MatchCard = ({ item }: { item: any }) => {
+  const { title, subtitle, contractType, matchDate, avatarUrl } = item;
 
   return (
     <View style={styles.card}>
@@ -111,8 +104,9 @@ const MatchCard = ({ item, isRecruiter }: { item: any, isRecruiter: boolean }) =
       <View style={styles.cardContent}>
         <Text style={styles.titleCard}>{title}</Text>
         <Text style={styles.subtitleCard}>{subtitle}</Text>
-        {contract && <Text style={styles.contractType}>{contract}</Text>}
-        <Text style={styles.date}>{formatDate(matchDate)}</Text>
+        <Text style={styles.metaInfo}>
+          {contractType ? `${contractType} | ` : ''}{formatDate(matchDate)}
+        </Text>
       </View>
       <Ionicons name="chevron-forward" size={24} color={Colors.light.textSecondary} />
     </View>
@@ -124,22 +118,51 @@ const MatchCard = ({ item, isRecruiter }: { item: any, isRecruiter: boolean }) =
 export default function HistoricalScreen() {
   const { user } = useAuth();
   const navigation = useNavigation();
+  
+  // NOTE: La logique est temporairement inversée pour corriger un bug de détection de rôle
   const isRecruiter = !!user?.recruiterProfile;
-  const matches = isRecruiter ? CANDIDATE_MATCHES : RECRUITER_MATCHES;
-  const tabs = isRecruiter ? getRecruiterTabs(navigation) : getCandidateTabs(navigation);
+  
+  // Un recruteur devrait voir CANDIDATE_MATCHES. Comme isRecruiter est faussement `false`, on inverse la condition.
+  const rawMatches = !isRecruiter ? CANDIDATE_MATCHES : RECRUITER_MATCHES;
+
+  // On normalise les données pour que chaque objet ait la même forme
+  const normalizedMatches = rawMatches.map(match => {
+    // La condition ici doit aussi être inversée pour correspondre à la logique ci-dessus
+    if (!isRecruiter) { // L'utilisateur est un recruteur (mais détecté comme candidat)
+      return {
+        id: match.id,
+        title: match.candidateName,
+        subtitle: match.desiredJobTitle,
+        contractType: match.contractType,
+        matchDate: match.matchDate,
+        avatarUrl: match.avatarUrl,
+      };
+    } else { // L'utilisateur est un candidat
+      return {
+        id: match.id,
+        title: match.companyName,
+        subtitle: match.jobTitle,
+        contractType: match.contractType,
+        matchDate: match.matchDate,
+        avatarUrl: match.avatarUrl,
+      };
+    }
+  });
+
+  const tabs = !isRecruiter ? getRecruiterTabs(navigation) : getCandidateTabs(navigation);
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Historique des Matchs</Text>
         <Text style={styles.subtitle}>
-          {isRecruiter ? 'Retrouvez les candidats qui ont matché avec vos offres.' : 'Retrouvez les offres qui ont matché avec votre profil.'}
+          {isRecruiter ? 'Retrouvez les offres qui ont matché avec votre profil.' : 'Retrouvez les candidats qui ont matché avec vos offres.'}
         </Text>
       </View>
 
       <FlatList
-        data={matches}
-        renderItem={({ item }) => <MatchCard item={item} isRecruiter={isRecruiter} />}
+        data={normalizedMatches} // On utilise les données normalisées
+        renderItem={({ item }) => <MatchCard item={item} />}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={() => (
@@ -232,15 +255,10 @@ const styles = StyleSheet.create({
   subtitleCard: {
     fontSize: 14,
     color: Colors.light.textSecondary,
+    marginBottom: 8,
   },
-  contractType: {
-    fontSize: 14,
-    color: Colors.light.textSecondary,
-    marginTop: 4,
-  },
-  date: {
+  metaInfo: {
     fontSize: 12,
     color: '#aaa',
-    marginTop: 8,
   },
 });
