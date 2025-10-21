@@ -169,6 +169,7 @@ export class DiscoveryService {
       where: { userId },
       select: { id: true },
     });
+
     if (!recruiterProfile) {
       throw new NotFoundException('Profil recruteur non trouvé.');
     }
