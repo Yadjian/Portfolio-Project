@@ -110,66 +110,6 @@ export class JobOfferService {
     return jobOffer;
   }
 
-  // 🚀 NOUVELLE VERSION OPTIMISÉE - BEAUCOUP PLUS SOLIDE !
-  async findNearby(userId: string, radiusInMeters: number = 20000) {
-    // 1. TROUVER LE PROFIL CANDIDAT
-    const candidateProfile = await this.prisma.candidateProfile.findUnique({
-      where: { userId },
-    });
-
-    if (!candidateProfile) {
-      throw new NotFoundException('Profil candidat non trouvé.');
-    }
-    if (!candidateProfile.locationWKT) {
-      throw new NotFoundException('La localisation du candidat est requise.');
-    }
-    const candidateId = candidateProfile.id;
-
-    // 2. TROUVER LES OFFRES DÉJÀ SWIPÉES (Notre filtre)
-    const swipedOffers = await this.prisma.swipe.findMany({
-      where: {
-        candidateId: candidateId,
-        actorType: 'CANDIDATE',
-      },
-      select: { jobId: true },
-    });
-    const swipedJobIds = swipedOffers.map(swipe => swipe.jobId);
-
-    // 3. TROUVER LES ID DES OFFRES À PROXIMITÉ (PostGIS optimisé)
-    const nearbyJobResults = await this.prisma.$queryRaw<[{ id: string }]>`
-      SELECT jo."id"
-      FROM "JobOffer" jo
-      WHERE jo."locationWKT" IS NOT NULL
-      AND jo."isActive" = true
-      AND ST_DWithin(
-        ST_GeomFromText(jo."locationWKT", 4326),
-        ST_GeomFromText(${candidateProfile.locationWKT}, 4326),
-        ${radiusInMeters}
-      )
-    `;
-    const nearbyJobIds = nearbyJobResults.map(job => job.id);
-
-    // 4. RÉCUPÉRER LES DONNÉES COMPLÈTES POUR LE FRONT-END
-    const jobOffersForDeck = await this.prisma.jobOffer.findMany({
-      where: {
-        // Doit être à proximité et ne doit pas avoir été swipée
-        id: {
-          in: nearbyJobIds,
-          notIn: swipedJobIds,
-        },
-        isActive: true,
-      },
-      // ✅ DONNÉES COMPLÈTES POUR LE FRONTEND
-      include: {
-        company: true,    // Inclut toutes les infos de l'entreprise
-        categories: true, // Inclut toutes les infos des catégories
-        createdBy: true,  // Inclut TOUT le RecruiterProfile
-      },
-    });
-
-    return jobOffersForDeck;
-  }
-
   async update(id: string, userId: string, updateJobOfferDto: UpdateJobOfferDto) {
     const jobOffer = await this.prisma.jobOffer.findUnique({
       where: { id },
@@ -225,11 +165,6 @@ export class JobOfferService {
     if (jobOffer.createdBy.userId !== userId) {
       throw new ForbiddenException('Vous n\'êtes pas autorisé à supprimer cette offre.');
     }
-
-    // On supprime d'abord les swipes associés à cette offre pour éviter les erreurs de contrainte
-    await this.prisma.swipe.deleteMany({
-      where: { jobId: id },
-    });
 
     // 4. Si tout est bon, on supprime l'offre de la base de données
     await this.prisma.jobOffer.delete({ where: { id } });
