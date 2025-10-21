@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
-import { useAuth } from '../../contexts/AuthContext';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '../../constants/tabsConfig';
 
@@ -192,10 +191,11 @@ const RecruiterHistoryView = () => {
 };
 
 // --- Écran Principal (qui choisit quelle vue afficher) ---
-export default function HistoricalScreen() {
-  const { user } = useAuth();
+export default function HistoricalScreen({ route }: { route: any }) {
   const navigation = useNavigation();
-  const isRecruiter = !!user?.recruiterProfile;
+  const userType = route.params?.userType ?? 'candidate';
+  const isRecruiter = userType === 'recruiter';
+
   const tabs = isRecruiter ? getRecruiterTabs(navigation) : getCandidateTabs(navigation);
 
   return (

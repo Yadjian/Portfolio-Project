@@ -52,7 +52,7 @@ export const getRecruiterTabs = (navigation: any, notificationCount: number = 0)
     label: 'Matchs',
     iconName: 'heart-outline',
     iconNameActive: 'heart',
-    onPress: () => navigation.navigate('HistoricalScreen'),
+    onPress: () => navigation.navigate('HistoricalScreen', { userType: 'recruiter' }),
   },
   {
     id: 'notifications',
