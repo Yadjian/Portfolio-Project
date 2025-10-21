@@ -2,8 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, Dimensions, ScrollView, TextInput, Modal, Pressable } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Ionicons } from '@expo/vector-icons';
-
+import { Ionicons, Feather } from '@expo/vector-icons';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getRecruiterTabs } from '../../constants/tabsConfig';
 import { useAuth } from '../../contexts/AuthContext';
@@ -236,8 +235,9 @@ export default function RecruiterJobOfferScreen() {
 
         {offers.map((offer, idx) => (
           <View key={offer.id || `new-${idx}`} style={styles.card}>
+            {/* Icône de suppression en haut à droite */}
             <TouchableOpacity style={styles.trashIcon} onPress={() => handleDelete(idx)} activeOpacity={0.7}>
-              <Ionicons name="trash-outline" size={20} color="#e74c3c" />
+              <Ionicons name="trash-outline" size={22} color="#e74c3c" />
             </TouchableOpacity>
 
             {offer.loading && <ActivityIndicator color="#6746a8" />}
@@ -324,12 +324,10 @@ export default function RecruiterJobOfferScreen() {
                     {(offer.salaryMin || offer.salaryMax) && <Text style={styles.tag}>{offer.salaryMin}€ - {offer.salaryMax}€</Text>}
                   </View>
                 </View>
-                <TouchableOpacity
-                  style={[styles.submitButton, { alignSelf: 'flex-start', paddingHorizontal: 20, height: 44, marginTop: 16 }]}
-                  activeOpacity={0.8}
-                  onPress={() => updateOfferState(idx, { showForm: true })}
-                >
-                  <Text style={styles.submitButtonText}>Modifier</Text>
+
+                {/* Icône d'édition en bas à droite */}
+                <TouchableOpacity style={styles.editIcon} onPress={() => updateOfferState(idx, { showForm: true })} activeOpacity={0.7}>
+                  <Feather name="edit-2" size={20} color="#4930a3" />
                 </TouchableOpacity>
               </>
             )}
@@ -513,6 +511,14 @@ const styles = StyleSheet.create({
     right: 12,
     zIndex: 10,
     padding: 8,
+    borderRadius: 20,
+  },
+  editIcon: {
+    position: 'absolute',
+    bottom: 12,
+    right: 12,
+    padding: 8,
+    borderRadius: 20,
   },
   formButtonRow: {
     flexDirection: 'row',
