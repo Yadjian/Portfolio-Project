@@ -43,13 +43,18 @@ export default function RecruiterJobOfferScreen() {
       const fetchedOffers = await getMyJobOffers(); // API call
 
       if (isActive) {
-        const uiOffers: JobOfferUI[] = fetchedOffers.map((offer: any) => ({
-          ...offer,
-          salaryMin: offer.salaryMin, // Garder en nombre
-          salaryMax: offer.salaryMax, // Garder en nombre
-          showForm: false, // Par défaut, les formulaires sont cachés
-        }));
-        setOffers(uiOffers);
+        if (fetchedOffers) { // Vérifie si fetchedOffers n'est pas null ou undefined
+          const uiOffers: JobOfferUI[] = fetchedOffers.map((offer: any) => ({
+            ...offer,
+            salaryMin: offer.salaryMin, // Garder en nombre
+            salaryMax: offer.salaryMax, // Garder en nombre
+            showForm: false, // Par défaut, les formulaires sont cachés
+          }));
+          setOffers(uiOffers);
+        } else {
+          // Si fetchedOffers est null (par exemple, en cas de 401), on initialise avec un tableau vide
+          setOffers([]);
+        }
       }
     } catch (error) {
       if (isActive) {
