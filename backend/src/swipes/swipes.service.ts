@@ -1,19 +1,21 @@
 // src/swipes/swipes.service.ts
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSwipeDto } from './dto/create-swipe.dto';
-import { SwipeActorType, SwipeDirection } from '@prisma/client';
+import { SwipeDirection } from '@prisma/client';
 
 @Injectable()
 export class SwipesService {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Crée un swipe et vérifie s'il y a un match.
+   * Gère un swipe (création ou mise à jour) et vérifie les matchs.
    */
-  async createSwipe(userId: string, dto: CreateSwipeDto) {
-    // 1. Identifier l'acteur (qui swipe ?)
-    const user = await this.prisma.user.findUnique({
+  async handleSwipe(userId: string, dto: CreateSwipeDto) {
+    const { profileId: swipedProfileId, direction } = dto;
+
+    // 1. Identifier qui est le swiper (Candidat ou Recruteur)
+    const swiperUser = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
         candidateProfile: { select: { id: true } },
@@ -21,112 +23,82 @@ export class SwipesService {
       },
     });
 
-    if (!user) {
+    if (!swiperUser) {
       throw new NotFoundException('Utilisateur non trouvé.');
     }
 
-    const { jobOfferId, direction } = dto;
+    let candidateId: string;
+    let recruiterId: string;
+    let swiperDirectionField: 'candidateDirection' | 'recruiterDirection';
+    let otherDirectionField: 'candidateDirection' | 'recruiterDirection';
 
-    // 2. Gérer le swipe du CANDIDAT
-    if (user.candidateProfile) {
-      if (dto.candidateId) {
-        throw new BadRequestException('Un candidat ne peut pas spécifier de candidateId.');
-      }
-      const candidateId = user.candidateProfile.id;
-      return this.processSwipe(
-        candidateId,
-        jobOfferId,
-        SwipeActorType.CANDIDATE,
-        direction,
-      );
-    }
-    
-    // 3. Gérer le swipe du RECRUTEUR
-    else if (user.recruiterProfile) {
-      if (!dto.candidateId) {
-        throw new BadRequestException('Un recruteur doit spécifier un candidateId.');
-      }
-      const recruiterId = user.recruiterProfile.id;
-      const candidateId = dto.candidateId;
-      return this.processSwipe(
-        candidateId,
-        jobOfferId,
-        SwipeActorType.RECRUITER,
-        direction,
-        recruiterId,
-      );
-    }
-    
-    else {
+    // 2. Déterminer les rôles
+    if (swiperUser.candidateProfile) {
+      // C'est un CANDIDAT qui swipe
+      candidateId = swiperUser.candidateProfile.id;
+      recruiterId = swipedProfileId; // L'ID reçu est celui d'un recruteur
+      swiperDirectionField = 'candidateDirection';
+      otherDirectionField = 'recruiterDirection';
+    } else if (swiperUser.recruiterProfile) {
+      // C'est un RECRUTEUR qui swipe
+      candidateId = swipedProfileId; // L'ID reçu est celui d'un candidat
+      recruiterId = swiperUser.recruiterProfile.id;
+      swiperDirectionField = 'recruiterDirection';
+      otherDirectionField = 'candidateDirection';
+    } else {
       throw new ForbiddenException("L'utilisateur n'a pas de profil actif.");
     }
-  }
 
-  /**
-   * Moteur de logique de swipe et de matching.
-   */
-  private async processSwipe(
-    candidateId: string,
-    jobId: string,
-    actorType: SwipeActorType,
-    direction: SwipeDirection,
-    recruiterId?: string,
-  ) {
-    // Crée le "demi-swipe"
-    const newSwipe = await this.prisma.swipe.create({
-      data: {
-        candidateId: candidateId,
-        jobId: jobId,
-        actorType: actorType,
-        direction: direction,
-        recruiterId: recruiterId || null, // Sera null si c'est le candidat qui swipe
-      },
-    });
-
-    // Si c'est un swipe GAUCHE, on s'arrête là. Pas de match.
-    if (direction === 'LEFT') {
-      return { match: false };
-    }
-
-    // SI C'EST UN SWIPE DROIT, ON CHERCHE L'AUTRE DEMI-SWIPE
-    const otherActorType =
-      actorType === 'CANDIDATE'
-        ? SwipeActorType.RECRUITER
-        : SwipeActorType.CANDIDATE;
-
-    const otherSwipe = await this.prisma.swipe.findUnique({
+    // 3. Trouver la ligne de Swipe existante (ou la créer)
+    // C'est la magie de `upsert` :
+    // - Tente de trouver un swipe unique pour ce couple.
+    // - S'il existe, on le met à jour (UPDATE).
+    // - S'il n'existe pas, on le crée (CREATE).
+    const swipe = await this.prisma.swipe.upsert({
       where: {
-        // On utilise l'index unique de ton schéma !
-        candidateId_jobId_actorType: {
+        // L'index unique de notre schéma
+        candidateId_recruiterId: {
           candidateId: candidateId,
-          jobId: jobId,
-          actorType: otherActorType,
+          recruiterId: recruiterId,
         },
       },
+      // 4. METTRE À JOUR (s'il existe)
+      update: {
+        [swiperDirectionField]: direction, // Met à jour le swipe de l'acteur
+      },
+      // 5. CRÉER (s'il n'existe pas)
+      create: {
+        candidateId: candidateId,
+        recruiterId: recruiterId,
+        [swiperDirectionField]: direction, // Définit le premier swipe
+      },
     });
 
-    // S'il n'y a pas d'autre swipe, ou si l'autre a swipé GAUCHE...
-    if (!otherSwipe || otherSwipe.direction === 'LEFT') {
-      return { match: false }; // Pas de match.
+    // 6. VÉRIFIER LE MATCH
+    // On doit re-vérifier la donnée après l'upsert
+    const updatedSwipe = await this.prisma.swipe.findUnique({
+      where: { id: swipe.id },
+    });
+
+    // Un match se produit SI les DEUX ont swipé 'RIGHT'
+    if (
+      updatedSwipe.candidateDirection === 'RIGHT' &&
+      updatedSwipe.recruiterDirection === 'RIGHT'
+    ) {
+      // C'est un MATCH !
+      await this.prisma.swipe.update({
+        where: { id: updatedSwipe.id },
+        data: {
+          isMatch: true,
+          matchedAt: new Date(),
+        },
+      });
+
+      // (Ici, on ajoutera l'émission de la notification B5.2)
+      return { match: true, matchedAt: updatedSwipe.matchedAt };
     }
 
-    // --- C'EST UN MATCH ! ---
-    // Les deux ont swipé DROIT (le nouveau et l'ancien)
-    const matchedAt = new Date();
-
-    // On met à jour les deux lignes de swipe pour les marquer comme "matchées"
-    await this.prisma.swipe.update({
-      where: { id: newSwipe.id },
-      data: { isMatch: true, matchedAt: matchedAt },
-    });
-    
-    await this.prisma.swipe.update({
-      where: { id: otherSwipe.id },
-      data: { isMatch: true, matchedAt: matchedAt },
-    });
-
-    // (Ici, on ajoutera l'émission de la notification B5.2)
-
-    return { match: true, matchedAt: matchedAt };
+    // Pas de match (ou l'un a swipé 'LEFT')
+    return { match: false };
   }
 }

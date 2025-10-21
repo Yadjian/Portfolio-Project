@@ -178,7 +178,6 @@ model JobOffer {
   company      Company        @relation(fields: [companyId], references: [id])
   companyId    String
   applications Application[]
-  swipes       Swipe[]
   categories   JobCategory[]
 
   // Champs hérités du profil du recruteur
@@ -208,18 +207,23 @@ model Application {
 }
 
 model Swipe {
-  id          String         @id @default(uuid())
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  actorType   SwipeActorType
-  direction   SwipeDirection
-  isMatch     Boolean        @default(false)
-  matchedAt   DateTime?
-  candidate   CandidateProfile? @relation(fields: [candidateId], references: [id])
+  id        String         @id @default(uuid())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  // La relation unique entre les deux profils
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id])
   candidateId String
-  recruiter   RecruiterProfile?     @relation(fields: [recruiterId], references: [id])
-  recruiterId String?
-  job         JobOffer       @relation(fields: [jobId], references: [id])
-  jobId       String
-  @@unique([candidateId, jobId, actorType])
+  recruiter   RecruiterProfile @relation(fields: [recruiterId], references: [id])
+  recruiterId String
+
+  // L'état des swipes de chaque personne
+  candidateDirection SwipeDirection? // Null jusqu'à ce que le candidat swipe
+  recruiterDirection SwipeDirection? // Null jusqu'à ce que le recruteur swipe
+
+  isMatch   Boolean  @default(false)
+  matchedAt DateTime?
+
+  // Une seule ligne de swipe peut exister par couple candidat/recruteur
+  @@unique([candidateId, recruiterId])
 }

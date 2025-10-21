@@ -16,6 +16,6 @@ export class SwipesController {
     const userId = user.sub;
 
     // On passe l'ID de l'utilisateur (du JWT) et le DTO au service
-    return this.swipesService.createSwipe(userId, createSwipeDto);
+    return this.swipesService.handleSwipe(userId, createSwipeDto);
   }
 }
