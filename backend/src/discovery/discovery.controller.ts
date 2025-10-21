@@ -1,5 +1,5 @@
 // src/discovery/discovery.controller.ts
-import { Controller, Get, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, UseGuards, Query, DefaultValuePipe, ParseIntPipe, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { DiscoveryService } from './discovery.service';
@@ -11,13 +11,13 @@ export class DiscoveryController {
   // === ENDPOINT CANDIDAT ===
   @Get('recruiters')
   @UseGuards(AuthGuard('jwt'))
-  getRecruiterDiscoveryDeck(@Req() req: Request) {
+  getRecruiterDiscoveryDeck(@Req() req: Request, @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,) {
     const user = req.user as { sub: string };
     const userId = user.sub;
 
     // Pour l'instant, on appelle la méthode existante
     // Plus tard, on ajoutera le filtre des swipes ici
-    return this.discoveryService.getRecruitersForCandidate(userId);
+    return this.discoveryService.getRecruitersForCandidate(userId, radius);
   }
   
   // === ENDPOINT RECRUTEUR ===
