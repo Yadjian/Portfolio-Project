@@ -41,15 +41,6 @@ export class JobOffersController {
     return this.jobOfferService.findOne(id);
   }
 
-  @Get('nearby')
-  @UseGuards(AuthGuard('jwt'))
-  findNearby(@Req() req: Request, @Query('radius') radius?: string) {
-    const user = req.user as { sub: string };
-    const userId = user.sub; // <-- FIX: Renommé pour la clarté
-    const radiusAsNumber = radius ? parseInt(radius, 10) : undefined;
-    return this.jobOfferService.findNearby(userId, radiusAsNumber); // <-- FIX: Passer userId
-  }
-
   @Put(':id')
   @UseGuards(AuthGuard('jwt'))
   update(
