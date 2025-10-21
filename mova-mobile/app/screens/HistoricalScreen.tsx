@@ -11,7 +11,7 @@ type Match = {
   id: string;
   title: string;
   subtitle: string;
-  contractType: string;
+  meta: string; // Champ générique pour contrat ou expérience
   matchDate: string;
   avatarUrl: string;
 };
@@ -75,7 +75,7 @@ const RECRUITER_MATCHES_MOCK = [
     id: '10',
     candidateName: 'Jean Dupont',
     desiredJobTitle: 'Serveur / Serveuse',
-    contractType: 'Saisonnier',
+    experienceLevel: 'Débutant',
     matchDate: '2023-10-26T09:00:00Z',
     avatarUrl: 'https://i.pravatar.cc/150?u=jean.dupont',
   },
@@ -83,7 +83,7 @@ const RECRUITER_MATCHES_MOCK = [
     id: '11',
     candidateName: 'Marie Curie',
     desiredJobTitle: 'Cuisinier / Cuisinière',
-    contractType: 'CDI',
+    experienceLevel: 'Confirmé',
     matchDate: '2023-10-24T18:00:00Z',
     avatarUrl: 'https://i.pravatar.cc/150?u=marie.curie',
   },
@@ -91,7 +91,7 @@ const RECRUITER_MATCHES_MOCK = [
     id: '12',
     candidateName: 'Pierre Martin',
     desiredJobTitle: 'Plagiste',
-    contractType: 'Saisonnier',
+    experienceLevel: 'Confirmé',
     matchDate: '2023-10-23T10:00:00Z',
     avatarUrl: 'https://i.pravatar.cc/150?u=pierre.martin',
   },
@@ -105,7 +105,7 @@ const formatDate = (dateString: string) => {
 };
 
 const MatchCard = ({ item }: { item: Match }) => {
-  const { title, subtitle, contractType, matchDate, avatarUrl } = item;
+  const { title, subtitle, meta, matchDate, avatarUrl } = item;
 
   return (
     <View style={styles.card}>
@@ -114,7 +114,7 @@ const MatchCard = ({ item }: { item: Match }) => {
         <Text style={styles.titleCard}>{title}</Text>
         <Text style={styles.subtitleCard}>{subtitle}</Text>
         <Text style={styles.metaInfo}>
-          {contractType ? `${contractType} | ` : ''}{formatDate(matchDate)}
+          {meta ? `${meta} | ` : ''}{formatDate(matchDate)}
         </Text>
       </View>
       <Ionicons name="chevron-forward" size={24} color={Colors.light.textSecondary} />
@@ -132,7 +132,7 @@ const CandidateHistoryView = () => {
     id: match.id,
     title: match.companyName,
     subtitle: match.jobTitle,
-    contractType: match.contractType,
+    meta: match.contractType,
     matchDate: match.matchDate,
     avatarUrl: match.avatarUrl,
   }));
@@ -166,7 +166,7 @@ const RecruiterHistoryView = () => {
     id: match.id,
     title: match.candidateName,
     subtitle: match.desiredJobTitle,
-    contractType: match.contractType,
+    meta: match.experienceLevel,
     matchDate: match.matchDate,
     avatarUrl: match.avatarUrl,
   }));
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   avatar: {
     width: 60,
     height: 60,
-    borderRadius: 12,
+    borderRadius: 30, // Pour faire un cercle (moitié de la largeur/hauteur)
     marginRight: 16,
     backgroundColor: '#f8f8f8',
     borderWidth: 1,
