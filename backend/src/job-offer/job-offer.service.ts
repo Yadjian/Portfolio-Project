@@ -37,6 +37,7 @@ export class JobOfferService {
     const jobOffer = await this.prisma.jobOffer.create({
       data: {
         ...createJobOfferDto,
+        locationWKT: createJobOfferDto.locationWKT,
         contractType: recruiterProfile.desiredContractTypes[0], // Héritage du profil
         experienceLevel: recruiterProfile.desiredExperienceLevel, // Héritage du profil
         company: {
