@@ -183,11 +183,6 @@ export class JobOfferService {
       throw new ForbiddenException('Vous n\'êtes pas autorisé à supprimer cette offre.');
     }
 
-    // On supprime d'abord les swipes associés à cette offre pour éviter les erreurs de contrainte
-    await this.prisma.swipe.deleteMany({
-      where: { jobId: id },
-    });
-
     // 4. Si tout est bon, on supprime l'offre de la base de données
     await this.prisma.jobOffer.delete({ where: { id } });
   }
