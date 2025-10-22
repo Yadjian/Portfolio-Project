@@ -15,7 +15,7 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsString()
-  locationWKT?: string;
+  fullAddress?: string;
 
   @IsOptional()
   @IsArray()

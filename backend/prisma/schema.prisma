@@ -77,10 +77,16 @@ model CandidateProfile {
   coverLetterText      String?
   desiredJobTitle      String?
   desiredContractTypes ContractType[] @default([])
-  locationWKT          String?
   searchRadiusKm       Int?
   isActive             Boolean    @default(true)
   notificationsEnabled Boolean    @default(true)
+
+  // Géolocalisation lisible (affichage)
+  locationWKT          String?          // Coordonnées
+  address     String? // "123 Rue de Rivoli"
+  city        String? // "Paris"
+  postalCode  String? // "75001"
+  country     String? // "France"
 
   experienceLevel      ExperienceLevel? // <-- Niveau d'expérience (optionnel)
   interestedInCategories JobCategory[] @relation("CandidateInterestedCategories")
@@ -107,8 +113,14 @@ model RecruiterProfile {
   matchesTodayCount Int       @default(0)
   dailyMatchLimit   Int       @default(100)
 
+  // Géolocalisation lisible (affichage)
+  locationWKT          String?          // Coordonnées
+  address     String? // "123 Rue de Rivoli"
+  city        String? // "Paris"
+  postalCode  String? // "75001"
+  country     String? // "France"
+
   // NOUVEAUX CHAMPS POUR LES CRITÈRES DE RECHERCHE
-  locationWKT          String?          // La zone où le recruteur recherche
   searchDescription    String?          // Petite phrase d'accroche du recruteur
   desiredExperienceLevel ExperienceLevel? // Le niveau d'expérience recherché
   desiredContractTypes ContractType[]   @default([]) // Les types de contrats recherchés
@@ -168,7 +180,6 @@ model JobOffer {
   updatedAt    DateTime       @updatedAt
   title        String
   description  String
-  locationWKT          String?
   salaryMin    Int?
   salaryMax    Int?
   currency     String?
@@ -179,6 +190,13 @@ model JobOffer {
   companyId    String
   applications Application[]
   categories   JobCategory[]
+
+  // Géolocalisation lisible (affichage)
+  locationWKT          String?          // Coordonnées
+  address     String? // "123 Rue de Rivoli"
+  city        String? // "Paris"
+  postalCode  String? // "75001"
+  country     String? // "France"
 
   // Champs hérités du profil du recruteur
   contractType    ContractType

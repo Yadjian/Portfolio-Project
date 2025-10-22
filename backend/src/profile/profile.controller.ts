@@ -5,7 +5,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { ProfileService } from './profile.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UpdateLocationDto } from './dto/update-location.dto';
 
 @Controller('profile') // Toutes les routes de ce contrôleur commenceront par /profile
 export class ProfileController {
@@ -28,12 +27,6 @@ export class ProfileController {
     
     // On passe l'ID et les nouvelles données au service
     return this.profileService.updateUserProfile(userId, updateProfileDto);
-  }
-  @Put('location') // Crée la route POST /profile/location
-  @UseGuards(AuthGuard('jwt'))
-  updateLocation(@Req() req: Request, @Body() updateLocationDto: UpdateLocationDto) {
-    const userId = req.user.sub;
-    return this.profileService.updateUserLocation(userId, updateLocationDto);
   }
 
   @Get('categories')
