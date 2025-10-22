@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -23,6 +23,11 @@ const CustomPlacesAutocomplete: React.FC<CustomPlacesAutocompleteProps> = ({ api
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Synchronise l'état interne 'input' avec la prop 'value' venant de l'extérieur
+  useEffect(() => {
+    setInput(value);
+  }, [value]);
 
   const fetchSuggestions = useCallback(async (text: string) => {
     setInput(text);
