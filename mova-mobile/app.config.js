@@ -17,12 +17,14 @@ export default {
     },
     ios: {
       supportsTablet: true,
+      bundleIdentifier: 'com.stas.mova',
     },
     android: {
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',
       },
+      package: 'com.stas.mova',
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
     },
@@ -36,8 +38,12 @@ export default {
       typedRoutes: true,
     },
     extra: {
-      // C'est ici qu'on rend la clé disponible dans l'application
-      googlePlacesApiKey: process.env.GOOGLE_PLACES_API_KEY,
+      // C'est ici qu'on rend les clés disponibles dans l'application
+      googlePlacesApiKeyAndroid: process.env.GOOGLE_PLACES_API_KEY_ANDROID,
+      googlePlacesApiKeyIos: process.env.GOOGLE_PLACES_API_KEY_IOS,
+      eas: {
+        projectId: '23a311f7-7e03-4f55-9b02-1e3a69c073f5'
+      }
     },
   },
 };

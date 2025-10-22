@@ -14,7 +14,10 @@ import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplet
 import Constants from 'expo-constants';
 import { useAuth } from '../../../contexts/AuthContext';
 
-const GOOGLE_PLACES_API_KEY = Constants.expoConfig?.extra?.googlePlacesApiKey;
+const GOOGLE_PLACES_API_KEY = Platform.select({
+  android: Constants.expoConfig?.extra?.googlePlacesApiKeyAndroid,
+  ios: Constants.expoConfig?.extra?.googlePlacesApiKeyIos,
+});
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
