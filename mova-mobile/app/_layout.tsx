@@ -4,11 +4,33 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect } from 'react';
 import 'react-native-reanimated';
-import { Stack } from 'expo-router';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import AuthStack from './navigation/AuthStack';
 import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
+import * as ExpoCrypto from 'expo-crypto';
+
+// Polyfill global.crypto.getRandomValues — doit être exécuté en tout premier
+if (!global.crypto) {
+  const getRandomValues = <T extends ArrayBufferView>(array: T): T => {
+    const byteView = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
+
+    // Guard and call via `any` to satisfy TS/typing differences
+    if ('assertByteCount' in ExpoCrypto) {
+      (ExpoCrypto as any).assertByteCount?.(byteView.length);
+    }
+
+    const bytes = (ExpoCrypto as any).getRandomBytes
+      ? (ExpoCrypto as any).getRandomBytes(byteView.length)
+      : // fallback to Math.random if expo crypto doesn't expose getRandomBytes
+        Array.from({ length: byteView.length }, () => Math.floor(Math.random() * 256));
+
+    byteView.set(bytes);
+    return array;
+  };
+  // @ts-ignore
+  global.crypto = { getRandomValues };
+}
 
 export {
   // Catch any errors thrown by the Layout component.

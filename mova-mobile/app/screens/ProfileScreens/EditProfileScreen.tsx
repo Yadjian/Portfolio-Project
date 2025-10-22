@@ -23,14 +23,12 @@ export default function EditProfileScreen() {
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  // Définition de la clé API à l'intérieur du composant
-  const GOOGLE_PLACES_API_KEY = Platform.select({
-    android: Constants.expoConfig?.extra?.googlePlacesApiKeyAndroid,
-    ios: Constants.expoConfig?.extra?.googlePlacesApiKeyIos,
-  });
-
-  // Ajout d'un log pour vérifier la valeur de la clé API au moment du rendu
-  console.log("DEBUG: GOOGLE_PLACES_API_KEY in EditProfileScreen:", GOOGLE_PLACES_API_KEY);
+  // Définition de la clé API (utiliser la variable globale GOOGLE_PLACES_API_KEY)
+  const GOOGLE_PLACES_API_KEY =
+    // priorité à la valeur injectée via app config (expo constants)
+    Constants.expoConfig?.extra?.GOOGLE_PLACES_API_KEY
+    // fallback vers process.env si disponible
+    ?? process.env.GOOGLE_PLACES_API_KEY;
 
   // Champs pour candidat
   const [firstName, setFirstName] = useState('');

@@ -23,7 +23,8 @@ export default ({ config }) => ({
       bundleIdentifier: 'com.stas.mova',
       config: {
         ...config.ios?.config,
-        googleMapsApiKey: process.env.GOOGLE_PLACES_API_KEY_IOS, // Nouveau nom, correspond à .env
+        // Utiliser la clé unique pour dev : GOOGLE_PLACES_API_KEY
+        googleMapsApiKey: process.env.GOOGLE_PLACES_API_KEY,
       },
     },
     android: {
@@ -35,7 +36,8 @@ export default ({ config }) => ({
       config: {
         ...config.android?.config,
         googleMaps: {
-          apiKey: process.env.GOOGLE_PLACES_API_KEY_ANDROID, // Nouveau nom, correspond à .env
+          // Utiliser la clé unique pour dev : GOOGLE_PLACES_API_KEY
+          apiKey: process.env.GOOGLE_PLACES_API_KEY,
         },
       },
       package: 'com.stas.mova',
@@ -52,9 +54,8 @@ export default ({ config }) => ({
     experiments: { ...config.experiments, typedRoutes: true },
     extra: {
       ...config.extra,
-      // C'est ici qu'on rend les clés disponibles dans l'application
-      googlePlacesApiKeyAndroid: process.env.GOOGLE_PLACES_API_KEY_ANDROID, // Nouveau nom, correspond à .env
-      googlePlacesApiKeyIos: process.env.GOOGLE_PLACES_API_KEY_IOS,     // Nouveau nom, correspond à .env
+      // Rendre disponible la clé unique utilisée en dev (Expo Go)
+      GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY,
       eas: {
         projectId: '23a311f7-7e03-4f55-9b02-1e3a69c073f5'
       }
