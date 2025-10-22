@@ -10,14 +10,10 @@ import MovaLogo from '../../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
 import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
+import { GooglePlaceDetail } from 'react-native-google-places-autocomplete'; // Importation explicite du type
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
 import Constants from 'expo-constants';
 import { useAuth } from '../../../contexts/AuthContext';
-
-const GOOGLE_PLACES_API_KEY = Platform.select({
-  android: Constants.expoConfig?.extra?.googlePlacesApiKeyAndroid,
-  ios: Constants.expoConfig?.extra?.googlePlacesApiKeyIos,
-});
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -26,6 +22,15 @@ export default function EditProfileScreen() {
   const { refreshUser } = useAuth();
 
   const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  // Définition de la clé API à l'intérieur du composant
+  const GOOGLE_PLACES_API_KEY = Platform.select({
+    android: Constants.expoConfig?.extra?.googlePlacesApiKeyAndroid,
+    ios: Constants.expoConfig?.extra?.googlePlacesApiKeyIos,
+  });
+
+  // Ajout d'un log pour vérifier la valeur de la clé API au moment du rendu
+  console.log("DEBUG: GOOGLE_PLACES_API_KEY in EditProfileScreen:", GOOGLE_PLACES_API_KEY);
 
   // Champs pour candidat
   const [firstName, setFirstName] = useState('');
@@ -267,63 +272,89 @@ export default function EditProfileScreen() {
           {/* Localisation */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Localisation</Text>
-            <GooglePlacesAutocomplete
-              placeholder='Ville, Pays'
-              onPress={(data, details = null) => {
-                const cityComponent = details?.address_components.find(
-                  (component) => component.types.includes('locality')
-                );
-                if (cityComponent && details.geometry) {
-                  const { lat, lng } = details.geometry.location;
-                  setLocationName(cityComponent.long_name);
-                  setLocationWKT(`POINT(${lng} ${lat})`);
-                } else {
-                  setLocationName(data.description); // Fallback au texte de l'input
-                  setLocationWKT(''); // Pas de coordonnées
-                }
-              }}
-              query={{
-                key: GOOGLE_PLACES_API_KEY,
-                language: 'fr',
-                types: '(cities)',
-              }}
-              textInputProps={{
-                value: locationName,
-                onChangeText: (text) => {
-                  setLocationName(text);
-                  if (text === '') {
+            {/* Rendu conditionnel du composant GooglePlacesAutocomplete */}
+            {GOOGLE_PLACES_API_KEY && typeof GOOGLE_PLACES_API_KEY === 'string' && GOOGLE_PLACES_API_KEY.length > 0 ? (
+              <GooglePlacesAutocomplete
+                placeholder='Ville, Pays'
+                fetchDetails={true} // Assure que les détails complets sont récupérés
+                onPress={(data, details: GooglePlaceDetail | null = null) => {
+                  // Sécurité : s'assurer que address_components est un tableau
+                  const addressComponents = details?.address_components ?? [];
+                  const city = addressComponents.find(c => c.types?.includes('locality'))?.long_name
+                    ?? addressComponents.find(c => c.types?.includes('administrative_area_level_2'))?.long_name
+                    ?? details?.name // Fallback au nom du lieu si pas de ville spécifique
+                    ?? data.description; // Fallback à la description de la prédiction
+
+                  const locationGeometry = details?.geometry?.location;
+                  if (locationGeometry) {
+                    const { lat, lng } = locationGeometry;
+                    setLocationName(city);
+                    setLocationWKT(`POINT(${lng} ${lat})`);
+                  } else {
+                    setLocationName(city); // On garde le nom de la ville même sans coordonnées
                     setLocationWKT('');
                   }
-                },
-                style: [styles.input, { flex: 1 }],
-                placeholderTextColor: '#999',
-              }}
-              styles={{
-                container: {
-                  flex: 1,
-                },
-                textInputContainer: {
-                  ...styles.inputContainer,
-                  paddingLeft: 0, // Remove default padding
-                },
-                textInput: {
-                  ...styles.input,
-                  paddingLeft: 10, // Add custom padding
-                },
-                listView: {
-                  backgroundColor: 'white',
-                  borderRadius: 12,
-                  borderWidth: 1,
-                  borderColor: '#ddd',
-                  marginTop: 4,
-                },
-              }}
-              renderLeftButton={() => 
-                <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-              }
-              fetchDetails={true}
-              enablePoweredByContainer={false}
-            />
+                }}
+                query={{
+                  key: GOOGLE_PLACES_API_KEY, // Cette clé est maintenant garantie d'être définie
+                  language: 'fr',
+                  types: '(cities)',
+                }}
+                predefinedPlaces={[]} // Évite .filter sur undefined si non fourni
+                filterReverseGeocodingByTypes={[]} // Évite .filter sur undefined si non fourni
+                nearbyPlacesAPI="GooglePlacesSearch" // Valeur par défaut, plus sûre
+                textInputProps={{
+                  value: locationName,
+                  onChangeText: (text) => {
+                    setLocationName(text);
+                    if (text === '') {
+                      setLocationWKT('');
+                    }
+                  },
+                  style: [styles.input, { flex: 1 }],
+                  placeholderTextColor: '#999',
+                }}
+                styles={{
+                  container: {
+                    flex: 1,
+                  },
+                  textInputContainer: {
+                    ...styles.inputContainer,
+                    paddingLeft: 0, // Remove default padding
+                  },
+                  textInput: {
+                    ...styles.input,
+                    paddingLeft: 10, // Add custom padding
+                  },
+                  listView: {
+                    backgroundColor: 'white',
+                    borderRadius: 12,
+                    borderWidth: 1,
+                    borderColor: '#ddd',
+                    marginTop: 4,
+                  },
+                  description: {},
+                  row: {},
+                }}
+                renderLeftButton={() =>
+                  <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                }
+                enablePoweredByContainer={false}
+                onFail={(error) => console.log('GooglePlacesAutocomplete FAIL', error)}
+                onNotFound={() => console.log('GooglePlacesAutocomplete NOT FOUND')}
+              />
+            ) : (
+              // Fallback UI si la clé API est manquante
+              <View>
+                <View style={[styles.inputContainer, { backgroundColor: '#f0f0f0' }]}>
+                  <Ionicons name="location-outline" size={20} color='#999' style={styles.inputIcon} />
+                  <TextInput style={[styles.input, { color: '#999' }]} value="Configuration API manquante" editable={false} />
+                </View>
+                <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                  La clé API Google Places n'est pas configurée.
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* Poste */}
