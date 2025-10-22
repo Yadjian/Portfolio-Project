@@ -98,7 +98,8 @@ export class ProfileService {
       throw new NotFoundException('Profil candidat non trouvé pour cet utilisateur.');
     }
 
-    const locationWKT = `POINT(${locationDto.longitude} ${locationDto.latitude})`;
+    // On utilise directement les données du DTO
+    const { locationName, locationWKT } = locationDto;
 
     // La validation PostGIS est une bonne pratique, on la garde.
     try {
@@ -109,7 +110,7 @@ export class ProfileService {
 
     return this.prisma.candidateProfile.update({
       where: { id: user.candidateProfile.id },
-      data: { locationWKT },
+      data: { locationWKT, locationName },
     });
   }
 
@@ -129,11 +130,11 @@ export class ProfileService {
       throw new NotFoundException('Profil recruteur non trouvé pour cet utilisateur.');
     }
 
-    const locationWKT = `POINT(${locationDto.longitude} ${locationDto.latitude})`;
+    const { locationName, locationWKT } = locationDto;
 
     return this.prisma.recruiterProfile.update({
       where: { id: user.recruiterProfile.id },
-      data: { locationWKT },
+      data: { locationWKT, locationName },
     });
   }
 

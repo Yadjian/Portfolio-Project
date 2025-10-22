@@ -3,7 +3,6 @@ import { StyleSheet, View, Text, Dimensions, TouchableOpacity, SafeAreaView } fr
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
-
 import MovaLogo from '@/components/ui/MovaLogo';
 import { useAuth } from '../../contexts/AuthContext';
 import { sendLocationToBackend, checkBackendHealth } from '../../services/api';

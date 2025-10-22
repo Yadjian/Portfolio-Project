@@ -22,7 +22,7 @@ export default function RecruiterProfileScreen() {
     companyName: '',
     firstName: '',
     lastName: '',
-    location: '',
+    locationName: '',
     avatarUrl: '',
     presentation: '',
   });
@@ -62,7 +62,7 @@ export default function RecruiterProfileScreen() {
               companyName: companyName,
               firstName: userProfile.firstName || '',
               lastName: userProfile.lastName || '',
-              location: userProfile.locationWKT || 'Non définie',
+              locationName: userProfile.locationName || 'Non définie',
               avatarUrl: userProfile.photoUrl || '',
               presentation: presentationText,
             }));
@@ -89,6 +89,7 @@ export default function RecruiterProfileScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+
         {/* --- Profile Header --- */}
         <View style={styles.header}>
           <View style={styles.headerBackground} />
@@ -104,17 +105,12 @@ export default function RecruiterProfileScreen() {
           <Text style={styles.jobTitle}>{`${profile.firstName} ${profile.lastName}`.trim()}</Text>
           <View style={styles.locationContainer}>
             <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
-            <Text style={styles.location}>{profile.location}</Text>
+            <Text style={styles.location}>{profile.locationName}</Text>
           </View>
         </View>
-
-        {/* --- Presentation Section --- */}
-        <ProfileSection title="Présentation de l'entreprise" icon="user" iconColor="#4930a3">
-          <Text style={styles.sectionText}>{profile.presentation}</Text>
-        </ProfileSection>
-
+        
         {/* --- Job Details Section --- */}
-        <ProfileSection title="Recherche en cours" icon="briefcase" iconColor="#4930a3">
+        <ProfileSection title="Recherche" icon="briefcase" iconColor="#4930a3">
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Poste disponible:</Text>
             <Text style={styles.detailValue}>{jobOffer.title}</Text>
@@ -127,6 +123,11 @@ export default function RecruiterProfileScreen() {
             <Text style={styles.detailLabel}>Type de contrat:</Text>
             <Text style={styles.detailValue}>{jobOffer.contractType}</Text>
           </View>
+        </ProfileSection>
+
+        {/* --- Presentation Section --- */}
+        <ProfileSection title="Présentation" icon="user" iconColor="#4930a3">
+          <Text style={styles.sectionText}>{profile.presentation}</Text>
         </ProfileSection>
 
         {/* Spacer at the bottom */}

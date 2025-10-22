@@ -78,6 +78,7 @@ model CandidateProfile {
   desiredJobTitle      String?
   desiredContractTypes ContractType[] @default([])
   locationWKT          String?
+  locationName         String?
   searchRadiusKm       Int?
   isActive             Boolean    @default(true)
   notificationsEnabled Boolean    @default(true)
@@ -109,6 +110,7 @@ model RecruiterProfile {
 
   // NOUVEAUX CHAMPS POUR LES CRITÈRES DE RECHERCHE
   locationWKT          String?          // La zone où le recruteur recherche
+  locationName         String?
   searchDescription    String?          // Petite phrase d'accroche du recruteur
   desiredExperienceLevel ExperienceLevel? // Le niveau d'expérience recherché
   desiredContractTypes ContractType[]   @default([]) // Les types de contrats recherchés
@@ -169,6 +171,7 @@ model JobOffer {
   title        String
   description  String
   locationWKT          String?
+  locationName         String?
   salaryMin    Int?
   salaryMax    Int?
   currency     String?

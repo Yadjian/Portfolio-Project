@@ -23,6 +23,10 @@ export class CreateJobOfferDto {
   locationWKT: string;
 
   @IsOptional()
+  @IsString()
+  locationName?: string;
+  
+  @IsOptional()
   @IsInt()
   salaryMin?: number;
 

@@ -20,7 +20,7 @@ export default function CandidateProfileScreen() {
   const [candidate, setCandidate] = useState({
     firstName: '',
     lastName: '',
-    location: '',
+    locationName: '',
     avatarUrl: '', // Plus de placeholder
     job: '',
     experience: '',
@@ -40,7 +40,7 @@ export default function CandidateProfileScreen() {
               ...prev,
               firstName: userProfile.firstName || '',
               lastName: userProfile.lastName || '',
-              location: userProfile.locationWKT || 'Non définie',
+              locationName: userProfile.locationName || 'Non définie',
               avatarUrl: userProfile.photoUrl || '',
               job: userProfile.desiredJobTitle || '',
               experience: userProfile.experienceLevel || '',
@@ -63,6 +63,7 @@ export default function CandidateProfileScreen() {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+
         {/* --- Profile Header --- */}
         <View style={styles.header}>
           <View style={styles.headerBackground} />
@@ -78,17 +79,12 @@ export default function CandidateProfileScreen() {
 
           <View style={styles.locationContainer}>
             <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
-            <Text style={styles.location}>{candidate.location}</Text>
+            <Text style={styles.location}>{candidate.locationName}</Text>
           </View>
         </View>
 
-        {/* --- About Section --- */}
-        <ProfileSection title="Présentation" icon="user" iconColor="#4930a3">
-          <Text style={styles.sectionText}>{candidate.presentation || 'Aucune présentation pour le moment.'}</Text>
-        </ProfileSection>
-
-        {/* --- Details Section --- */}
-        <ProfileSection title="Détails" icon="briefcase" iconColor="#4930a3">
+        {/* --- Search Section --- */}
+        <ProfileSection title="Recherche" icon="briefcase" iconColor="#4930a3">
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Poste recherché:</Text>
             <Text style={styles.detailValue}>{candidate.job}</Text>
@@ -101,6 +97,11 @@ export default function CandidateProfileScreen() {
             <Text style={styles.detailLabel}>Type de contrat:</Text>
             <Text style={styles.detailValue}>{candidate.contractType}</Text>
           </View>
+        </ProfileSection>
+
+        {/* --- About Section --- */}
+        <ProfileSection title="Présentation" icon="user" iconColor="#4930a3">
+          <Text style={styles.sectionText}>{candidate.presentation || 'Aucune présentation pour le moment.'}</Text>
         </ProfileSection>
 
         {/* Spacer at the bottom */}

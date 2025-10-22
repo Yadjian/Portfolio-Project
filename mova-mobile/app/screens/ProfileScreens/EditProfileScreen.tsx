@@ -9,9 +9,12 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import MovaLogo from '../../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
-import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories, getGoogleGeolocation } from '../../../services/api';
-import * as Location from 'expo-location';
+import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
+import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import Constants from 'expo-constants';
 import { useAuth } from '../../../contexts/AuthContext';
+
+const GOOGLE_PLACES_API_KEY = Constants.expoConfig?.extra?.googlePlacesApiKey;
 
 export default function EditProfileScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -24,7 +27,8 @@ export default function EditProfileScreen() {
   // Champs pour candidat
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [location, setLocation] = useState('');
+  const [locationName, setLocationName] = useState('');
+  const [locationWKT, setLocationWKT] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [job, setJob] = useState('');
   const [selectedJobCategoryId, setSelectedJobCategoryId] = useState<string | null>(null);
@@ -45,34 +49,6 @@ export default function EditProfileScreen() {
   const [contractTypes, setContractTypes] = useState<string[]>([]);
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
   const [jobCategories, setJobCategories] = useState<{ id: string; name: string }[]>([]);
-
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.error('Permission to access location was denied');
-        return;
-      }
-
-      try {
-        let location = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = location.coords;
-        const geoData = await getGoogleGeolocation(latitude, longitude);
-
-        if (geoData && geoData.results && geoData.results.length > 0) {
-          const addressComponents = geoData.results[0].address_components || [];
-          const cityComponent = addressComponents.find(
-            (comp: { types: string[]; long_name: string }) => comp.types.includes('locality')
-          );
-          if (cityComponent) {
-            setLocation(cityComponent.long_name);
-          }
-        }
-      } catch (error) {
-        console.error("Erreur lors de la récupération de la ville:", error);
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -129,6 +105,8 @@ export default function EditProfileScreen() {
           setFirstName(profile.firstName || '');
           setLastName(profile.lastName || '');
           setAvatarUrl(profile.photoUrl || '');
+          setLocationName(profile.locationName || '');
+          setLocationWKT(profile.locationWKT || '');
           
           if (userType === 'candidate') {
             setJob(profile.desiredJobTitle || '');
@@ -173,6 +151,8 @@ export default function EditProfileScreen() {
     const profileData: any = {
       firstName,
       lastName,
+      locationName,
+      locationWKT,
     };
 
     if (userType === 'candidate') {
@@ -284,10 +264,63 @@ export default function EditProfileScreen() {
           {/* Localisation */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Localisation</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-              <TextInput style={[styles.input, { color: '#888' }]} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} editable={false} />
-            </View>
+            <GooglePlacesAutocomplete
+              placeholder='Ville, Pays'
+              onPress={(data, details = null) => {
+                const cityComponent = details?.address_components.find(
+                  (component) => component.types.includes('locality')
+                );
+                if (cityComponent && details.geometry) {
+                  const { lat, lng } = details.geometry.location;
+                  setLocationName(cityComponent.long_name);
+                  setLocationWKT(`POINT(${lng} ${lat})`);
+                } else {
+                  setLocationName(data.description); // Fallback au texte de l'input
+                  setLocationWKT(''); // Pas de coordonnées
+                }
+              }}
+              query={{
+                key: GOOGLE_PLACES_API_KEY,
+                language: 'fr',
+                types: '(cities)',
+              }}
+              textInputProps={{
+                value: locationName,
+                onChangeText: (text) => {
+                  setLocationName(text);
+                  if (text === '') {
+                    setLocationWKT('');
+                  }
+                },
+                style: [styles.input, { flex: 1 }],
+                placeholderTextColor: '#999',
+              }}
+              styles={{
+                container: {
+                  flex: 1,
+                },
+                textInputContainer: {
+                  ...styles.inputContainer,
+                  paddingLeft: 0, // Remove default padding
+                },
+                textInput: {
+                  ...styles.input,
+                  paddingLeft: 10, // Add custom padding
+                },
+                listView: {
+                  backgroundColor: 'white',
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: '#ddd',
+                  marginTop: 4,
+                },
+              }}
+              renderLeftButton={() => 
+                <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+              }
+              fetchDetails={true}
+              enablePoweredByContainer={false}
+            />
           </View>
 
           {/* Poste */}
