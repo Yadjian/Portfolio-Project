@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
 import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
 import { GooglePlaceDetail } from 'react-native-google-places-autocomplete'; // Importation explicite du type
-import CustomPlacesAutocomplete, { Suggestion } from './CustomPlacesAutocomplete';
+import CustomPlacesAutocomplete, { Suggestion } from '../../../components/ui/CustomPlacesAutocomplete';
 import Constants from 'expo-constants';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -151,6 +151,20 @@ export default function EditProfileScreen() {
 
 
   const handleSubmit = async () => {
+    // Validation groupée de tous les champs obligatoires (sauf présentation)
+    const missingFields: string[] = [];
+    if (!firstName.trim()) missingFields.push('prénom');
+    if (!lastName.trim()) missingFields.push('nom');
+    if (!locationName.trim()) missingFields.push('localisation');
+    if (!job.trim()) missingFields.push('poste');
+    if (!experience.trim()) missingFields.push('expérience');
+    if (!contractType.trim()) missingFields.push('type de contrat');
+    if (userType === 'recruiter' && !companyName.trim()) missingFields.push('raison sociale');
+
+    if (missingFields.length > 0) {
+      alert('Merci de remplir les champs obligatoires :\n' + missingFields.join(', '));
+      return;
+    }
     setIsLoading(true);
 
     // On mappe les champs du formulaire vers le DTO attendu par le backend
