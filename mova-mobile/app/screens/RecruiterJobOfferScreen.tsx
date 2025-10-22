@@ -59,17 +59,16 @@ export default function RecruiterJobOfferScreen() {
       const fetchedOffers = await getMyJobOffers(); // API call
 
       if (isActive) {
-        if (fetchedOffers) { // Vérifie si fetchedOffers n'est pas null ou undefined
+        if (fetchedOffers) {
+          // On garde la localisation propre à chaque offre existante, comme pour les autres champs hérités du profil
           const uiOffers: JobOfferUI[] = fetchedOffers.map((offer: any) => ({
             ...offer,
-            locationName: user?.recruiterProfile?.locationName || offer.locationName, // Assurer que le nom de la localisation est présent
-            salaryMin: offer.salaryMin, // Garder en nombre
-            salaryMax: offer.salaryMax, // Garder en nombre
-            showForm: false, // Par défaut, les formulaires sont cachés
+            salaryMin: offer.salaryMin,
+            salaryMax: offer.salaryMax,
+            showForm: false,
           }));
           setOffers(uiOffers);
         } else {
-          // Si fetchedOffers est null (par exemple, en cas de 401), on initialise avec un tableau vide
           setOffers([]);
         }
       }
