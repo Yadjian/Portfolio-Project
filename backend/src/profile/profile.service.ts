@@ -2,12 +2,15 @@
 
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { GeocodingService } from '../geocoding/geocoding.service'; // ✅ Ajout
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { UpdateLocationDto } from './dto/update-location.dto';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly geocodingService: GeocodingService, // ✅ Injection
+  ) {}
 
   async getUserProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -34,6 +37,9 @@ export class ProfileService {
     return user;
   }
 
+  /**
+   * Met à jour le profil complet avec géocodage automatique si adresse fournie
+   */
   async updateUserProfile(userId: string, data: UpdateProfileDto) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -41,9 +47,15 @@ export class ProfileService {
     });
     if (!user) throw new NotFoundException('Utilisateur non trouvé.');
 
+    // Géocodage automatique si adresse fournie
+    let geocodedData = {};
+    if (data.fullAddress) {
+      geocodedData = await this.geocodingService.geocode(data.fullAddress);
+    }
+
     if (user.recruiterProfile) {
-      const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData };
+      const { interestedInCategoryIds, fullAddress, ...restOfData } = data;
+      const dataToUpdate: any = { ...restOfData, ...geocodedData }; // ✅ Fusion
       
       delete dataToUpdate.coverLetterText;
 
@@ -55,13 +67,11 @@ export class ProfileService {
             set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
-        include: {
-          searchedCategories: true, // ✅ Inclure les catégories dans la réponse
-        }
+        include: { searchedCategories: true },
       });
     } else if (user.candidateProfile) {
-      const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData };
+      const { interestedInCategoryIds, fullAddress, ...restOfData } = data;
+      const dataToUpdate: any = { ...restOfData, ...geocodedData }; // ✅ Fusion
 
       await this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
@@ -71,70 +81,11 @@ export class ProfileService {
             set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
-        include: {
-          interestedInCategories: true, // ✅ Inclure les catégories dans la réponse
-        }
+        include: { interestedInCategories: true },
       });
-    } else {
-      throw new NotFoundException('Aucun profil à mettre à jour trouvé pour cet utilisateur.');
     }
 
-    return this.getUserProfile(userId); // ✅ Retourne maintenant les catégories
-  }
-
-  /**
-   * Met à jour la localisation GPS d'un candidat.
-   * @param userId L'ID de l'utilisateur provenant du token JWT.
-   * @param locationDto Les coordonnées GPS.
-   */
-  async updateUserLocation(userId: string, locationDto: UpdateLocationDto) {
-    // FIX : On cherche l'utilisateur par son 'id'.
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-      include: { candidateProfile: true },
-    });
-
-    if (!user.candidateProfile) {
-      throw new NotFoundException('Profil candidat non trouvé pour cet utilisateur.');
-    }
-
-    const locationWKT = `POINT(${locationDto.longitude} ${locationDto.latitude})`;
-
-    // La validation PostGIS est une bonne pratique, on la garde.
-    try {
-      await this.prisma.$executeRaw`SELECT ST_GeomFromText(${locationWKT}, 4326)`;
-    } catch (error) {
-      throw new BadRequestException('Coordonnées GPS invalides');
-    }
-
-    return this.prisma.candidateProfile.update({
-      where: { id: user.candidateProfile.id },
-      data: { locationWKT },
-    });
-  }
-
-  /**
-   * Met à jour la localisation GPS d'un recruteur.
-   * @param userId L'ID de l'utilisateur provenant du token JWT.
-   * @param locationDto Les coordonnées GPS.
-   */
-  async updateRecruiterLocation(userId: string, locationDto: UpdateLocationDto) {
-    // FIX : On cherche l'utilisateur par son 'id'.
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-      include: { recruiterProfile: true },
-    });
-
-    if (!user.recruiterProfile) {
-      throw new NotFoundException('Profil recruteur non trouvé pour cet utilisateur.');
-    }
-
-    const locationWKT = `POINT(${locationDto.longitude} ${locationDto.latitude})`;
-
-    return this.prisma.recruiterProfile.update({
-      where: { id: user.recruiterProfile.id },
-      data: { locationWKT },
-    });
+    return this.getUserProfile(userId);
   }
 
   async getJobCategories() {

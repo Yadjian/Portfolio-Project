@@ -12,9 +12,10 @@ import { CompaniesModule } from './companies/companies.module';
 import { MetaModule } from './meta/meta.module';
 import { DiscoveryModule } from './discovery/discovery.module';
 import { SwipesModule } from './swipes/swipes.module';
+import { GeocodingModule } from './geocoding/geocoding.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, ProfileModule, SwipesModule, JobOfferModule, CompaniesModule, MetaModule, DiscoveryModule],
+  imports: [AuthModule, PrismaModule, ProfileModule, SwipesModule, JobOfferModule, CompaniesModule, MetaModule, DiscoveryModule, GeocodingModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
