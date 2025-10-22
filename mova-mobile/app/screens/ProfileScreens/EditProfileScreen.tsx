@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
 import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
 import { GooglePlaceDetail } from 'react-native-google-places-autocomplete'; // Importation explicite du type
-import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete';
+import CustomPlacesAutocomplete, { Suggestion } from './CustomPlacesAutocomplete';
 import Constants from 'expo-constants';
 import { useAuth } from '../../../contexts/AuthContext';
 
@@ -272,74 +272,34 @@ export default function EditProfileScreen() {
             <Text style={styles.label}>Localisation</Text>
             {/* Rendu conditionnel du composant GooglePlacesAutocomplete */}
             {GOOGLE_PLACES_API_KEY && typeof GOOGLE_PLACES_API_KEY === 'string' && GOOGLE_PLACES_API_KEY.length > 0 ? (
-              <GooglePlacesAutocomplete
-                placeholder='Ville, Pays'
-                fetchDetails={true} // Assure que les détails complets sont récupérés
-                onPress={(data, details: GooglePlaceDetail | null = null) => {
-                  // Sécurité : s'assurer que address_components est un tableau
-                  const addressComponents = details?.address_components ?? [];
-                  const city = addressComponents.find(c => c.types?.includes('locality'))?.long_name
-                    ?? addressComponents.find(c => c.types?.includes('administrative_area_level_2'))?.long_name
-                    ?? details?.name // Fallback au nom du lieu si pas de ville spécifique
-                    ?? data.description; // Fallback à la description de la prédiction
-
-                  const locationGeometry = details?.geometry?.location;
-                  if (locationGeometry) {
-                    const { lat, lng } = locationGeometry;
-                    setLocationName(city);
-                    setLocationWKT(`POINT(${lng} ${lat})`);
-                  } else {
-                    setLocationName(city); // On garde le nom de la ville même sans coordonnées
+              <CustomPlacesAutocomplete
+                apiKey={GOOGLE_PLACES_API_KEY}
+                value={locationName}
+                onSelect={async (item: Suggestion) => {
+                  setLocationName(item.description);
+                  // Fetch details for coordinates and city
+                  try {
+                    const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${item.place_id}&key=${GOOGLE_PLACES_API_KEY}&language=fr`);
+                    const data = await res.json();
+                    if (data.status === 'OK') {
+                      const details = data.result;
+                      const comps = details.address_components || [];
+                      const city = comps.find((c: any) => c.types?.includes('locality'))?.long_name
+                        ?? comps.find((c: any) => c.types?.includes('postal_town'))?.long_name
+                        ?? comps.find((c: any) => c.types?.includes('administrative_area_level_2'))?.long_name
+                        ?? details.name
+                        ?? item.description;
+                      const loc = details.geometry && details.geometry.location ? details.geometry.location : null;
+                      setLocationName(city);
+                      if (loc) setLocationWKT(`POINT(${loc.lng} ${loc.lat})`);
+                      else setLocationWKT('');
+                    } else {
+                      setLocationWKT('');
+                    }
+                  } catch (e) {
                     setLocationWKT('');
                   }
                 }}
-                query={{
-                  key: GOOGLE_PLACES_API_KEY, // Cette clé est maintenant garantie d'être définie
-                  language: 'fr',
-                  types: '(cities)',
-                }}
-                predefinedPlaces={[]} // Évite .filter sur undefined si non fourni
-                filterReverseGeocodingByTypes={[]} // Évite .filter sur undefined si non fourni
-                nearbyPlacesAPI="GooglePlacesSearch" // Valeur par défaut, plus sûre
-                textInputProps={{
-                  value: locationName,
-                  onChangeText: (text) => {
-                    setLocationName(text);
-                    if (text === '') {
-                      setLocationWKT('');
-                    }
-                  },
-                  style: [styles.input, { flex: 1 }],
-                  placeholderTextColor: '#999',
-                }}
-                styles={{
-                  container: {
-                    flex: 1,
-                  },
-                  textInputContainer: {
-                    ...styles.inputContainer,
-                    paddingLeft: 0, // Remove default padding
-                  },
-                  textInput: {
-                    ...styles.input,
-                    paddingLeft: 10, // Add custom padding
-                  },
-                  listView: {
-                    backgroundColor: 'white',
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: '#ddd',
-                    marginTop: 4,
-                  },
-                  description: {},
-                  row: {},
-                }}
-                renderLeftButton={() =>
-                  <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-                }
-                enablePoweredByContainer={false}
-                onFail={(error) => console.log('GooglePlacesAutocomplete FAIL', error)}
-                onNotFound={() => console.log('GooglePlacesAutocomplete NOT FOUND')}
               />
             ) : (
               // Fallback UI si la clé API est manquante
