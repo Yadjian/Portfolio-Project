@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export type Suggestion = {
   description: string;
@@ -17,7 +18,7 @@ interface CustomPlacesAutocompleteProps {
   onSelect: (item: Suggestion) => void;
 }
 
-const CustomPlacesAutocomplete: React.FC<CustomPlacesAutocompleteProps> = ({ apiKey, value, onSelect }) => {
+const CustomPlacesAutocomplete: React.FC<CustomPlacesAutocompleteProps> = ({ apiKey, value, onSelect, ...props }) => {
   const [input, setInput] = useState<string>(value);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -57,52 +58,87 @@ const CustomPlacesAutocomplete: React.FC<CustomPlacesAutocompleteProps> = ({ api
   };
 
   return (
-    <View style={autocompleteStyles.container}>
-      <TextInput
-        style={autocompleteStyles.input}
-        placeholder="Adresse postale"
-        value={input}
-        onChangeText={fetchSuggestions}
-        autoCorrect={false}
-        autoCapitalize="none"
-        placeholderTextColor="#999"
-      />
-      {loading && <ActivityIndicator style={{ margin: 8 }} />}
-      {error && <Text style={{ color: 'red' }}>{error}</Text>}
-      <View style={autocompleteStyles.list}>
-        {suggestions.map(item => (
-          <TouchableOpacity key={item.place_id} style={autocompleteStyles.item} onPress={() => handleSelect(item)}>
-            <Text>{item.description}</Text>
-          </TouchableOpacity>
-        ))}
+    <View style={styles.container}>
+      <View style={styles.inputContainer}>
+        <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+        <TextInput
+          style={styles.input}
+          placeholder="Adresse postale"
+          value={input}
+          onChangeText={fetchSuggestions}
+          autoCorrect={false}
+          autoCapitalize="none"
+          placeholderTextColor="#999"
+          {...props}
+        />
+        {loading && <ActivityIndicator size="small" color="#999" />}
       </View>
+      {error && <Text style={styles.errorText}>{error}</Text>}
+      {suggestions.length > 0 && (
+        <View style={styles.list}>
+          {suggestions.map(item => (
+            <TouchableOpacity key={item.place_id} style={styles.item} onPress={() => handleSelect(item)}>
+              <Text style={styles.itemText}>{item.description}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
     </View>
   );
 };
 
-const autocompleteStyles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    position: 'relative',
+    zIndex: 1,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    paddingHorizontal: 14,
+    height: 52,
+  },
+  inputIcon: {
+    marginRight: 10,
   },
   input: {
-    backgroundColor: 'white',
-    borderColor: 'black',
-    borderWidth: 1,
-    borderRadius: 5,
-    padding: 12,
-    fontSize: 16,
-    marginBottom: 8,
+    flex: 1,
+    fontSize: 15,
+    color: '#333',
   },
   list: {
-    backgroundColor: 'yellow',
-    borderRadius: 5,
-    maxHeight: 250,
-    zIndex: 9999,
+    position: 'absolute',
+    top: 54, // height of inputContainer + a small margin
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    maxHeight: 200,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   item: {
     padding: 12,
     borderBottomColor: '#ccc',
     borderBottomWidth: 1,
+  },
+  itemText: {
+    fontSize: 15,
+    color: '#333',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginTop: 4,
   },
 });
 
