@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, Dimensions, ScrollView, TextInput, Modal, Pressable } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -6,7 +6,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getRecruiterTabs } from '../../constants/tabsConfig';
 import { useAuth } from '../../contexts/AuthContext';
-import { getMyJobOffers, createJobOffer, updateJobOffer, deleteJobOffer } from '../../services/api';
+import { getMyJobOffers, createJobOffer, updateJobOffer, deleteJobOffer, getContractTypes } from '../../services/api';
 
 const { width } = Dimensions.get('window');
 
@@ -18,6 +18,7 @@ type JobOfferUI = {
   contractType: string;
   workHours: string;
   experienceLevel?: string; // Ajout du niveau d'expérience
+  locationName?: string; // Ajout du nom de la localisation pour l'UI
   locationWKT: string;
   salaryMin: number | null;
   salaryMax: number | null;
@@ -35,8 +36,23 @@ export default function RecruiterJobOfferScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [contractModalVisible, setContractModalVisible] = useState(false);
   const [editingOfferIndex, setEditingOfferIndex] = useState<number | null>(null);
+  const [contractTypes, setContractTypes] = useState<string[]>([]);
 
   // --- DATA FETCHING ---
+
+  // Fetch metadata like contract types once
+  useEffect(() => {
+    const fetchMetaData = async () => {
+      try {
+        const contracts = await getContractTypes();
+        setContractTypes(contracts);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des types de contrat:", error);
+      }
+    };
+    fetchMetaData();
+  }, []);
+
   const fetchOffers = useCallback(async (isActive = true) => {
     try {
       setIsLoading(true);
@@ -46,6 +62,7 @@ export default function RecruiterJobOfferScreen() {
         if (fetchedOffers) { // Vérifie si fetchedOffers n'est pas null ou undefined
           const uiOffers: JobOfferUI[] = fetchedOffers.map((offer: any) => ({
             ...offer,
+            locationName: user?.recruiterProfile?.locationName || offer.locationName, // Assurer que le nom de la localisation est présent
             salaryMin: offer.salaryMin, // Garder en nombre
             salaryMax: offer.salaryMax, // Garder en nombre
             showForm: false, // Par défaut, les formulaires sont cachés
@@ -108,7 +125,8 @@ export default function RecruiterJobOfferScreen() {
       contractType: recruiterProfile.desiredContractTypes[0] || '', // Contrat hérité du profil
       experienceLevel: recruiterProfile.desiredExperienceLevel || '', // Expérience héritée du profil
       workHours: '',
-      locationWKT: 'POINT(2.3522 48.8566)', // Valeur par défaut, cachée de l'utilisateur
+      locationName: recruiterProfile.locationName || '', // Nom de la localisation hérité du profil
+      locationWKT: recruiterProfile.locationWKT || 'POINT(2.3522 48.8566)', // Hérité du profil, avec un fallback
       salaryMin: null,
       salaryMax: null,
     };
@@ -130,9 +148,11 @@ export default function RecruiterJobOfferScreen() {
       title: offer.title,
       description: offer.description,
       workHours: offer.workHours,
-      locationWKT: 'POINT(2.3522 48.8566)', // On force une valeur valide
+      locationName: offer.locationName, // On envoie aussi le nom de la localisation
+      locationWKT: offer.locationWKT, // On utilise la localisation de l'offre (héritée du profil)
       salaryMin: offer.salaryMin ? parseInt(offer.salaryMin.toString(), 10) : undefined,
       salaryMax: offer.salaryMax ? parseInt(offer.salaryMax.toString(), 10) : undefined,
+      // contractType et experienceLevel sont hérités du profil côté backend, donc non envoyés
     };
     try {
       if (offer.isNew) {
@@ -259,10 +279,10 @@ export default function RecruiterJobOfferScreen() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Description</Text>
-                  <View style={[styles.inputContainer, { height: 100, alignItems: 'flex-start' }]}>
-                    <Ionicons name="document-text-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
-                    <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} value={offer.description} onChangeText={text => updateOfferState(idx, { description: text })} placeholder="Description du poste..." placeholderTextColor="#999" multiline />
+                  <Text style={styles.label}>Localisation</Text>
+                  <View style={[styles.inputContainer, styles.readOnlyContainer]}>
+                    <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
+                    <Text style={[styles.input, styles.readOnlyText]}>{offer.locationName || 'Définie dans votre profil'}</Text>
                   </View>
                 </View>
 
@@ -275,13 +295,12 @@ export default function RecruiterJobOfferScreen() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Niveau d'expérience</Text>
+                  <Text style={styles.label}>Expérience requise</Text>
                   <View style={[styles.inputContainer, styles.readOnlyContainer]}>
                     <Ionicons name="analytics-outline" size={20} color='#4930a3' style={styles.inputIcon} />
                     <Text style={[styles.input, styles.readOnlyText]}>{offer.experienceLevel}</Text>
                   </View>
                 </View>
-
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Heures / semaine</Text>
@@ -292,7 +311,7 @@ export default function RecruiterJobOfferScreen() {
                 </View>
 
                 <View style={styles.inputGroup}>
-                  <Text style={styles.label}>Salaire (Brut Annuel)</Text>
+                  <Text style={styles.label}>Salaire (Brut Mensuel)</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                     <View style={[styles.inputContainer, { width: '48%' }]}>
                       <Ionicons name="cash-outline" size={20} color='#4930a3' style={styles.inputIcon} />
@@ -302,6 +321,14 @@ export default function RecruiterJobOfferScreen() {
                       <Ionicons name="cash-outline" size={20} color='#4930a3' style={styles.inputIcon} />
                       <TextInput style={styles.input} value={offer.salaryMax?.toString() ?? ''} onChangeText={text => updateOfferState(idx, { salaryMax: text ? parseInt(text) : null })} placeholder="Max" keyboardType="numeric" />
                     </View>
+                  </View>
+                </View>
+
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Description</Text>
+                  <View style={[styles.inputContainer, { height: 100, alignItems: 'flex-start' }]}>
+                    <Ionicons name="document-text-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
+                    <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} value={offer.description} onChangeText={text => updateOfferState(idx, { description: text })} placeholder="Description du poste..." placeholderTextColor="#999" multiline />
                   </View>
                 </View>
 
@@ -320,14 +347,19 @@ export default function RecruiterJobOfferScreen() {
               <>
                 <View style={styles.offerDetailsContainer}>
                   <Text style={styles.detailTitle}>{offer.title}</Text>
-                  {offer.description ? <Text style={styles.detailText}>{offer.description}</Text> : null}
+                  {offer.locationName && (
+                    <View style={styles.locationContainer}>
+                      <Ionicons name="location-outline" size={14} color="#666" />
+                      <Text style={styles.locationText}>{offer.locationName}</Text>
+                    </View>
+                  )}
                   <View style={styles.tagsContainer}>
                     {offer.contractType && <Text style={styles.tag}>{offer.contractType}</Text>}
                     {offer.workHours && <Text style={styles.tag}>{offer.workHours}h/sem</Text>}
                     {offer.experienceLevel && <Text style={styles.tag}>{offer.experienceLevel}</Text>}
-                    {/* La localisation est gérée en arrière-plan, pas besoin de l'afficher pour l'instant */}
                     {(offer.salaryMin || offer.salaryMax) && <Text style={styles.tag}>{offer.salaryMin}€ - {offer.salaryMax}€</Text>}
                   </View>
+                  {offer.description ? <Text style={[styles.detailText, {marginTop: 12}]}>{offer.description}</Text> : null}
                 </View>
 
                 {/* Icône d'édition en bas à droite */}
@@ -351,7 +383,7 @@ export default function RecruiterJobOfferScreen() {
       >
         <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
           <Pressable style={styles.modalContent}>
-            {['CDI', 'CDD', 'STAGE', 'ALTERNANCE', 'FREELANCE', 'AUTRE'].map(opt => (
+            {contractTypes.map(opt => (
               <TouchableOpacity key={opt} style={styles.modalOption} onPress={() => selectContractType(opt)}>
                 <Text style={styles.modalOptionText}>{opt}</Text>
               </TouchableOpacity>
@@ -564,6 +596,16 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 8,
   },
+  locationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#666',
+    marginLeft: 4,
+  },
   detailText: {
     fontSize: 15,
     color: '#666',
@@ -572,6 +614,7 @@ const styles = StyleSheet.create({
   },
   tagsContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
     flexWrap: 'wrap',
     gap: 8,
   },
