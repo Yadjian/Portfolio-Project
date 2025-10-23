@@ -1,14 +1,12 @@
 // Fichier: backend/src/profile/dto/update-location.dto.ts
-import { IsLatitude, IsLongitude, IsNumber, Min, Max } from 'class-validator';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class UpdateLocationDto {
-  @IsNumber()
-  @Min(-90)
-  @Max(90)
-  latitude: number;
+  @IsString()
+  @IsNotEmpty()
+  locationName: string;
 
-  @IsNumber()
-  @Min(-180)
-  @Max(180)
-  longitude: number;
+  @IsString()
+  @IsNotEmpty()
+  locationWKT: string;
 }

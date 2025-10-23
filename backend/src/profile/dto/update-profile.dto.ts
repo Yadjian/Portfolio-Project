@@ -18,6 +18,10 @@ export class UpdateProfileDto {
   locationWKT?: string;
 
   @IsOptional()
+  @IsString()
+  locationName?: string;
+
+  @IsOptional()
   @IsArray()
   @IsUUID('4', { each: true }) // Valide que chaque élément est un UUID v4
   interestedInCategoryIds?: string[];
