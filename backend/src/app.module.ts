@@ -12,9 +12,10 @@ import { CompaniesModule } from './companies/companies.module';
 import { MetaModule } from './meta/meta.module';
 import { DiscoveryModule } from './discovery/discovery.module';
 import { SwipesModule } from './swipes/swipes.module';
+import { MatchesModule } from './matches/matches.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, ProfileModule, SwipesModule, JobOfferModule, CompaniesModule, MetaModule, DiscoveryModule],
+  imports: [AuthModule, PrismaModule, ProfileModule, SwipesModule, JobOfferModule, CompaniesModule, MetaModule, DiscoveryModule, MatchesModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
