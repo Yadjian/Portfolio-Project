@@ -4,10 +4,13 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { FileStorageService } from 'src/file-storage/file-storage.service';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,
+              private fileStorageService: FileStorageService,
+  ) {}
 
   async getUserProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
@@ -146,5 +149,33 @@ export class ProfileService {
       },
       orderBy: { name: 'asc' }
     });
+  }
+
+  async updateResume(userId: string, file: Express.Multer.File) {
+    // 1. Trouver le profil candidat
+    const profile = await this.prisma.candidateProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Profil candidat non trouvé.');
+    }
+
+    // 2. Envoyer le fichier à R2
+    // On le stocke dans un dossier "resumes" avec un nom unique
+    const fileUrl = await this.fileStorageService.uploadFile(file, 'resumes');
+
+    // 3. Sauvegarder l'URL publique dans la BDD
+    const updatedProfile = await this.prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: {
+        resumeUrl: fileUrl,
+      },
+    });
+
+    return {
+      message: 'CV mis à jour avec succès.',
+      resumeUrl: updatedProfile.resumeUrl,
+    };
   }
 }

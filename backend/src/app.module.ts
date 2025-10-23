@@ -13,9 +13,10 @@ import { MetaModule } from './meta/meta.module';
 import { DiscoveryModule } from './discovery/discovery.module';
 import { SwipesModule } from './swipes/swipes.module';
 import { MatchesModule } from './matches/matches.module';
+import { FileStorageModule } from './file-storage/file-storage.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, ProfileModule, SwipesModule, JobOfferModule, CompaniesModule, MetaModule, DiscoveryModule, MatchesModule],
+  imports: [AuthModule, PrismaModule, ProfileModule, SwipesModule, JobOfferModule, CompaniesModule, MetaModule, DiscoveryModule, MatchesModule, FileStorageModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })
