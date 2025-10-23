@@ -11,7 +11,7 @@ export class DiscoveryController {
   // === ENDPOINT CANDIDAT ===
   @Get('recruiters')
   @UseGuards(AuthGuard('jwt'))
-  getRecruiterDiscoveryDeck(@Req() req: Request, @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,) {
+  getRecruiterDiscoveryDeck(@Req() req: Request, @Query('radius', new DefaultValuePipe(30000), ParseIntPipe) radius: number,) {
     const user = req.user as { sub: string };
     const userId = user.sub;
 

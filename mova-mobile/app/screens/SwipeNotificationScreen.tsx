@@ -108,7 +108,32 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
 
         // Si l'API renvoie des profils, on les utilise, sinon on utilise les profils factices
         if (data && data.length > 0) {
-          setProfiles(data);
+          // Mapper les données de l'API pour correspondre aux props de SwipeCard
+          const mappedProfiles = data.map((profile: any) => {
+            // Extraire le titre et la description depuis searchDescription
+            const descriptionParts = profile.searchDescription ? profile.searchDescription.split('\n\n') : [];
+            const jobTitle = descriptionParts[0] || 'Poste non spécifié';
+            const description = descriptionParts.slice(1).join('\n\n') || 'Aucune présentation disponible';
+            
+            return {
+              ...profile,
+              avatarUrl: profile.avatarUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
+              location: profile.locationName || 'Localisation non spécifiée',
+              // Pour les recruteurs
+              jobSeeking: jobTitle,
+              experienceRequired: profile.desiredExperienceLevel || 'Non spécifié',
+              // Pour les candidats
+              job: jobTitle,
+              experience: profile.desiredExperienceLevel || 'Non spécifié',
+              // Commun
+              presentation: description,
+              companyName: profile.companyName || `Entreprise de ${profile.firstName} ${profile.lastName}`,
+              contractType: profile.desiredContractTypes && profile.desiredContractTypes.length > 0 
+                ? profile.desiredContractTypes.join(', ') 
+                : 'Non spécifié',
+            };
+          });
+          setProfiles(mappedProfiles);
         } else {
           console.log("Aucun profil reçu de l'API, utilisation des profils factices.");
           setProfiles(mockProfiles);

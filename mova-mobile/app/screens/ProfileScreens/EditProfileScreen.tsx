@@ -291,20 +291,31 @@ export default function EditProfileScreen() {
                 value={locationName}
                 onSelect={async (item: Suggestion) => {
                   setLocationName(item.description);
-                  // Fetch details for coordinates and city
+                  // Fetch details for coordinates, city, and country
                   try {
                     const res = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=${item.place_id}&key=${GOOGLE_PLACES_API_KEY}&language=fr`);
                     const data = await res.json();
                     if (data.status === 'OK') {
                       const details = data.result;
                       const comps = details.address_components || [];
+                      
+                      // Extract city
                       const city = comps.find((c: any) => c.types?.includes('locality'))?.long_name
                         ?? comps.find((c: any) => c.types?.includes('postal_town'))?.long_name
                         ?? comps.find((c: any) => c.types?.includes('administrative_area_level_2'))?.long_name
                         ?? details.name
                         ?? item.description;
+                      
+                      // Extract country
+                      const country = comps.find((c: any) => c.types?.includes('country'))?.long_name ?? '';
+                      
+                      // Combine city and country
+                      const formattedLocation = country ? `${city}, ${country}` : city;
+                      
+                      // Extract coordinates
                       const loc = details.geometry && details.geometry.location ? details.geometry.location : null;
-                      setLocationName(city);
+                      
+                      setLocationName(formattedLocation);
                       if (loc) setLocationWKT(`POINT(${loc.lng} ${loc.lat})`);
                       else setLocationWKT('');
                     } else {

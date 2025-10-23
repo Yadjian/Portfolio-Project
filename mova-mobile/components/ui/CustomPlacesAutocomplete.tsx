@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: 'white',
     borderRadius: 8,
-    maxHeight: 200,
+    maxHeight: 300, // Augmenté de 200 à 300 pour afficher plus de suggestions
     borderWidth: 1,
     borderColor: '#ddd',
     elevation: 3,

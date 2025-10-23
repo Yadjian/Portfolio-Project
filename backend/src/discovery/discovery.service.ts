@@ -11,10 +11,18 @@ export class DiscoveryService {
    * Trouve les recruteurs à proximité pour le deck du candidat.
    */
   async getRecruitersForCandidate(userId: string, radiusInMeters: number = 20000) { // 20km par défaut
+    console.log('🔍 [Discovery] Getting recruiters for candidate userId:', userId);
+    
     // 1. Trouver le profil du candidat ET sa localisation
     const candidateProfile = await this.prisma.candidateProfile.findUnique({
       where: { userId },
     });
+
+    console.log('👤 [Discovery] Candidate profile:', candidateProfile ? {
+      id: candidateProfile.id,
+      name: `${candidateProfile.firstName} ${candidateProfile.lastName}`,
+      locationWKT: candidateProfile.locationWKT,
+    } : 'NOT FOUND');
 
     if (!candidateProfile) {
       throw new NotFoundException('Profil candidat non trouvé.');
@@ -30,22 +38,26 @@ export class DiscoveryService {
       select: { recruiterId: true },
     });
     const swipedRecruiterIds = swipedRecruiters.map(s => s.recruiterId);
+    console.log('🚫 [Discovery] Already swiped recruiters:', swipedRecruiterIds.length);
 
     // 3. (NOUVEAU) Trouver les ID des recruteurs à proximité (PostGIS)
+    console.log('🔎 [Discovery] Searching for recruiters within', radiusInMeters, 'meters from', candidateProfile.locationWKT);
+    
     const nearbyRecruiterResults = await this.prisma.$queryRaw<Array<{ id: string }>>`
       SELECT "id"
       FROM "RecruiterProfile"
       WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
         ST_GeomFromText("locationWKT", 4326)::geography,
-        ST_GeomFromText(${candidateProfile.locationWKT}, 4326),
+        ST_GeomFromText(${candidateProfile.locationWKT}, 4326)::geography,
         ${radiusInMeters}
       )
     `;
     const nearbyRecruiterIds = nearbyRecruiterResults.map(r => r.id);
+    console.log('📍 [Discovery] Nearby recruiters found:', nearbyRecruiterIds.length, nearbyRecruiterIds);
 
     // 4. Requête finale : combine les deux filtres
-    return this.prisma.recruiterProfile.findMany({
+    const finalRecruiters = await this.prisma.recruiterProfile.findMany({
       where: {
         id: {
           in: nearbyRecruiterIds,     // Doit être à proximité
@@ -54,8 +66,30 @@ export class DiscoveryService {
       },
       include: {
         searchedCategories: true,
+        memberships: {
+          include: {
+            company: true,
+          },
+        },
       },
     });
+    
+    console.log('✅ [Discovery] Final recruiters to return:', finalRecruiters.length);
+    
+    // Mapper pour ajouter le nom de l'entreprise au niveau racine
+    const recruitersWithCompany = finalRecruiters.map(recruiter => ({
+      ...recruiter,
+      companyName: recruiter.memberships?.[0]?.company?.name || null,
+    }));
+    
+    console.log('🏢 [Discovery] Sample recruiter with company:', recruitersWithCompany[0] ? {
+      firstName: recruitersWithCompany[0].firstName,
+      lastName: recruitersWithCompany[0].lastName,
+      companyName: recruitersWithCompany[0].companyName,
+      hasMemberships: !!recruitersWithCompany[0].memberships?.length,
+    } : 'No recruiters');
+    
+    return recruitersWithCompany;
   }
 
   /**
