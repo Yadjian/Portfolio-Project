@@ -1,5 +1,6 @@
 {
   "devDependencies": {
-    "@ljharb/tsconfig": "^0.3.2"
+    "@ljharb/tsconfig": "^0.3.2",
+    "@types/googlemaps": "^3.43.3"
   }
 }

@@ -9,8 +9,7 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import MovaLogo from '../../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
-import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories, getGoogleGeolocation } from '../../../services/api';
-import * as Location from 'expo-location';
+import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
 import { useAuth } from '../../../contexts/AuthContext';
 
 export default function EditProfileScreen() {
@@ -46,33 +45,7 @@ export default function EditProfileScreen() {
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
   const [jobCategories, setJobCategories] = useState<{ id: string; name: string }[]>([]);
 
-  useEffect(() => {
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        console.error('Permission to access location was denied');
-        return;
-      }
 
-      try {
-        let location = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = location.coords;
-        const geoData = await getGoogleGeolocation(latitude, longitude);
-
-        if (geoData && geoData.results && geoData.results.length > 0) {
-          const addressComponents = geoData.results[0].address_components || [];
-          const cityComponent = addressComponents.find(
-            (comp: { types: string[]; long_name: string }) => comp.types.includes('locality')
-          );
-          if (cityComponent) {
-            setLocation(cityComponent.long_name);
-          }
-        }
-      } catch (error) {
-        console.error("Erreur lors de la récupération de la ville:", error);
-      }
-    })();
-  }, []);
 
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
@@ -173,6 +146,7 @@ export default function EditProfileScreen() {
     const profileData: any = {
       firstName,
       lastName,
+      fullAddress: location, // send the address string to backend for geocoding
     };
 
     if (userType === 'candidate') {
@@ -286,7 +260,16 @@ export default function EditProfileScreen() {
             <Text style={styles.label}>Localisation</Text>
             <View style={styles.inputContainer}>
               <Ionicons name="location-outline" size={20} color='#4930a3' style={styles.inputIcon} />
-              <TextInput style={[styles.input, { color: '#888' }]} placeholder="Ville, Pays" placeholderTextColor="#999" value={location} editable={false} />
+              <TextInput
+                style={styles.input}
+                placeholder="Adresse complète (ex: 10 rue de Paris, 75000 Paris, France)"
+                placeholderTextColor="#999"
+                value={location}
+                onChangeText={setLocation}
+                autoCapitalize="words"
+                autoCorrect={false}
+                returnKeyType="done"
+              />
             </View>
           </View>
 
