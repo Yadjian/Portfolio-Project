@@ -1,11 +1,12 @@
 // Fichier: backend/src/profile/profile.controller.ts
 
-import { Controller, Get, Put, Post, UseGuards, Req, Body } from '@nestjs/common';
+import { Controller, Get, Put, UseGuards, Req, Body, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { ProfileService } from './profile.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('profile') // Toutes les routes de ce contrôleur commenceront par /profile
 export class ProfileController {
@@ -39,5 +40,27 @@ export class ProfileController {
   @Get('categories')
   async getJobCategories() {
     return this.profileService.getJobCategories();
+  }
+
+  // === NOUVEL ENDPOINT POUR L'UPLOAD DE CV ===
+  @Put('resume')
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(FileInterceptor('resumeFile')) // 'resumeFile' est le nom du champ (key)
+  uploadResume(
+    @Req() req: Request,
+    @UploadedFile(
+      // Valideurs de fichier
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5 MB
+          new FileTypeValidator({ fileType: 'application/pdf' }), // Accepte que les PDF
+        ],
+      }),
+    ) file: Express.Multer.File,
+  ) {
+    const user = req.user as { sub: string };
+
+    // On passe le fichier et l'ID au service
+    return this.profileService.updateResume(user.sub, file);
   }
 }
