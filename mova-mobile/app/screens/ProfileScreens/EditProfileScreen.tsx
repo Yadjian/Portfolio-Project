@@ -372,18 +372,18 @@ export default function EditProfileScreen() {
 
           {/* Présentation */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Présentation (max 5 lignes)</Text>
-            <View style={[styles.inputContainer, { height: 120, alignItems: 'flex-start' }]}>
+            <Text style={styles.label}>Présentation (max 250 caractères)</Text>
+            <View style={[styles.inputContainer, { height: 140, alignItems: 'flex-start' }]}>
               <Ionicons name="chatbox-ellipses-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
               <TextInput 
-                style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} 
+                style={[styles.input, { paddingTop: 15, textAlignVertical: 'top', height: 120 }]} 
                 placeholder="Parlez-nous de vous..." 
                 placeholderTextColor="#999" 
                 value={presentation} 
                 onChangeText={setPresentation} 
                 multiline 
                 maxLength={250}
-                numberOfLines={5}
+                scrollEnabled={true}
               />
             </View>
           </View>

@@ -110,28 +110,43 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         if (data && data.length > 0) {
           // Mapper les données de l'API pour correspondre aux props de SwipeCard
           const mappedProfiles = data.map((profile: any) => {
-            // Extraire le titre et la description depuis searchDescription
-            const descriptionParts = profile.searchDescription ? profile.searchDescription.split('\n\n') : [];
-            const jobTitle = descriptionParts[0] || 'Poste non spécifié';
-            const description = descriptionParts.slice(1).join('\n\n') || 'Aucune présentation disponible';
-            
-            return {
-              ...profile,
-              avatarUrl: profile.avatarUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
-              location: profile.locationName || 'Localisation non spécifiée',
-              // Pour les recruteurs
-              jobSeeking: jobTitle,
-              experienceRequired: profile.desiredExperienceLevel || 'Non spécifié',
-              // Pour les candidats
-              job: jobTitle,
-              experience: profile.desiredExperienceLevel || 'Non spécifié',
-              // Commun
-              presentation: description,
-              companyName: profile.companyName || `Entreprise de ${profile.firstName} ${profile.lastName}`,
-              contractType: profile.desiredContractTypes && profile.desiredContractTypes.length > 0 
-                ? profile.desiredContractTypes.join(', ') 
-                : 'Non spécifié',
-            };
+            if (userType === 'candidate') {
+              // Le candidat voit des recruteurs
+              // Extraire le titre et la description depuis searchDescription
+              const descriptionParts = profile.searchDescription ? profile.searchDescription.split('\n\n') : [];
+              const jobTitle = descriptionParts[0] || 'Poste non spécifié';
+              const description = descriptionParts.slice(1).join('\n\n') || 'Aucune présentation disponible';
+              
+              return {
+                ...profile,
+                avatarUrl: profile.avatarUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
+                location: profile.locationName || 'Localisation non spécifiée',
+                jobSeeking: jobTitle,
+                experienceRequired: profile.desiredExperienceLevel || 'Non spécifié',
+                presentation: description,
+                companyName: profile.companyName || `Entreprise de ${profile.firstName} ${profile.lastName}`,
+                contractType: profile.desiredContractTypes && profile.desiredContractTypes.length > 0 
+                  ? profile.desiredContractTypes.join(', ') 
+                  : 'Non spécifié',
+              };
+            } else {
+              // Le recruteur voit des candidats
+              // Extraire le poste depuis desiredJobTitle et la présentation depuis coverLetterText
+              const jobTitle = profile.desiredJobTitle || 'Poste non spécifié';
+              const description = profile.coverLetterText || 'Aucune présentation disponible';
+              
+              return {
+                ...profile,
+                avatarUrl: profile.photoUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
+                location: profile.locationName || 'Localisation non spécifiée',
+                job: jobTitle,
+                experience: profile.experienceLevel || 'Non spécifié',
+                presentation: description,
+                contractType: profile.desiredContractTypes && profile.desiredContractTypes.length > 0 
+                  ? profile.desiredContractTypes.join(', ') 
+                  : 'Non spécifié',
+              };
+            }
           });
           setProfiles(mappedProfiles);
         } else {

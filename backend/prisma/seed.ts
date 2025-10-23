@@ -50,6 +50,7 @@ async function main() {
     { name: 'Restaurant Le Gourmet', siret: '45678901234567' },
     { name: 'Hôtel Riviera', siret: '56789012345678' },
     { name: 'Boutique Chic Cannes', siret: '67890123456789' },
+    { name: 'Le Grand Hôtel', siret: '78901234567890' },
   ];
 
   const createdCompanies = [];
@@ -82,8 +83,8 @@ async function main() {
       password: testPassword,
       firstName: 'Kévin',
       lastName: 'Patou',
-      location: { lat: 43.5528, lon: 7.0174, name: 'Cannes, France' },
-      searchDescription: 'Moniteur de sports\n\nRejoignez l\'équipe de Kévin moov\' pour démarrer une nouvelle carrière et partager votre passion du sport !',
+      location: { lat: 43.4332, lon: 6.7378, name: 'Fréjus, France' },
+      searchDescription: 'Chauffeur / Chauffeuse\n\nKévin Moov\' recherche des chauffeurs VTC motivés ! Rejoignez notre équipe dynamique et bénéficiez d\'une grande flexibilité horaire. Nous offrons des conditions attractives : véhicules récents, secteurs touristiques privilégiés et accompagnement personnalisé. Permis B requis.',
       companyName: 'Kévin Moov\'',
       desiredContractTypes: [ContractType.CDD],
       desiredExperienceLevel: 'DEBUTANT' as ExperienceLevel,
@@ -93,8 +94,8 @@ async function main() {
       password: testPassword,
       firstName: 'Marc',
       lastName: 'Jean',
-      location: { lat: 43.5808, lon: 7.1239, name: 'Antibes, France' },
-      searchDescription: 'Vendeur / Vendeuse\n\nRejoignez une équipe dynamique et boostez votre carrière dans la vente !',
+      location: { lat: 43.4255, lon: 6.7321, name: 'Saint-Raphaël, France' },
+      searchDescription: 'Vendeur / Vendeuse\n\nBoutique de prêt-à-porter recherche vendeurs passionnés ! Vous évoluerez dans un cadre prestigieux sur le port de Saint-Raphaël. Nous recherchons des profils dynamiques avec un excellent sens du contact client et une sensibilité pour la mode haut de gamme.',
       companyName: 'Boutique Marc Jean',
       desiredContractTypes: [ContractType.CDI],
       desiredExperienceLevel: 'CONFIRME' as ExperienceLevel,
@@ -104,8 +105,8 @@ async function main() {
       password: testPassword,
       firstName: 'Fred',
       lastName: 'Petit',
-      location: { lat: 43.7384, lon: 7.4246, name: 'Monaco' },
-      searchDescription: 'Agent de sécurité\n\nGarantissez la sécurité de demain, rejoignez notre équipe d\'agents de sécurité !',
+      location: { lat: 43.4520, lon: 6.6180, name: 'Puget-sur-Argens, France' },
+      searchDescription: 'Serveur / Serveuse\n\nLe restaurant La Table du Puget recherche des serveurs dynamiques ! Vous travaillerez dans un cadre convivial avec une vue sur l\'Argens. Nous valorisons le professionnalisme, la bonne humeur et le service de qualité. Formation interne assurée.',
       companyName: 'Monaco Palace Hotel',
       desiredContractTypes: [ContractType.ALTERNANCE],
       desiredExperienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
@@ -115,8 +116,8 @@ async function main() {
       password: testPassword,
       firstName: 'Sophie',
       lastName: 'Moreau',
-      location: { lat: 43.4832, lon: 6.9385, name: 'Grasse, France' },
-      searchDescription: 'Cuisinier / Cuisinière\n\nNous recherchons des talents pour notre restaurant gastronomique. Rejoignez une équipe passionnée !',
+      location: { lat: 43.4447, lon: 6.6375, name: 'Roquebrune-sur-Argens, France' },
+      searchDescription: 'Cuisinier / Cuisinière\n\nRestaurant gastronomique Le Gourmet recherche un cuisinier talentueux ! Rejoignez notre brigade dans un cadre exceptionnel à Roquebrune. Nous valorisons la créativité, les produits frais locaux et l\'esprit d\'équipe. Évoluez dans un environnement stimulant.',
       companyName: 'Restaurant Le Gourmet',
       desiredContractTypes: [ContractType.CDI],
       desiredExperienceLevel: 'CONFIRME' as ExperienceLevel,
@@ -126,8 +127,8 @@ async function main() {
       password: testPassword,
       firstName: 'Alexandre',
       lastName: 'Dubois',
-      location: { lat: 43.5752, lon: 6.7352, name: 'Fréjus, France' },
-      searchDescription: 'Réceptionniste\n\nHôtel de luxe cherche personnel qualifié pour offrir une expérience exceptionnelle à nos clients.',
+      location: { lat: 43.3078, lon: 6.7731, name: 'Sainte-Maxime, France' },
+      searchDescription: 'Réceptionniste\n\nHôtel 4 étoiles recherche réceptionniste bilingue ! Situé en plein cœur de Sainte-Maxime, notre établissement accueille une clientèle internationale exigeante. Vous serez le premier contact avec nos clients et incarnerez l\'image de notre hôtel en évoluant dans un cadre prestigieux.',
       companyName: 'Hôtel Riviera',
       desiredContractTypes: [ContractType.CDD],
       desiredExperienceLevel: 'DEBUTANT' as ExperienceLevel,
@@ -137,9 +138,20 @@ async function main() {
       password: testPassword,
       firstName: 'Marie',
       lastName: 'Petit',
-      location: { lat: 43.7102, lon: 7.2620, name: 'Nice, France' },
-      searchDescription: 'Vendeur / Vendeuse\n\nBoutique de luxe recherche vendeurs passionnés avec un excellent sens du service client.',
+      location: { lat: 43.4475, lon: 6.5689, name: 'Le Muy, France' },
+      searchDescription: 'Vendeur / Vendeuse\n\nBoutique de luxe recherche vendeurs passionnés avec un excellent sens du service client ! Rejoignez notre boutique au cœur du Muy. Nous vous offrons un environnement stimulant, des produits d\'exception et une clientèle internationale exigeante.',
       companyName: 'Boutique Chic Cannes',
+      desiredContractTypes: [ContractType.CDI],
+      desiredExperienceLevel: 'CONFIRME' as ExperienceLevel,
+    },
+    {
+      email: 'recruteur.test@mova.com',
+      password: testPassword,
+      firstName: 'Lucas',
+      lastName: 'Dubois',
+      location: { lat: 43.4125, lon: 6.7458, name: 'Fréjus, France' },
+      searchDescription: 'Réceptionniste\n\nLe Grand Hôtel de Fréjus recherche un réceptionniste expérimenté pour accueillir notre clientèle internationale. Vous serez le visage de notre établissement 4 étoiles. Maîtrise du français et de l\'anglais indispensable, une troisième langue serait un plus.',
+      companyName: 'Le Grand Hôtel',
       desiredContractTypes: [ContractType.CDI],
       desiredExperienceLevel: 'CONFIRME' as ExperienceLevel,
     },
@@ -171,6 +183,24 @@ async function main() {
         },
       });
 
+      // Extraire la catégorie depuis searchDescription (format: "JobCategory\n\nDescription")
+      const categoryName = recruiterData.searchDescription.split('\n\n')[0].trim();
+      const category = await prisma.jobCategory.findFirst({
+        where: { name: categoryName }
+      });
+
+      if (category) {
+        // Associer le recruteur à cette catégorie
+        await prisma.recruiterProfile.update({
+          where: { id: recruiterProfile.id },
+          data: {
+            searchedCategories: {
+              connect: { id: category.id }
+            }
+          }
+        });
+      }
+
       // Associer à l'entreprise
       const company = createdCompanies.find(c => c.name === recruiterData.companyName);
       if (company) {
@@ -199,7 +229,7 @@ async function main() {
       desiredJobTitle: 'Serveur / Serveuse',
       resumeUrl: 'https://example.com/cv-thomas.pdf',
       photoUrl: 'https://randomuser.me/api/portraits/men/32.jpg',
-      coverLetterText: 'Dynamique et motivé, je recherche un poste de serveur pour mettre mes compétences au service de votre établissement.',
+      coverLetterText: 'Dynamique et motivé, je recherche un poste de serveur pour mettre mes compétences au service de votre établissement. Fort de plusieurs expériences en restauration, je sais gérer le stress et offrir un service impeccable. Souriant et professionnel, je souhaite rejoindre une équipe.',
       desiredContractTypes: [ContractType.CDI],
       experienceLevel: 'DEBUTANT' as ExperienceLevel,
     },
@@ -208,11 +238,11 @@ async function main() {
       password: testPassword,
       firstName: 'Emma',
       lastName: 'Rousseau',
-      location: { lat: 43.4832, lon: 6.9385, name: 'Grasse, France' },
+      location: { lat: 43.4255, lon: 6.7321, name: 'Saint-Raphaël, France' },
       desiredJobTitle: 'Vendeur / Vendeuse',
       resumeUrl: 'https://example.com/cv-emma.pdf',
       photoUrl: 'https://randomuser.me/api/portraits/women/65.jpg',
-      coverLetterText: 'Passionnée par la mode et le contact client, je souhaite rejoindre une boutique dynamique.',
+      coverLetterText: 'Passionnée par la mode et le contact client, je souhaite rejoindre une boutique dynamique. Mon expérience en vente de luxe m\'a permis de développer un excellent sens du conseil et de la relation client. Je suis polyglotte et très motivée pour contribuer à votre réussite.',
       desiredContractTypes: [ContractType.CDD],
       experienceLevel: 'CONFIRME' as ExperienceLevel,
     },
@@ -221,13 +251,65 @@ async function main() {
       password: testPassword,
       firstName: 'Julie',
       lastName: 'Lambert',
-      location: { lat: 43.7102, lon: 7.2620, name: 'Nice, France' },
+      location: { lat: 43.4520, lon: 6.6180, name: 'Puget-sur-Argens, France' },
       desiredJobTitle: 'Réceptionniste',
       resumeUrl: 'https://example.com/cv-julie.pdf',
       photoUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-      coverLetterText: 'Souriante et organisée, je souhaite mettre mes compétences au service de votre établissement hôtelier.',
+      coverLetterText: 'Souriante et organisée, je souhaite mettre mes compétences au service de votre établissement hôtelier. Ma maîtrise de trois langues et mon expérience en accueil me permettent de gérer efficacement les demandes de clients internationaux. Disponible immédiatement.',
       desiredContractTypes: [ContractType.ALTERNANCE],
       experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+    },
+    {
+      email: 'candidat.pierre@mova.com',
+      password: testPassword,
+      firstName: 'Pierre',
+      lastName: 'Dupont',
+      location: { lat: 43.4447, lon: 6.6375, name: 'Roquebrune-sur-Argens, France' },
+      desiredJobTitle: 'Cuisinier / Cuisinière',
+      resumeUrl: 'https://example.com/cv-pierre.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/men/45.jpg',
+      coverLetterText: 'Passionné de gastronomie depuis toujours, je recherche un poste de cuisinier pour exprimer ma créativité. Formé dans plusieurs établissements étoilés, je maîtrise les techniques modernes et traditionnelles. Rigoureux et inventif, je suis prêt à rejoindre une brigade ambitieuse.',
+      desiredContractTypes: [ContractType.CDI],
+      experienceLevel: 'CONFIRME' as ExperienceLevel,
+    },
+    {
+      email: 'candidat.sarah@mova.com',
+      password: testPassword,
+      firstName: 'Sarah',
+      lastName: 'Martin',
+      location: { lat: 43.3078, lon: 6.7731, name: 'Sainte-Maxime, France' },
+      desiredJobTitle: 'Barman / Barmaid',
+      resumeUrl: 'https://example.com/cv-sarah.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/women/22.jpg',
+      coverLetterText: 'Créative et souriante, je cherche à rejoindre un bar dynamique où je pourrai mettre en valeur mes talents de mixologie. Mon expérience dans plusieurs établissements prestigieux m\'a permis de développer un répertoire unique de cocktails. Passionnée par l\'art du service.',
+      desiredContractTypes: [ContractType.CDD],
+      experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+    },
+    {
+      email: 'candidat.maxime@mova.com',
+      password: testPassword,
+      firstName: 'Maxime',
+      lastName: 'Leclerc',
+      location: { lat: 43.4475, lon: 6.5689, name: 'Le Muy, France' },
+      desiredJobTitle: 'Concierge',
+      resumeUrl: 'https://example.com/cv-maxime.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/men/67.jpg',
+      coverLetterText: 'Discret et efficace, je souhaite mettre mon expertise au service d\'un établissement de luxe. Mon réseau étendu et ma connaissance approfondie de la région me permettent de répondre à toutes les demandes des clients. Polyglotte et disponible, je vise l\'excellence dans chaque mission.',
+      desiredContractTypes: [ContractType.CDI],
+      experienceLevel: 'CONFIRME' as ExperienceLevel,
+    },
+    {
+      email: 'candidat.lea@mova.com',
+      password: testPassword,
+      firstName: 'Léa',
+      lastName: 'Moreau',
+      location: { lat: 43.4389, lon: 6.7389, name: 'Fréjus, France' },
+      desiredJobTitle: 'Femme de chambre / Valet',
+      resumeUrl: 'https://example.com/cv-lea.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/women/33.jpg',
+      coverLetterText: 'Minutieuse et consciencieuse, je recherche un poste dans l\'hôtellerie de luxe pour mettre mon souci du détail au service de votre établissement. Mon expérience dans plusieurs palaces m\'a appris l\'importance de l\'excellence. Discrète et rapide, je garantis un service irréprochable.',
+      desiredContractTypes: [ContractType.CDD],
+      experienceLevel: 'CONFIRME' as ExperienceLevel,
     },
   ];
 
@@ -243,7 +325,7 @@ async function main() {
 
       const locationWKT = `POINT(${candidateData.location.lon} ${candidateData.location.lat})`;
       
-      await prisma.candidateProfile.create({
+      const candidateProfile = await prisma.candidateProfile.create({
         data: {
           userId: user.id,
           firstName: candidateData.firstName,
@@ -259,6 +341,22 @@ async function main() {
           experienceLevel: candidateData.experienceLevel,
         },
       });
+
+      // Associer la catégorie au candidat
+      const category = await prisma.jobCategory.findFirst({
+        where: { name: candidateData.desiredJobTitle }
+      });
+
+      if (category) {
+        await prisma.candidateProfile.update({
+          where: { id: candidateProfile.id },
+          data: {
+            interestedInCategories: {
+              connect: { id: category.id }
+            }
+          }
+        });
+      }
 
       console.log(`✅ Candidat créé: ${candidateData.firstName} ${candidateData.lastName} (${candidateData.desiredJobTitle})`);
     } else {

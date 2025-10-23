@@ -28,8 +28,8 @@ const InfoTag = ({ icon, text }: { icon: keyof typeof Feather.glyphMap; text: st
 
 export default function SwipeCard(props: SwipeCardProps) {
   const { width } = useWindowDimensions();
-  // The card height can be adjusted if needed, but we'll make it content-driven
-  const cardHeight = width * 1.3;
+  // Increased card height to display full 250-char presentations without truncation
+  const cardHeight = width * 1.65;
 
   const { userType, avatarUrl, firstName, lastName, companyName, location, job, jobSeeking, experience, experienceRequired, presentation, contractType } = props;
 
@@ -62,7 +62,7 @@ export default function SwipeCard(props: SwipeCardProps) {
           {contractType && <InfoTag icon="file-text" text={contractType} />}
         </View>
         <Text style={styles.presentationTitle}>Présentation</Text>
-        <Text style={styles.presentationText} numberOfLines={5} ellipsizeMode="clip">
+        <Text style={styles.presentationText}>
           {presentation || 'Aucune présentation disponible.'}
         </Text>
       </View>

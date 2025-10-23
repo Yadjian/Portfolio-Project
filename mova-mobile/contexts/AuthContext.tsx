@@ -26,10 +26,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userData = await getMyProfile();
       setUser(userData);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur lors du rafraîchissement de l'utilisateur:", error);
-      // Optionnel: déconnecter l'utilisateur si le profil est inaccessible
-      // logout(); 
+      // Si l'utilisateur n'existe plus (404) ou token invalide, on déconnecte
+      if (error.message?.includes('Utilisateur non trouvé') || error.message?.includes('Unauthorized')) {
+        console.log("🚪 Déconnexion automatique: utilisateur non trouvé ou token invalide");
+        await logout();
+      }
     }
   };
 
@@ -42,11 +45,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(storedToken);
           setIsAuthenticated(true);
           await refreshUser(); // On utilise notre nouvelle fonction
+        } else {
+          setLoading(false);
         }
       } catch (error) {
+        console.error("Erreur lors de la vérification du token:", error);
         setUser(null);
         setIsAuthenticated(false);
-      } finally {
         setLoading(false);
       }
     };

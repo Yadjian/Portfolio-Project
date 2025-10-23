@@ -325,9 +325,17 @@ export default function RecruiterJobOfferScreen() {
 
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Description</Text>
-                  <View style={[styles.inputContainer, { height: 100, alignItems: 'flex-start' }]}>
+                  <View style={[styles.inputContainer, { height: 180, alignItems: 'flex-start' }]}>
                     <Ionicons name="document-text-outline" size={20} color='#4930a3' style={[styles.inputIcon, { paddingTop: 15 }]} />
-                    <TextInput style={[styles.input, { paddingTop: 15, textAlignVertical: 'top' }]} value={offer.description} onChangeText={text => updateOfferState(idx, { description: text })} placeholder="Description du poste..." placeholderTextColor="#999" multiline />
+                    <TextInput 
+                      style={[styles.input, { paddingTop: 15, textAlignVertical: 'top', height: 160 }]} 
+                      value={offer.description} 
+                      onChangeText={text => updateOfferState(idx, { description: text })} 
+                      placeholder="Description du poste..." 
+                      placeholderTextColor="#999" 
+                      multiline 
+                      maxLength={250}
+                    />
                   </View>
                 </View>
 
