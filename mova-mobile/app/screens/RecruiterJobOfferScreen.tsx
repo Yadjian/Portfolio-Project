@@ -105,6 +105,12 @@ export default function RecruiterJobOfferScreen() {
   const addOfferCard = () => {
     const recruiterProfile = user?.recruiterProfile;
 
+    // Debug: afficher le profil dans la console
+    console.log('🔍 [DEBUG] Profil recruteur:', JSON.stringify(recruiterProfile, null, 2));
+    console.log('🔍 [DEBUG] searchedCategories:', recruiterProfile?.searchedCategories);
+    console.log('🔍 [DEBUG] desiredContractTypes:', recruiterProfile?.desiredContractTypes);
+    console.log('🔍 [DEBUG] desiredExperienceLevel:', recruiterProfile?.desiredExperienceLevel);
+
     // On vérifie que le profil est complet avant de permettre la création
     if (!recruiterProfile || !recruiterProfile.searchedCategories?.length || !recruiterProfile.desiredContractTypes?.length || !recruiterProfile.desiredExperienceLevel) {
       Alert.alert(

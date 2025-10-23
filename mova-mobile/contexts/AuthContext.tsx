@@ -32,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error.message?.includes('Utilisateur non trouvé') || error.message?.includes('Unauthorized')) {
         console.log("🚪 Déconnexion automatique: utilisateur non trouvé ou token invalide");
         await logout();
+        setLoading(false); // Important: débloquer le chargement
       }
     }
   };
@@ -45,6 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(storedToken);
           setIsAuthenticated(true);
           await refreshUser(); // On utilise notre nouvelle fonction
+          setLoading(false); // Débloquer après le refresh
         } else {
           setLoading(false);
         }

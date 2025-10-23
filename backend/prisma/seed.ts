@@ -26,6 +26,8 @@ async function main() {
     'Croupier / Croupière',
     'Agent de sécurité',
     "Hôte / Hôtesse d'accueil",
+    'Concierge',
+    'Chauffeur / Chauffeuse',
   ];
 
   // On transforme la liste de noms en objets pour createMany
@@ -185,11 +187,13 @@ async function main() {
 
       // Extraire la catégorie depuis searchDescription (format: "JobCategory\n\nDescription")
       const categoryName = recruiterData.searchDescription.split('\n\n')[0].trim();
+      console.log(`🔍 Recherche de la catégorie: "${categoryName}" pour ${recruiterData.firstName}`);
       const category = await prisma.jobCategory.findFirst({
         where: { name: categoryName }
       });
 
       if (category) {
+        console.log(`✅ Catégorie trouvée: ${category.name} (ID: ${category.id})`);
         // Associer le recruteur à cette catégorie
         await prisma.recruiterProfile.update({
           where: { id: recruiterProfile.id },
@@ -199,6 +203,8 @@ async function main() {
             }
           }
         });
+      } else {
+        console.log(`❌ Catégorie "${categoryName}" NON TROUVÉE pour ${recruiterData.firstName}`);
       }
 
       // Associer à l'entreprise
@@ -304,7 +310,7 @@ async function main() {
       firstName: 'Léa',
       lastName: 'Moreau',
       location: { lat: 43.4389, lon: 6.7389, name: 'Fréjus, France' },
-      desiredJobTitle: 'Femme de chambre / Valet',
+      desiredJobTitle: 'Valet / Femme de chambre',
       resumeUrl: 'https://example.com/cv-lea.pdf',
       photoUrl: 'https://randomuser.me/api/portraits/women/33.jpg',
       coverLetterText: 'Minutieuse et consciencieuse, je recherche un poste dans l\'hôtellerie de luxe pour mettre mon souci du détail au service de votre établissement. Mon expérience dans plusieurs palaces m\'a appris l\'importance de l\'excellence. Discrète et rapide, je garantis un service irréprochable.',
