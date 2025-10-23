@@ -38,9 +38,9 @@ export default function SwipeCard(props: SwipeCardProps) {
   const exp = userType === 'candidate' ? experience : experienceRequired;
 
   return (
-    <View style={[styles.card, { height: cardHeight }]}>
+    <View style={[styles.card, { height: cardHeight }]} pointerEvents="box-none">
       {/* Header Section */}
-      <View style={styles.header}>
+      <View style={styles.header} pointerEvents="none">
         <Image
           source={avatarUrl ? { uri: avatarUrl } : require('../../assets/images/icon.png')}
           style={styles.avatar}
@@ -55,7 +55,7 @@ export default function SwipeCard(props: SwipeCardProps) {
       </View>
 
       {/* Info Section */}
-      <View style={styles.infoSection}>
+      <View style={styles.infoSection} pointerEvents="none">
         <Text style={styles.mainRole}>{mainRole}</Text>
         <View style={styles.tagsContainer}>
           {exp && <InfoTag icon="bar-chart-2" text={exp} />}
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 10,
-    overflow: 'hidden',
+    // overflow: 'hidden', // Commenté pour permettre les gestes
   },
   header: {
     alignItems: 'center',

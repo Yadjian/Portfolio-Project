@@ -28,7 +28,7 @@ export const getCandidateTabs = (navigation: any, notificationCount: number = 0)
     iconName: 'notifications-outline',
     iconNameActive: 'notifications',
     badge: notificationCount,
-    onPress: () => navigation.navigate('SwipeNotification', { userType: 'candidat' }),
+    onPress: () => navigation.navigate('SwipeNotification', { userType: 'candidate' }),
   },
 ];
 

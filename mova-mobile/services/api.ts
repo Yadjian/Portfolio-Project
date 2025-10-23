@@ -1,5 +1,5 @@
 import * as SecureStore from 'expo-secure-store';
-import { getApiUrl } from '@/lib/types';
+import { getApiUrl, UserType } from '@/lib/types';
 import { jwtDecode } from 'jwt-decode';
 
 const API_URL = getApiUrl();
@@ -106,12 +106,31 @@ export async function updateProfile(profileData: any) {
   return handleResponse(response);
 }
 
-export async function getProfilesToSwipe() {
-  // Route pour SwipeNotificationScreen.tsx (basée sur la logique des profils)
-  const response = await fetch(`${API_URL}/api/profiles/swipe`, {
+export async function getProfilesToSwipe(userType: UserType, latitude: number, longitude: number) {
+  // Détermine le bon endpoint en fonction du type d'utilisateur
+  const endpoint = userType === 'candidate' ? 'recruiters' : 'candidates';
+  // Le backend utilise le radius en query param (défaut 20000m)
+  const url = `${API_URL}/discovery/${endpoint}`;
+
+  const response = await fetch(url, {
     headers: await getHeaders(true),
   });
   return handleResponse(response);
+}
+
+export async function sendSwipeAction(profileId: string, direction: 'LEFT' | 'RIGHT') {
+  const response = await fetch(`${API_URL}/swipes`, {
+    method: 'POST',
+    headers: await getHeaders(true),
+    body: JSON.stringify({ profileId, direction }),
+  });
+  return handleResponse(response);
+}
+
+export async function undoPreviousSwipe() {
+  // Placeholder function
+  console.log("API CALL (simulation): Undoing last swipe.");
+  return Promise.resolve({ success: true });
 }
 
 // ----------------------
