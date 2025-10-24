@@ -96,14 +96,55 @@ export async function getMyProfile() {
   return handleResponse(response);
 }
 
-export async function updateProfile(profileData: any) {
-  // La route pour mettre à jour le profil de l'utilisateur courant
-  const response = await fetch(`${API_URL}/profile/me`, {
-    method: 'PUT',
-    headers: await getHeaders(true),
-    body: JSON.stringify(profileData),
-  });
-  return handleResponse(response);
+export async function updateProfile(profileData: any, photoUri?: string) {
+  // Si une photo est fournie, on envoie en FormData (multipart/form-data)
+  // Sinon, on envoie en JSON classique
+  
+  if (photoUri) {
+    const formData = new FormData();
+    
+    // Ajouter la photo
+    const filename = photoUri.split('/').pop() || 'photo.jpg';
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : 'image/jpeg';
+    
+    formData.append('photoFile', {
+      uri: photoUri,
+      name: filename,
+      type: type,
+    } as any);
+    
+    // Ajouter les autres données du profil
+    Object.keys(profileData).forEach(key => {
+      if (profileData[key] !== undefined && profileData[key] !== null) {
+        if (Array.isArray(profileData[key])) {
+          formData.append(key, JSON.stringify(profileData[key]));
+        } else {
+          formData.append(key, profileData[key].toString());
+        }
+      }
+    });
+    
+    // Headers sans Content-Type (fetch le définit automatiquement pour FormData)
+    const token = await SecureStore.getItemAsync('auth_token');
+    const response = await fetch(`${API_URL}/profile/me`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'ngrok-skip-browser-warning': 'true',
+      },
+      body: formData,
+    });
+    return handleResponse(response);
+  } else {
+    // Pas de photo : envoi JSON classique
+    const response = await fetch(`${API_URL}/profile/me`, {
+      method: 'PUT',
+      headers: await getHeaders(true),
+      body: JSON.stringify(profileData),
+    });
+    return handleResponse(response);
+  }
 }
 
 export async function getProfilesToSwipe(userType: UserType, latitude: number, longitude: number) {

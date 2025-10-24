@@ -194,7 +194,11 @@ export default function EditProfileScreen() {
     }
 
     try {
-      await updateProfile(profileData);
+      // Si l'avatar est une URL locale (pas http/https), c'est une nouvelle photo à uploader
+      const isLocalPhoto = avatarUrl && !avatarUrl.startsWith('http://') && !avatarUrl.startsWith('https://');
+      const photoToUpload = isLocalPhoto ? avatarUrl : undefined;
+      
+      await updateProfile(profileData, photoToUpload);
       await refreshUser(); // On rafraîchit les données utilisateur
 
       // Naviguer vers l'écran de profil final
