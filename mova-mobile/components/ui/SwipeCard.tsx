@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   headerGradient: {
     backgroundColor: '#4930a3',
     paddingTop: 25,
-    paddingBottom: 30,
+    paddingBottom: 18,
   },
   header: {
     alignItems: 'center',
@@ -150,6 +150,7 @@ const styles = StyleSheet.create({
   },
   infoSection: {
     padding: 24,
+    paddingBottom: 16,
     flex: 1,
   },
   roleContainer: {

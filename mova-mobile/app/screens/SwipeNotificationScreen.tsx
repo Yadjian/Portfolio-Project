@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: width * 0.96,
     top: 40,
-    bottom: 110,
+    bottom: 190,
     zIndex: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 110,
+    bottom: 105,
     left: 0,
     right: 0,
     flexDirection: 'row',
