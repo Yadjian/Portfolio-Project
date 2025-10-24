@@ -24,11 +24,24 @@ export class ProfileController {
 
   @Put('me') // Définit la route PUT /profile/me
   @UseGuards(AuthGuard('jwt'))
-  updateProfile(@Req() req: Request, @Body() updateProfileDto: UpdateProfileDto) {
+  @UseInterceptors(FileInterceptor('photoFile'))
+  updateProfile(
+    @Req() req: Request,
+    @Body() updateProfileDto: UpdateProfileDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false, // L'upload de photo est optionnel
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }), // 2 Mo
+          new FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }), // JPG ou PNG
+        ],
+      }),
+    ) photoFile?: Express.Multer.File,
+  ) {
     const userId = req.user.sub;
     
-    // On passe l'ID et les nouvelles données au service
-    return this.profileService.updateUserProfile(userId, updateProfileDto);
+    // On passe l'ID, les nouvelles données et le fichier (si présent) au service
+    return this.profileService.updateProfile(userId, updateProfileDto, photoFile);
   }
   @Put('location') // Crée la route POST /profile/location
   @UseGuards(AuthGuard('jwt'))
