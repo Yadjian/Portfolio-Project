@@ -9,33 +9,83 @@ export default function HomePage() {
   const router = useRouter();
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8f9ff', display: 'flex', flexDirection: 'column', alignItems: 'center', paddingTop: 40 }}>
-      <div style={{ background: '#fff', borderRadius: 24, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', padding: '32px 24px', minWidth: 350, marginTop: 24, marginBottom: 24, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <div style={{ fontSize: 32, fontWeight: 700, color: '#6746a8', marginBottom: 32, textAlign: 'center' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      alignItems: 'center', 
+      paddingTop: 60,
+      paddingBottom: 60 
+    }}>
+      <div style={{ 
+        background: 'var(--card-background)', 
+        borderRadius: 24, 
+        boxShadow: '0 8px 32px rgba(73, 48, 163, 0.12)', 
+        padding: '48px 40px', 
+        minWidth: 400, 
+        marginTop: 24, 
+        marginBottom: 24, 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        border: '1px solid var(--border)'
+      }}>
+        <div style={{ 
+          fontSize: 36, 
+          fontWeight: 700, 
+          color: 'var(--primary)', 
+          marginBottom: 40, 
+          textAlign: 'center' 
+        }}>
           Portail Admin
         </div>
         {selectedSection && (
           <button
-            style={{ marginTop: 24, background: '#eaeaea', color: '#6746a8', border: 'none', borderRadius: 18, padding: '10px 32px', fontWeight: 600, cursor: 'pointer' }}
+            style={{ 
+              marginTop: 24, 
+              background: 'var(--background)', 
+              color: 'var(--primary)', 
+              border: '2px solid var(--border)', 
+              borderRadius: 12, 
+              padding: '12px 32px', 
+              fontWeight: 600, 
+              cursor: 'pointer',
+              fontSize: 15,
+              transition: 'all 0.2s'
+            }}
             onClick={() => setSelectedSection(null)}
           >
-            Retour au menu principal
+            ← Retour au menu principal
           </button>
         )}
         {!selectedSection && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 260 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
             {/* Boutons actifs */}
-            <div style={{ marginBottom: 24 }}>
-              <button style={buttonStyle} onClick={() => router.push('/services/users')}>Utilisateurs</button>
-              <button style={buttonStyle} onClick={() => router.push('/services/joboffers')}>Offres</button>
+            <div style={{ marginBottom: 12 }}>
+              <button style={buttonStyle} onClick={() => router.push('/services/users')}>
+                👥 Utilisateurs
+              </button>
+              <button style={buttonStyle} onClick={() => router.push('/services/joboffers')}>
+                💼 Offres d&apos;emploi
+              </button>
             </div>
             {/* Titre et boutons floutés */}
-            <div style={{ marginBottom: 8, fontWeight: 600, color: '#6746a8', fontSize: 18, textAlign: 'center' }}>
+            <div style={{ 
+              marginTop: 20,
+              marginBottom: 12, 
+              fontWeight: 600, 
+              color: 'var(--text-secondary)', 
+              fontSize: 16, 
+              textAlign: 'center',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px'
+            }}>
               Prochainement
             </div>
-            <button style={{ ...buttonStyle, filter: 'blur(2px)', pointerEvents: 'none', opacity: 0.6 }}>CVs</button>
-            <button style={{ ...buttonStyle, filter: 'blur(2px)', pointerEvents: 'none', opacity: 0.6 }}>Matchs</button>
-            <button style={{ ...buttonStyle, filter: 'blur(2px)', pointerEvents: 'none', opacity: 0.6 }}>Swipes</button>
+            <button style={{ ...buttonStyleDisabled }}>📄 CVs</button>
+            <button style={{ ...buttonStyleDisabled }}>🤝 Matchs</button>
+            <button style={{ ...buttonStyleDisabled }}>👆 Swipes</button>
           </div>
         )}
 
@@ -49,15 +99,32 @@ export default function HomePage() {
 }
 
 const buttonStyle = {
-  width: 260,
-  height: 48,
-  borderRadius: 25,
-  background: '#07b9ff',
+  width: '100%',
+  height: 56,
+  borderRadius: 12,
+  background: 'var(--primary)',
   color: '#fff',
-  fontWeight: 700,
-  fontSize: 18,
+  fontWeight: 600,
+  fontSize: 16,
   border: 'none',
-  marginBottom: 18,
+  marginBottom: 12,
   cursor: 'pointer',
-  boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
+  boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
+  transition: 'all 0.2s',
+};
+
+const buttonStyleDisabled = {
+  width: '100%',
+  height: 56,
+  borderRadius: 12,
+  background: 'var(--border)',
+  color: 'var(--text-secondary)',
+  fontWeight: 600,
+  fontSize: 16,
+  border: 'none',
+  marginBottom: 12,
+  cursor: 'not-allowed',
+  opacity: 0.5,
+  filter: 'blur(1px)',
+  pointerEvents: 'none' as const,
 };

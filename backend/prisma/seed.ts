@@ -73,10 +73,26 @@ async function main() {
   console.log('✨ Création des entreprises terminée !');
 
   // Créer des profils de test complets
-  console.log('\n� Création des profils de test...');
+  console.log('\n👥 Création des profils de test...');
   
   const bcrypt = require('bcrypt');
   const testPassword = await bcrypt.hash('Test123!', 10);
+
+  // Créer un compte admin (sans profil candidat ni recruteur)
+  const adminEmail = 'admin@mova.com';
+  const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
+  
+  if (!existingAdmin) {
+    await prisma.user.create({
+      data: {
+        email: adminEmail,
+        password: testPassword,
+      },
+    });
+    console.log('✅ Compte admin créé: admin@mova.com (mot de passe: Test123!)');
+  } else {
+    console.log('ℹ️  Compte admin existe déjà: admin@mova.com');
+  }
 
   // Créer 6 recruteurs complets (MVP: 1 seul ContractType par profil)
   const testRecruiters = [

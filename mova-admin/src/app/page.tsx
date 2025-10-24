@@ -21,47 +21,121 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) throw new Error('Identifiants invalides');
+      
+      if (!res.ok) {
+        throw new Error('Identifiants invalides');
+      }
+      
+      const data = await res.json();
+      
+      // Stocker les tokens
+      localStorage.setItem('accessToken', data.accessToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      
       window.location.href = '/homepage';
-    } catch (err) {
+    } catch {
       setError('Identifiants invalides');
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f9ff' }}>
-      <form onSubmit={handleLogin} style={{ background: '#fff', padding: 32, borderRadius: 16, boxShadow: '0 2px 16px rgba(0,0,0,0.07)', minWidth: 320 }}>
-        <MovaLogo size={120} />
-        <h1 style={{ fontSize: 28, color: '#6746a8', marginBottom: 24, textAlign: 'center' }}>Connexion Admin</h1>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)' 
+    }}>
+      <form onSubmit={handleLogin} style={{ 
+        background: 'var(--card-background)', 
+        padding: 48, 
+        borderRadius: 24, 
+        boxShadow: '0 8px 32px rgba(73, 48, 163, 0.12)', 
+        width: 400,
+        maxWidth: 400,
+        border: '1px solid var(--border)'
+      }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
+          <MovaLogo size={100} />
+        </div>
+        <h1 style={{ 
+          fontSize: 32, 
+          color: 'var(--primary)', 
+          marginBottom: 8, 
+          textAlign: 'center',
+          fontWeight: 700
+        }}>
+          Connexion Admin
+        </h1>
+        <p style={{
+          textAlign: 'center',
+          color: 'var(--text-secondary)',
+          marginBottom: 32,
+          fontSize: 15
+        }}>
+          Accédez au panneau d&apos;administration
+        </p>
         <input
           type="email"
           placeholder="Email"
           value={email}
           onChange={e => setEmail(e.target.value)}
-          style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #d1d5db', marginBottom: 18, fontSize: 16 }}
+          style={{ 
+            width: '100%', 
+            padding: 14, 
+            borderRadius: 12, 
+            border: '2px solid var(--border)', 
+            marginBottom: 16, 
+            fontSize: 16,
+            background: 'var(--card-background)',
+            boxSizing: 'border-box'
+          }}
         />
         <input
           type="password"
           placeholder="Mot de passe"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          style={{ width: '100%', padding: 12, borderRadius: 8, border: '1px solid #d1d5db', marginBottom: 18, fontSize: 16 }}
+          style={{ 
+            width: '100%', 
+            padding: 14, 
+            borderRadius: 12, 
+            border: '2px solid var(--border)', 
+            marginBottom: 20, 
+            fontSize: 16,
+            background: 'var(--card-background)',
+            boxSizing: 'border-box'
+          }}
         />
-        {error && <div style={{ color: '#e53935', marginBottom: 18 }}>{error}</div>}
+        {error && (
+          <div style={{ 
+            color: 'var(--error)', 
+            marginBottom: 20,
+            padding: 12,
+            background: 'rgba(239, 68, 68, 0.1)',
+            borderRadius: 8,
+            fontSize: 14
+          }}>
+            {error}
+          </div>
+        )}
         <button
           type="submit"
-          style={{ width: '100%', height: 44, borderRadius: 8, background: '#07b9ff', color: '#fff', fontWeight: 700, fontSize: 18, border: 'none', cursor: 'pointer' }}
+          style={{ 
+            width: '100%', 
+            height: 52, 
+            borderRadius: 12, 
+            background: 'var(--primary)', 
+            color: '#fff', 
+            fontWeight: 600, 
+            fontSize: 16, 
+            border: 'none', 
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)'
+          }}
         >
           Se connecter
         </button>
-        {/* <button
-          type="button"
-          onClick={() => loginWithRedirect()} // Auth0 only
-          style={{ width: '100%', height: 44, borderRadius: 8, background: '#07b9ff', color: '#fff', fontWeight: 700, fontSize: 18, border: 'none', cursor: 'pointer', marginTop: 12 }}
-        >
-          Se connecter avec Auth0
-        </button> */}
-        {/* // Backend only: après login, vérifier les permissions et rediriger selon le rôle */}
       </form>
     </div>
   );

@@ -57,35 +57,65 @@ export default function RecruiterProfilePage() {
 
   if (!recruiter) return <div>Chargement...</div>;
 
+  const inputStyle = {
+    width: '100%',
+    marginBottom: 16,
+    padding: 14,
+    borderRadius: 12,
+    border: '2px solid var(--border)',
+    fontSize: 15,
+    boxSizing: 'border-box' as const,
+    background: 'var(--card-background)'
+  };
+
   return (
     <div style={{
-      maxWidth: 600,
-      margin: '0 auto',
-      background: '#fff',
-      borderRadius: 24,
-      boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
-      padding: 32
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)',
+      padding: '60px 20px'
     }}>
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <img src={recruiter.avatarUrl} alt="Avatar" style={{ width: 100, height: 100, borderRadius: '50%' }} />
-        <h2 style={{ color: '#6746a8', marginTop: 16 }}>Mon Profil</h2>
-      </div>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{
+        maxWidth: 700,
+        margin: '0 auto',
+        background: 'var(--card-background)',
+        borderRadius: 24,
+        boxShadow: '0 8px 32px rgba(73, 48, 163, 0.12)',
+        padding: 48,
+        border: '1px solid var(--border)'
+      }}>
+      <div style={{ marginBottom: 32 }}>
         <button
           style={{
-            padding: '8px 24px',
-            borderRadius: 10,
-            background: '#07b9ff',
+            padding: '12px 28px',
+            borderRadius: 12,
+            background: 'var(--primary)',
             color: '#fff',
             fontWeight: 600,
             fontSize: 15,
             border: 'none',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
+            transition: 'all 0.2s'
           }}
           onClick={() => router.push('/services/users')}
         >
           ← Retour
         </button>
+      </div>
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <img src={recruiter.avatarUrl} alt="Avatar" style={{ 
+          width: 120, 
+          height: 120, 
+          borderRadius: '50%',
+          border: '4px solid var(--primary)',
+          boxShadow: '0 4px 16px rgba(73, 48, 163, 0.2)'
+        }} />
+        <h2 style={{ 
+          color: 'var(--primary)', 
+          marginTop: 20,
+          fontSize: 28,
+          fontWeight: 700
+        }}>Profil Recruteur</h2>
       </div>
       {isEditing ? (
         <form
@@ -238,6 +268,7 @@ export default function RecruiterProfilePage() {
           </div>
         </>
       )}
+      </div>
     </div>
   );
 }

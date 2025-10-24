@@ -57,33 +57,52 @@ export default function CandidateProfilePage() {
 
   return (
     <div style={{
-      maxWidth: 600,
-      margin: '0 auto',
-      background: '#fff',
-      borderRadius: 24,
-      boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
-      padding: 32
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)',
+      padding: '60px 20px'
     }}>
-      <div style={{ marginBottom: 24 }}>
+      <div style={{
+        maxWidth: 700,
+        margin: '0 auto',
+        background: 'var(--card-background)',
+        borderRadius: 24,
+        boxShadow: '0 8px 32px rgba(73, 48, 163, 0.12)',
+        padding: 48,
+        border: '1px solid var(--border)'
+      }}>
+      <div style={{ marginBottom: 32 }}>
         <button
           style={{
-            padding: '8px 24px',
-            borderRadius: 10,
-            background: '#07b9ff',
+            padding: '12px 28px',
+            borderRadius: 12,
+            background: 'var(--primary)',
             color: '#fff',
             fontWeight: 600,
             fontSize: 15,
             border: 'none',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
+            transition: 'all 0.2s'
           }}
           onClick={() => router.push('/services/users')}
         >
           ← Retour
         </button>
       </div>
-      <div style={{ textAlign: 'center', marginBottom: 24 }}>
-        <img src={candidate.avatarUrl} alt="Avatar" style={{ width: 100, height: 100, borderRadius: '50%' }} />
-        <h2 style={{ color: '#6746a8', marginTop: 16 }}>Mon Profil</h2>
+      <div style={{ textAlign: 'center', marginBottom: 32 }}>
+        <img src={candidate.avatarUrl} alt="Avatar" style={{ 
+          width: 120, 
+          height: 120, 
+          borderRadius: '50%',
+          border: '4px solid var(--primary)',
+          boxShadow: '0 4px 16px rgba(73, 48, 163, 0.2)'
+        }} />
+        <h2 style={{ 
+          color: 'var(--primary)', 
+          marginTop: 20,
+          fontSize: 28,
+          fontWeight: 700
+        }}>Profil Candidat</h2>
       </div>
       {isEditing ? (
         <form
@@ -97,7 +116,16 @@ export default function CandidateProfilePage() {
             value={candidate.firstName}
             onChange={e => setCandidate({ ...candidate, firstName: e.target.value })}
             placeholder="Prénom"
-            style={{ width: '100%', marginBottom: 8, padding: 8, borderRadius: 8, border: '1px solid #ccc' }}
+            style={{ 
+              width: '100%', 
+              marginBottom: 16, 
+              padding: 14, 
+              borderRadius: 12, 
+              border: '2px solid var(--border)',
+              fontSize: 15,
+              boxSizing: 'border-box',
+              background: 'var(--card-background)'
+            }}
             required
           />
           <input
@@ -105,7 +133,16 @@ export default function CandidateProfilePage() {
             value={candidate.lastName}
             onChange={e => setCandidate({ ...candidate, lastName: e.target.value })}
             placeholder="Nom"
-            style={{ width: '100%', marginBottom: 8, padding: 8, borderRadius: 8, border: '1px solid #ccc' }}
+            style={{ 
+              width: '100%', 
+              marginBottom: 16, 
+              padding: 14, 
+              borderRadius: 12, 
+              border: '2px solid var(--border)',
+              fontSize: 15,
+              boxSizing: 'border-box',
+              background: 'var(--card-background)'
+            }}
             required
           />
           <input
@@ -113,47 +150,96 @@ export default function CandidateProfilePage() {
             value={candidate.location}
             onChange={e => setCandidate({ ...candidate, location: e.target.value })}
             placeholder="Localisation"
-            style={{ width: '100%', marginBottom: 8, padding: 8, borderRadius: 8, border: '1px solid #ccc' }}
+            style={{ 
+              width: '100%', 
+              marginBottom: 16, 
+              padding: 14, 
+              borderRadius: 12, 
+              border: '2px solid var(--border)',
+              fontSize: 15,
+              boxSizing: 'border-box',
+              background: 'var(--card-background)'
+            }}
           />
           <input
             type="text"
             value={candidate.job}
             onChange={e => setCandidate({ ...candidate, job: e.target.value })}
             placeholder="Métier"
-            style={{ width: '100%', marginBottom: 8, padding: 8, borderRadius: 8, border: '1px solid #ccc' }}
+            style={{ 
+              width: '100%', 
+              marginBottom: 16, 
+              padding: 14, 
+              borderRadius: 12, 
+              border: '2px solid var(--border)',
+              fontSize: 15,
+              boxSizing: 'border-box',
+              background: 'var(--card-background)'
+            }}
           />
           <input
             type="text"
             value={candidate.experience}
             onChange={e => setCandidate({ ...candidate, experience: e.target.value })}
             placeholder="Expérience"
-            style={{ width: '100%', marginBottom: 8, padding: 8, borderRadius: 8, border: '1px solid #ccc' }}
+            style={{ 
+              width: '100%', 
+              marginBottom: 16, 
+              padding: 14, 
+              borderRadius: 12, 
+              border: '2px solid var(--border)',
+              fontSize: 15,
+              boxSizing: 'border-box',
+              background: 'var(--card-background)'
+            }}
           />
           <input
             type="text"
             value={candidate.contractType}
             onChange={e => setCandidate({ ...candidate, contractType: e.target.value })}
             placeholder="Type de contrat"
-            style={{ width: '100%', marginBottom: 8, padding: 8, borderRadius: 8, border: '1px solid #ccc' }}
+            style={{ 
+              width: '100%', 
+              marginBottom: 16, 
+              padding: 14, 
+              borderRadius: 12, 
+              border: '2px solid var(--border)',
+              fontSize: 15,
+              boxSizing: 'border-box',
+              background: 'var(--card-background)'
+            }}
           />
           <textarea
             value={candidate.presentation}
             onChange={e => setCandidate({ ...candidate, presentation: e.target.value })}
             placeholder="Présentation"
-            style={{ width: '100%', marginBottom: 8, padding: 8, borderRadius: 8, border: '1px solid #ccc', minHeight: 60 }}
+            style={{ 
+              width: '100%', 
+              marginBottom: 16, 
+              padding: 14, 
+              borderRadius: 12, 
+              border: '2px solid var(--border)', 
+              minHeight: 100,
+              fontSize: 15,
+              boxSizing: 'border-box',
+              background: 'var(--card-background)',
+              fontFamily: 'inherit'
+            }}
           />
-          <div style={{ display: 'flex', gap: 16, marginTop: 16, justifyContent: 'center' }}>
+          <div style={{ display: 'flex', gap: 16, marginTop: 24, justifyContent: 'center' }}>
             <button
               type="submit"
               style={{
-                padding: '10px 32px',
+                padding: '14px 40px',
                 borderRadius: 12,
-                background: '#6746a8',
+                background: 'var(--primary)',
                 color: '#fff',
                 fontWeight: 600,
                 fontSize: 16,
                 border: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
+                transition: 'all 0.2s'
               }}
             >
               Enregistrer
@@ -161,14 +247,15 @@ export default function CandidateProfilePage() {
             <button
               type="button"
               style={{
-                padding: '10px 32px',
+                padding: '14px 40px',
                 borderRadius: 12,
-                background: '#999',
+                background: 'var(--text-secondary)',
                 color: '#fff',
                 fontWeight: 600,
                 fontSize: 16,
                 border: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                transition: 'all 0.2s'
               }}
               onClick={() => setIsEditing(false)}
             >
@@ -178,47 +265,115 @@ export default function CandidateProfilePage() {
         </form>
       ) : (
         <>
-          <div style={{ fontSize: 18, marginBottom: 8 }}><strong>Prénom :</strong> {candidate.firstName}</div>
-          <div style={{ fontSize: 18, marginBottom: 8 }}><strong>Nom :</strong> {candidate.lastName}</div>
-          <div style={{ fontSize: 18, marginBottom: 8 }}><strong>Localisation :</strong> {candidate.location}</div>
-          <div style={{ fontSize: 18, marginBottom: 8 }}><strong>Métier :</strong> {candidate.job}</div>
-          <div style={{ fontSize: 18, marginBottom: 8 }}><strong>Expérience :</strong> {candidate.experience}</div>
-          <div style={{ fontSize: 18, marginBottom: 8 }}><strong>Type de contrat :</strong> {candidate.contractType}</div>
-          <div style={{ fontSize: 18, marginBottom: 8 }}><strong>Présentation :</strong> {candidate.presentation}</div>
+          <div style={{ 
+            fontSize: 16, 
+            marginBottom: 16,
+            padding: 16,
+            background: 'var(--background)',
+            borderRadius: 12,
+            border: '1px solid var(--border)'
+          }}>
+            <strong style={{ color: 'var(--primary)' }}>Prénom :</strong> {candidate.firstName}
+          </div>
+          <div style={{ 
+            fontSize: 16, 
+            marginBottom: 16,
+            padding: 16,
+            background: 'var(--background)',
+            borderRadius: 12,
+            border: '1px solid var(--border)'
+          }}>
+            <strong style={{ color: 'var(--primary)' }}>Nom :</strong> {candidate.lastName}
+          </div>
+          <div style={{ 
+            fontSize: 16, 
+            marginBottom: 16,
+            padding: 16,
+            background: 'var(--background)',
+            borderRadius: 12,
+            border: '1px solid var(--border)'
+          }}>
+            <strong style={{ color: 'var(--primary)' }}>Localisation :</strong> {candidate.location}
+          </div>
+          <div style={{ 
+            fontSize: 16, 
+            marginBottom: 16,
+            padding: 16,
+            background: 'var(--background)',
+            borderRadius: 12,
+            border: '1px solid var(--border)'
+          }}>
+            <strong style={{ color: 'var(--primary)' }}>Métier :</strong> {candidate.job}
+          </div>
+          <div style={{ 
+            fontSize: 16, 
+            marginBottom: 16,
+            padding: 16,
+            background: 'var(--background)',
+            borderRadius: 12,
+            border: '1px solid var(--border)'
+          }}>
+            <strong style={{ color: 'var(--primary)' }}>Expérience :</strong> {candidate.experience}
+          </div>
+          <div style={{ 
+            fontSize: 16, 
+            marginBottom: 16,
+            padding: 16,
+            background: 'var(--background)',
+            borderRadius: 12,
+            border: '1px solid var(--border)'
+          }}>
+            <strong style={{ color: 'var(--primary)' }}>Type de contrat :</strong> {candidate.contractType}
+          </div>
+          <div style={{ 
+            fontSize: 16, 
+            marginBottom: 16,
+            padding: 16,
+            background: 'var(--background)',
+            borderRadius: 12,
+            border: '1px solid var(--border)'
+          }}>
+            <strong style={{ color: 'var(--primary)' }}>Présentation :</strong> {candidate.presentation}
+          </div>
           <div style={{ display: 'flex', gap: 16, marginTop: 32, justifyContent: 'center' }}>
             <button
               style={{
-                padding: '10px 32px',
+                padding: '14px 40px',
                 borderRadius: 12,
-                background: '#6746a8',
+                background: 'var(--primary)',
                 color: '#fff',
                 fontWeight: 600,
                 fontSize: 16,
                 border: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
+                transition: 'all 0.2s'
               }}
               onClick={() => setIsEditing(true)}
             >
-              Modifier
+              ✏️ Modifier
             </button>
             <button
               style={{
-                padding: '10px 32px',
+                padding: '14px 40px',
                 borderRadius: 12,
-                background: '#e53935',
+                background: 'var(--error)',
                 color: '#fff',
                 fontWeight: 600,
                 fontSize: 16,
                 border: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
+                transition: 'all 0.2s'
               }}
               onClick={handleDelete}
             >
-              Supprimer
+              🗑️ Supprimer
             </button>
           </div>
         </>
       )}
+      </div>
     </div>
   );
 }

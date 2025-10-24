@@ -59,6 +59,7 @@ services:
     volumes:
       - ./mova-admin:/usr/src/app
       - /usr/src/app/node_modules
+      - /usr/src/app/.next
 
 networks:
   mova-network:

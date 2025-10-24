@@ -99,71 +99,84 @@ export default function JobOffersServices() {
     <div style={{
       width: '100vw',
       minHeight: '100vh',
-      background: '#f8f9ff',
+      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       padding: '40px 0'
     }}>
       <div style={{
-        background: '#fff',
+        background: 'var(--card-background)',
         borderRadius: 24,
-        boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
-        padding: '32px 24px',
+        boxShadow: '0 8px 32px rgba(73, 48, 163, 0.12)',
+        padding: '48px 32px',
         minWidth: 350,
+        maxWidth: 900,
         marginTop: 24,
         marginBottom: 24,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
+        border: '1px solid var(--border)'
       }}>
         {/* Titre et bouton menu principal */}
-        <div style={{ fontSize: 32, fontWeight: 700, color: '#6746a8', marginBottom: 32, textAlign: 'center' }}>
+        <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--primary)', marginBottom: 32, textAlign: 'center' }}>
           Portail Admin
         </div>
         <button
-          style={{ marginTop: 0, background: '#eaeaea', color: '#6746a8', border: 'none', borderRadius: 18, padding: '10px 32px', fontWeight: 600, cursor: 'pointer' }}
+          style={{ 
+            marginTop: 0, 
+            background: 'var(--background)', 
+            color: 'var(--primary)', 
+            border: '2px solid var(--border)', 
+            borderRadius: 12, 
+            padding: '12px 32px', 
+            fontWeight: 600, 
+            cursor: 'pointer',
+            fontSize: 15,
+            transition: 'all 0.2s'
+          }}
           onClick={() => window.location.href = '/homepage'}
         >
           Retour au menu principal
         </button>
 
-        <div style={{ fontSize: 28, fontWeight: 700, color: '#6746a8', marginBottom: 32, textAlign: 'center' }}>
-          Services Offres
+        <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--primary)', marginTop: 32, marginBottom: 32, textAlign: 'center' }}>
+          💼 Services Offres d&apos;emploi
         </div>
         <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 16, justifyContent: 'center', marginBottom: 12, overflowX: 'auto' }}>
           <button
             style={{
               ...styles.button,
-              background: selectedService === 'create' ? '#6746a8' : '#07b9ff',
+              background: selectedService === 'create' ? 'var(--primary)' : 'var(--secondary)',
               color: '#fff',
-              boxShadow: selectedService === 'create' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
+              boxShadow: selectedService === 'create' ? '0 4px 12px rgba(73, 48, 163, 0.3)' : '0 4px 12px rgba(7, 185, 255, 0.3)',
             }}
             onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'create' })}
           >
-            Créer une offre
+            ➕ Créer une offre
           </button>
           <button
             style={{
               ...styles.button,
-              background: selectedService === 'list' ? '#6746a8' : '#07b9ff',
+              background: selectedService === 'list' ? 'var(--primary)' : 'var(--secondary)',
               color: '#fff',
-              boxShadow: selectedService === 'list' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
+              boxShadow: selectedService === 'list' ? '0 4px 12px rgba(73, 48, 163, 0.3)' : '0 4px 12px rgba(7, 185, 255, 0.3)',
             }}
             onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'list' })}
           >
-            Afficher les offres
+            📋 Afficher les offres
           </button>
           <button
             style={{
               ...styles.button,
-              background: selectedService === 'findOffer' ? '#6746a8' : '#07b9ff',
+              background: selectedService === 'findOffer' ? 'var(--primary)' : 'var(--secondary)',
               color: '#fff',
-              boxShadow: selectedService === 'findOffer' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
+              boxShadow: selectedService === 'findOffer' ? '0 4px 12px rgba(73, 48, 163, 0.3)' : '0 4px 12px rgba(7, 185, 255, 0.3)',
             }}
             onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'findOffer' })}
           >
-            Trouver une offre
+            🔍 Trouver une offre
           </button>
         </div>
 
@@ -445,85 +458,94 @@ export default function JobOffersServices() {
 const styles = {
   section: {
     width: '100%',
-    background: '#f3f4fa',
+    background: 'var(--background)',
     borderRadius: 16,
-    padding: 24,
-    marginBottom: 32,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+    padding: 32,
+    marginBottom: 24,
+    boxShadow: '0 4px 16px rgba(73, 48, 163, 0.08)',
+    border: '1px solid var(--border)',
   },
   button: {
-    width: 220,
-    height: 44,
-    borderRadius: 18,
-    background: '#07b9ff',
+    width: 240,
+    height: 52,
+    borderRadius: 12,
+    background: 'var(--secondary)',
     color: '#fff',
-    fontWeight: 700,
+    fontWeight: 600,
     fontSize: 16,
     border: 'none',
-    marginBottom: 0,
     cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-    transition: 'background 0.2s',
+    transition: 'all 0.2s',
   },
   smallButton: {
-    width: 120,
-    height: 36,
+    width: 140,
+    height: 44,
     borderRadius: 12,
-    background: '#6746a8',
+    background: 'var(--primary)',
     color: '#fff',
     fontWeight: 600,
     fontSize: 15,
     border: 'none',
-    marginBottom: 0,
     cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(103,70,168,0.10)',
-    transition: 'background 0.2s',
+    boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
+    transition: 'all 0.2s',
   },
   backButton: {
     marginTop: 24,
-    background: '#eaeaea',
-    color: '#6746a8',
-    border: 'none',
-    borderRadius: 18,
-    padding: '10px 32px',
+    background: 'var(--background)',
+    color: 'var(--primary)',
+    border: '2px solid var(--border)',
+    borderRadius: 12,
+    padding: '12px 32px',
     fontWeight: 600,
     cursor: 'pointer',
+    fontSize: 15,
+    transition: 'all 0.2s',
   },
   input: {
-    width: 220,
-    padding: '10px',
-    borderRadius: 10,
-    border: '1px solid #d1d5db',
-    marginBottom: 14,
+    width: '100%',
+    maxWidth: 300,
+    padding: 14,
+    borderRadius: 12,
+    border: '2px solid var(--border)',
+    marginBottom: 16,
     fontSize: 15,
+    boxSizing: 'border-box' as const,
+    background: 'var(--card-background)',
   },
   error: {
-    color: '#e53935',
-    marginBottom: 14,
+    color: 'var(--error)',
+    marginBottom: 16,
     fontWeight: 600,
     textAlign: 'center' as const,
+    padding: 12,
+    background: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
+    fontSize: 14,
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 700,
-    color: '#6746a8',
-    marginBottom: 18,
+    color: 'var(--primary)',
+    marginBottom: 24,
     textAlign: 'center' as const,
   },
 };
 
 const tableStyles = {
   th: {
-    padding: '10px 8px',
+    padding: '14px 18px',
     textAlign: 'left' as const,
     fontWeight: 700,
-    color: '#6746a8',
-    fontSize: 16,
-    borderBottom: '2px solid #d1d5db',
+    color: 'var(--primary)',
+    fontSize: 15,
+    borderBottom: '2px solid var(--border)',
+    background: 'var(--background)',
   },
   td: {
-    padding: '8px 8px',
+    padding: '14px 18px',
     fontSize: 15,
-    borderBottom: '1px solid #f3f4fa',
+    borderBottom: '1px solid var(--background)',
+    color: '#333',
   },
 };
