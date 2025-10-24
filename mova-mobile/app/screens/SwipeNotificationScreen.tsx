@@ -11,46 +11,6 @@ import Colors from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
 
-// Profils factices pour le test
-const mockProfiles = [
-  {
-    id: '1',
-    firstName: 'Alice',
-    lastName: 'Dubois',
-    avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-    job: 'Développeuse React Native',
-    companyName: 'TechCorp',
-    location: 'Paris, France',
-    experience: '3 ans',
-    presentation: 'Passionnée par le développement mobile et les nouvelles technologies.',
-    contractType: 'CDI',
-  },
-  {
-    id: '2',
-    firstName: 'Bob',
-    lastName: 'Martin',
-    avatarUrl: 'https://randomuser.me/api/portraits/men/56.jpg',
-    job: 'Product Manager',
-    companyName: 'Innovate Inc.',
-    location: 'Lyon, France',
-    experience: '5 ans',
-    presentation: 'Expert en gestion de produit et stratégie digitale.',
-    contractType: 'CDI',
-  },
-  {
-    id: '3',
-    firstName: 'Charlie',
-    lastName: 'Rousseau',
-    avatarUrl: 'https://randomuser.me/api/portraits/men/65.jpg',
-    job: 'UX/UI Designer',
-    companyName: 'Creative Solutions',
-    location: 'Marseille, France',
-    experience: '4 ans',
-    presentation: 'Designer créatif avec un œil pour les détails.',
-    contractType: 'Freelance',
-  },
-];
-
 const ActionButton = ({ onPress, small, color, icon, style }: {
   onPress: () => void;
   small?: boolean;
@@ -106,9 +66,8 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         const data = await getProfilesToSwipe(userType, latitude, longitude);
         console.log('API Response Data:', data);
 
-        // Si l'API renvoie des profils, on les utilise, sinon on utilise les profils factices
+        // Mapper les données de l'API pour correspondre aux props de SwipeCard
         if (data && data.length > 0) {
-          // Mapper les données de l'API pour correspondre aux props de SwipeCard
           const mappedProfiles = data.map((profile: any) => {
             if (userType === 'candidate') {
               // Le candidat voit des recruteurs
@@ -150,12 +109,12 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
           });
           setProfiles(mappedProfiles);
         } else {
-          console.log("Aucun profil reçu de l'API, utilisation des profils factices.");
-          setProfiles(mockProfiles);
+          console.log("Aucun profil reçu de l'API.");
+          setProfiles([]); // Tableau vide = message "Plus de profils"
         }
       } catch (error) {
-        console.error("Erreur lors de la récupération des profils à swiper, utilisation des profils factices:", error);
-        setProfiles(mockProfiles); // Utiliser les profils factices en cas d'erreur
+        console.error("Erreur lors de la récupération des profils à swiper:", error);
+        setProfiles([]); // Tableau vide en cas d'erreur
       }
     };
 

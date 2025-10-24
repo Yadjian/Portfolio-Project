@@ -288,3 +288,24 @@ export async function deleteResume() {
 
   return handleResponse(response);
 }
+
+// ----------------------
+// MATCHES / HISTORIQUE
+// ----------------------
+export async function getMatches() {
+  const headers = await getHeaders(true);
+  const response = await fetch(`${API_URL}/matches`, {
+    method: 'GET',
+    headers,
+  });
+  return handleResponse(response);
+}
+
+export async function getMatchDetails(matchId: string) {
+  const headers = await getHeaders(true);
+  const response = await fetch(`${API_URL}/matches/${matchId}`, {
+    method: 'GET',
+    headers,
+  });
+  return handleResponse(response);
+}

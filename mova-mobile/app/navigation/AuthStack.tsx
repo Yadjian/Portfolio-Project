@@ -17,6 +17,7 @@ import CreateCompanyScreen from '../screens/RegisterScreens/CreateCompanyScreen'
 import MovaLogo from '@/components/ui/MovaLogo';
 import UserHomeScreen from '../screens/UserHomeScreen';
 import HistoricalScreen from '../screens/HistoricalScreen';
+import MatchDetailScreen from '../screens/MatchDetailScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -140,6 +141,11 @@ export default function AuthStack() {
       <Stack.Screen
         name="UserHome"
         component={UserHomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name="MatchDetail"
+        component={MatchDetailScreen}
         options={{ headerShown: false }}
       />
     </Stack.Navigator>

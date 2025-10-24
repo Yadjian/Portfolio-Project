@@ -24,6 +24,7 @@ export type AuthStackParamList = {
   CreateAccount: { userType: 'candidate' | 'recruiter' };
   UserHome: undefined;
   HistoricalScreen: undefined;
+  MatchDetail: { matchId: string; userType: UserType };
 };
 
 // Définir les props pour chaque écran

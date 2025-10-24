@@ -1,10 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, FlatList, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '../../constants/tabsConfig';
+import { getMatches } from '../../services/api';
 
 // --- Types ---
 type Match = {
@@ -16,87 +17,6 @@ type Match = {
   avatarUrl: string;
 };
 
-// --- Données Mock (en attendant l'API) ---
-// Ce que verrait un candidat (une liste d'offres)
-const CANDIDATE_MATCHES_MOCK = [
-  {
-    id: '4',
-    companyName: 'Zara',
-    jobTitle: 'Vendeur / Vendeuse',
-    contractType: 'CDD',
-    matchDate: '2023-10-25T18:00:00Z',
-    avatarUrl: 'https://logo.clearbit.com/zara.com',
-  },
-  {
-    id: '8',
-    companyName: 'Nike',
-    jobTitle: 'Vendeur / Vendeuse',
-    contractType: 'CDI',
-    matchDate: '2023-10-21T17:00:00Z',
-    avatarUrl: 'https://logo.clearbit.com/nike.com',
-  },
-  {
-    id: '16',
-    companyName: 'Sephora',
-    jobTitle: 'Vendeur / Vendeuse',
-    contractType: 'CDI',
-    matchDate: '2023-10-20T11:00:00Z',
-    avatarUrl: 'https://logo.clearbit.com/sephora.com',
-  },
-  {
-    id: '17',
-    companyName: 'Fnac',
-    jobTitle: 'Vendeur / Vendeuse',
-    contractType: 'CDD',
-    matchDate: '2023-10-19T13:00:00Z',
-    avatarUrl: 'https://logo.clearbit.com/fnac.com',
-  },
-  {
-    id: '18',
-    companyName: 'Decathlon',
-    jobTitle: 'Vendeur / Vendeuse',
-    contractType: 'CDI',
-    matchDate: '2023-10-18T10:00:00Z',
-    avatarUrl: 'https://logo.clearbit.com/decathlon.com',
-  },
-  {
-    id: '19',
-    companyName: 'Carrefour',
-    jobTitle: 'Vendeur / Vendeuse',
-    contractType: 'CDI',
-    matchDate: '2023-10-17T16:00:00Z',
-    avatarUrl: 'https://logo.clearbit.com/carrefour.com',
-  },
-];
-
-// Ce que verrait un recruteur (une liste de candidats)
-const RECRUITER_MATCHES_MOCK = [
-  {
-    id: '10',
-    candidateName: 'Jean Dupont',
-    desiredJobTitle: 'Serveur / Serveuse',
-    experienceLevel: 'Débutant',
-    matchDate: '2023-10-26T09:00:00Z',
-    avatarUrl: 'https://i.pravatar.cc/150?u=jean.dupont',
-  },
-  {
-    id: '11',
-    candidateName: 'Marie Curie',
-    desiredJobTitle: 'Cuisinier / Cuisinière',
-    experienceLevel: 'Confirmé',
-    matchDate: '2023-10-24T18:00:00Z',
-    avatarUrl: 'https://i.pravatar.cc/150?u=marie.curie',
-  },
-  {
-    id: '12',
-    candidateName: 'Pierre Martin',
-    desiredJobTitle: 'Plagiste',
-    experienceLevel: 'Confirmé',
-    matchDate: '2023-10-23T10:00:00Z',
-    avatarUrl: 'https://i.pravatar.cc/150?u=pierre.martin',
-  },
-];
-
 // --- Helpers & Composants UI ---
 
 const formatDate = (dateString: string) => {
@@ -104,38 +24,72 @@ const formatDate = (dateString: string) => {
   return `Match le ${date.toLocaleDateString('fr-FR')}`;
 };
 
-const MatchCard = ({ item }: { item: Match }) => {
+const MatchCard = ({ item, onPress }: { item: Match; onPress: () => void }) => {
   const { title, subtitle, meta, matchDate, avatarUrl } = item;
 
   return (
-    <View style={styles.card}>
-      <Image source={{ uri: avatarUrl }} style={styles.avatar} resizeMode="contain" />
-      <View style={styles.cardContent}>
-        <Text style={styles.titleCard}>{title}</Text>
-        <Text style={styles.subtitleCard}>{subtitle}</Text>
-        <Text style={styles.metaInfo}>
-          {meta ? `${meta} | ` : ''}{formatDate(matchDate)}
-        </Text>
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+      <View style={styles.card}>
+        <Image source={{ uri: avatarUrl }} style={styles.avatar} resizeMode="contain" />
+        <View style={styles.cardContent}>
+          <Text style={styles.titleCard}>{title}</Text>
+          <Text style={styles.subtitleCard}>{subtitle}</Text>
+          {meta && <Text style={styles.metaInfo}>{meta}</Text>}
+          <Text style={styles.dateInfo}>{formatDate(matchDate)}</Text>
+        </View>
+        <Ionicons name="chevron-forward" size={24} color={Colors.light.textSecondary} />
       </View>
-      <Ionicons name="chevron-forward" size={24} color={Colors.light.textSecondary} />
-    </View>
+    </TouchableOpacity>
   );
 };
 
 // --- VUE POUR LE CANDIDAT ---
-const CandidateHistoryView = () => {
-  // 1. On récupère les données brutes pour un candidat
-  const rawMatches = CANDIDATE_MATCHES_MOCK; // TODO: Remplacer par un appel API
+const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 2. On normalise les données pour le composant MatchCard
-  const normalizedMatches: Match[] = rawMatches.map(match => ({
-    id: match.id,
-    title: match.companyName,
-    subtitle: match.jobTitle,
-    meta: match.contractType,
-    matchDate: match.matchDate,
-    avatarUrl: match.avatarUrl,
-  }));
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchMatches = async () => {
+        try {
+          setLoading(true);
+          const data = await getMatches();
+          console.log('Matches data:', data);
+
+          // Mapper les données du backend vers le format du composant
+          const normalizedMatches: Match[] = data.map((match: any) => ({
+            id: match.matchId,
+            title: `${match.profile.firstName} ${match.profile.lastName}`, // Nom et prénom du recruteur
+            subtitle: match.profile.searchedJobTitle || 'Poste non spécifié', // Poste recherché
+            meta: '', // Pas de meta pour les candidats
+            matchDate: match.matchedAt,
+            avatarUrl: `https://ui-avatars.com/api/?name=${match.profile.firstName}+${match.profile.lastName}&size=200&background=4930a3&color=fff`,
+          }));
+
+          setMatches(normalizedMatches);
+        } catch (error) {
+          console.error('Erreur lors de la récupération des matchs:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchMatches();
+    }, [])
+  );
+
+  const handleMatchPress = (matchId: string) => {
+    console.log('Match clicked:', matchId);
+    navigation.navigate('MatchDetail', { matchId, userType: 'candidate' });
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={Colors.light.primary} />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -144,8 +98,8 @@ const CandidateHistoryView = () => {
         <Text style={styles.subtitle}>Retrouvez les offres qui ont matché avec votre profil.</Text>
       </View>
       <FlatList
-        data={normalizedMatches}
-        renderItem={({ item }) => <MatchCard item={item} />}
+        data={matches}
+        renderItem={({ item }) => <MatchCard item={item} onPress={() => handleMatchPress(item.id)} />}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={() => (
@@ -157,19 +111,52 @@ const CandidateHistoryView = () => {
 };
 
 // --- VUE POUR LE RECRUTEUR ---
-const RecruiterHistoryView = () => {
-  // 1. On récupère les données brutes pour un recruteur
-  const rawMatches = RECRUITER_MATCHES_MOCK; // TODO: Remplacer par un appel API
+const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 2. On normalise les données pour le composant MatchCard
-  const normalizedMatches: Match[] = rawMatches.map(match => ({
-    id: match.id,
-    title: match.candidateName,
-    subtitle: match.desiredJobTitle,
-    meta: match.experienceLevel,
-    matchDate: match.matchDate,
-    avatarUrl: match.avatarUrl,
-  }));
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchMatches = async () => {
+        try {
+          setLoading(true);
+          const data = await getMatches();
+          console.log('Matches data:', data);
+
+          // Mapper les données du backend vers le format du composant
+          const normalizedMatches: Match[] = data.map((match: any) => ({
+            id: match.matchId,
+            title: `${match.profile.firstName} ${match.profile.lastName}`, // Prénom et nom
+            subtitle: match.profile.desiredJobTitle || 'Poste non spécifié', // Poste
+            meta: match.profile.experienceLevel || '', // Expérience
+            matchDate: match.matchedAt,
+            avatarUrl: match.profile.photoUrl || `https://ui-avatars.com/api/?name=${match.profile.firstName}+${match.profile.lastName}&size=200&background=4930a3&color=fff`,
+          }));
+
+          setMatches(normalizedMatches);
+        } catch (error) {
+          console.error('Erreur lors de la récupération des matchs:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchMatches();
+    }, [])
+  );
+
+  const handleMatchPress = (matchId: string) => {
+    console.log('Match clicked:', matchId);
+    navigation.navigate('MatchDetail', { matchId, userType: 'recruiter' });
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={Colors.light.primary} />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -178,8 +165,8 @@ const RecruiterHistoryView = () => {
         <Text style={styles.subtitle}>Retrouvez les candidats qui ont matché avec vos offres.</Text>
       </View>
       <FlatList
-        data={normalizedMatches}
-        renderItem={({ item }) => <MatchCard item={item} />}
+        data={matches}
+        renderItem={({ item }) => <MatchCard item={item} onPress={() => handleMatchPress(item.id)} />}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={() => (
@@ -200,7 +187,7 @@ export default function HistoricalScreen({ route }: { route: any }) {
 
   return (
     <View style={styles.container}>
-      {isRecruiter ? <RecruiterHistoryView /> : <CandidateHistoryView />}
+      {isRecruiter ? <RecruiterHistoryView navigation={navigation} /> : <CandidateHistoryView navigation={navigation} />}
       <BottomTabBar tabs={tabs} activeTabId="matches" />
     </View>
   );
@@ -255,23 +242,25 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 18,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowColor: '#4930a3',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    borderWidth: 1,
+    borderColor: '#f0f0f0',
   },
   avatar: {
     width: 60,
     height: 60,
-    borderRadius: 30, // Pour faire un cercle (moitié de la largeur/hauteur)
+    borderRadius: 30,
     marginRight: 16,
     backgroundColor: '#f8f8f8',
-    borderWidth: 1,
-    borderColor: '#eee',
+    borderWidth: 2,
+    borderColor: '#4930a3',
   },
   cardContent: {
     flex: 1,
@@ -288,7 +277,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   metaInfo: {
-    fontSize: 12,
-    color: '#aaa',
+    fontSize: 13,
+    color: '#666',
+    marginBottom: 6,
+  },
+  dateInfo: {
+    fontSize: 11,
+    color: '#999',
+    fontStyle: 'italic',
   },
 });
