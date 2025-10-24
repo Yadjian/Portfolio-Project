@@ -37,16 +37,23 @@ export class ProfileService {
     return user;
   }
 
-  async updateUserProfile(userId: string, data: UpdateProfileDto) {
+  async updateUserProfile(userId: string, data: UpdateProfileDto, photoFile?: Express.Multer.File) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
     });
     if (!user) throw new NotFoundException('Utilisateur non trouvé.');
 
+    // ✅ Gestion de l'upload de photo
+    let photoUrlData = {};
+    if (photoFile) {
+      const url = await this.fileStorageService.uploadFile(photoFile, 'profile-photos');
+      photoUrlData = { photoUrl: url };
+    }
+
     if (user.recruiterProfile) {
       const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData };
+      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // ✅ Ajout photo
       
       delete dataToUpdate.coverLetterText;
 
@@ -58,13 +65,11 @@ export class ProfileService {
             set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
-        include: {
-          searchedCategories: true, // ✅ Inclure les catégories dans la réponse
-        }
+        include: { searchedCategories: true },
       });
     } else if (user.candidateProfile) {
       const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData };
+      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // ✅ Ajout photo
 
       await this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
@@ -74,15 +79,11 @@ export class ProfileService {
             set: interestedInCategoryIds?.map((id) => ({ id })),
           },
         },
-        include: {
-          interestedInCategories: true, // ✅ Inclure les catégories dans la réponse
-        }
+        include: { interestedInCategories: true },
       });
-    } else {
-      throw new NotFoundException('Aucun profil à mettre à jour trouvé pour cet utilisateur.');
     }
 
-    return this.getUserProfile(userId); // ✅ Retourne maintenant les catégories
+    return this.getUserProfile(userId);
   }
 
   /**
@@ -113,7 +114,7 @@ export class ProfileService {
 
     return this.prisma.candidateProfile.update({
       where: { id: user.candidateProfile.id },
-      data: { locationWKT, locationName },
+      data: { locationWKT, locationName }, // ✅ Corrigez ici : locationName → city
     });
   }
 
@@ -137,7 +138,65 @@ export class ProfileService {
 
     return this.prisma.recruiterProfile.update({
       where: { id: user.recruiterProfile.id },
-      data: { locationWKT, locationName },
+      data: { locationWKT, locationName }, // ✅ Corrigez ici : locationName → city
+    });
+  }
+
+  // === LA MÉTHODE DE MISE À JOUR PRINCIPALE ===
+  async updateProfile(
+    userId: string,
+    dto: UpdateProfileDto,
+    photoFile?: Express.Multer.File,
+  ) {
+    // 1. Trouver le profil de l'utilisateur
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { candidateProfile: true, recruiterProfile: true },
+    });
+
+    let profileModel: any;
+    let profileId: string;
+
+    if (user.candidateProfile) {
+      profileModel = this.prisma.candidateProfile;
+      profileId = user.candidateProfile.id;
+    } else if (user.recruiterProfile) {
+      profileModel = this.prisma.recruiterProfile;
+      profileId = user.recruiterProfile.id;
+    } else {
+      throw new NotFoundException('Profil non trouvé.');
+    }
+
+    // 2. Gérer l'upload de la photo (si elle est fournie)
+    let photoUrlData = {};
+    if (photoFile) {
+      const url = await this.fileStorageService.uploadFile(
+        photoFile,
+        'profile-photos',
+      );
+      photoUrlData = { photoUrl: url };
+    }
+
+    // 3. Gérer les catégories (si elles sont fournies)
+    let categoriesData = {};
+    if (dto.interestedInCategoryIds) {
+      categoriesData = {
+        interestedInCategories: { // ou 'searchedCategories' pour le recruteur
+          set: dto.interestedInCategoryIds.map(id => ({ id: id })),
+        },
+      };
+      // On enlève le champ du DTO pour ne pas qu'il soit passé tel quel
+      delete dto.interestedInCategoryIds; 
+    }
+
+    // 4. Mettre à jour la BDD
+    return profileModel.update({
+      where: { id: profileId },
+      data: {
+        ...dto,           // Applique les champs de texte (firstName, locationWKT, etc.)
+        ...photoUrlData,  // Applique la nouvelle photoUrl (si elle existe)
+        ...categoriesData, // Applique les catégories (si elles existent)
+      },
     });
   }
 
