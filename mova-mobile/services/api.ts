@@ -242,3 +242,49 @@ export async function getGoogleGeolocation(latitude: number, longitude: number) 
   );
   return handleResponse(response);
 }
+
+// ----------------------
+// CV / RESUME
+// ----------------------
+export async function uploadResume(file: { uri: string; name: string; type: string }) {
+  const token = await SecureStore.getItemAsync('auth_token');
+  if (!token) {
+    throw new Error('Non authentifié');
+  }
+
+  const formData = new FormData();
+  formData.append('resumeFile', {
+    uri: file.uri,
+    name: file.name,
+    type: file.type,
+  } as any);
+
+  const response = await fetch(`${API_URL}/profile/resume`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true',
+      // Ne pas mettre Content-Type pour multipart/form-data, il sera auto-généré
+    },
+    body: formData,
+  });
+
+  return handleResponse(response);
+}
+
+export async function deleteResume() {
+  const token = await SecureStore.getItemAsync('auth_token');
+  if (!token) {
+    throw new Error('Non authentifié');
+  }
+
+  const response = await fetch(`${API_URL}/profile/resume`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true',
+    },
+  });
+
+  return handleResponse(response);
+}

@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator, Linking, Alert, StyleSheet, Dimensions, ScrollView } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
+import { useFocusEffect } from '@react-navigation/native';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getCandidateTabs } from '../../constants/tabsConfig';
 import { Ionicons } from '@expo/vector-icons';
+import { uploadResume, deleteResume, getMyProfile } from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
@@ -12,6 +14,28 @@ export default function CandidateCVScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // Charger le CV à chaque fois que la page est focus (revient au premier plan)
+  useFocusEffect(
+    useCallback(() => {
+      const loadExistingCV = async () => {
+        try {
+          const profile = await getMyProfile();
+          
+          // Le resumeUrl est dans candidateProfile, pas à la racine
+          const resumeUrl = profile?.candidateProfile?.resumeUrl || profile?.resumeUrl;
+          if (resumeUrl) {
+            setCvUrl(resumeUrl);
+          } else {
+            setCvUrl(null);
+          }
+        } catch (e) {
+          console.error('Erreur chargement CV:', e);
+        }
+      };
+      loadExistingCV();
+    }, [])
+  );
+
   const handleUpload = async () => {
     setError('');
     const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
@@ -19,27 +43,19 @@ export default function CandidateCVScreen({ navigation }: any) {
       setLoading(true);
       try {
         const asset = result.assets[0];
-        const formData = new FormData();
-        formData.append('file', {
+        const data = await uploadResume({
           uri: asset.uri,
           name: asset.name,
           type: asset.mimeType ?? 'application/pdf',
-        } as any);
-        formData.append('user_id', 'USER_ID');
-        formData.append('type', 'cv');
-
-        const res = await fetch('https://ton-backend/api/v1/uploads', {
-          method: 'POST',
-          headers: {
-            'Authorization': 'Bearer TOKEN', // Ajoute ton token Auth0
-            'Content-Type': 'multipart/form-data',
-          },
-          body: formData,
         });
-        const data = await res.json();
-        setCvUrl(data.url); // URL Cloudflare R2
-      } catch (e) {
-        setError('Erreur lors de l\'upload');
+        
+        if (data?.resumeUrl) {
+          setCvUrl(data.resumeUrl);
+          Alert.alert('Succès', data.message || 'CV importé avec succès !');
+        }
+      } catch (e: any) {
+        setError(e.message || 'Erreur lors de l\'upload');
+        Alert.alert('Erreur', e.message || 'Impossible d\'importer le CV');
       }
       setLoading(false);
     }
@@ -57,16 +73,12 @@ export default function CandidateCVScreen({ navigation }: any) {
           onPress: async () => {
             setLoading(true);
             try {
-              // Appelle ton backend pour supprimer le fichier
-              await fetch('https://ton-backend/api/v1/uploads/ID_DU_CV', {
-                method: 'DELETE',
-                headers: {
-                  'Authorization': 'Bearer TOKEN',
-                },
-              });
+              await deleteResume();
               setCvUrl(null);
-            } catch (e) {
-              setError('Erreur lors de la suppression');
+              Alert.alert('Succès', 'CV supprimé avec succès !');
+            } catch (e: any) {
+              setError(e.message || 'Erreur lors de la suppression');
+              Alert.alert('Erreur', e.message || 'Impossible de supprimer le CV');
             }
             setLoading(false);
           }
