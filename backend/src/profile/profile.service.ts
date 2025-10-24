@@ -237,4 +237,27 @@ export class ProfileService {
       resumeUrl: updatedProfile.resumeUrl,
     };
   }
+
+    async deleteResume(userId: string) {
+    // 1. Trouver le profil candidat
+    const profile = await this.prisma.candidateProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Profil candidat non trouvé.');
+    }
+
+    // 2. Supprimer l'URL du CV dans la BDD (on ne supprime pas le fichier R2 pour l'instant)
+    await this.prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: {
+        resumeUrl: null,
+      },
+    });
+
+    return {
+      message: 'CV supprimé avec succès.',
+    };
+  }
 }
