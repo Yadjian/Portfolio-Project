@@ -47,10 +47,8 @@ export class FileStorageService {
     // Envoie le fichier
     await this.s3Client.send(command);
 
-    // TODO: Assure-toi que ton bucket R2 est configuré en "Accès public"
-    // Retourne l'URL publique
-    return `https://pub-b9b7f6ccf2824f88b6a79de85bf5c55c.r2.dev/${fileName}`; 
-    // NOTE: Tu dois configurer un domaine public pour ton bucket R2
-    // ou utiliser l'URL publique fournie par R2.
+    // Construit l'URL publique à partir de la variable d'environnement ou utilise la valeur par défaut
+    const publicUrl = process.env.R2_PUBLIC_URL || 'https://pub-b9b7f6ccf2824f88b6a79de85bf5c55c.r2.dev';
+    return `${publicUrl}/${fileName}`;
   }
 }

@@ -101,4 +101,71 @@ export class SwipesService {
     // Pas de match (ou l'un a swipé 'LEFT')
     return { match: false };
   }
+
+  /**
+   * Annule le dernier swipe de l'utilisateur
+   */
+  async undoLastSwipe(userId: string) {
+    // 1. Trouver le profil de l'utilisateur
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        candidateProfile: { select: { id: true } },
+        recruiterProfile: { select: { id: true } },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé.');
+    }
+
+    let lastSwipe;
+    let directionField: 'candidateDirection' | 'recruiterDirection';
+
+    // 2. Déterminer le rôle et trouver le dernier swipe
+    if (user.candidateProfile) {
+      // Candidat : chercher le dernier swipe où candidateDirection n'est pas null
+      lastSwipe = await this.prisma.swipe.findFirst({
+        where: {
+          candidateId: user.candidateProfile.id,
+          candidateDirection: { not: null },
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+      });
+      directionField = 'candidateDirection';
+    } else if (user.recruiterProfile) {
+      // Recruteur : chercher le dernier swipe où recruiterDirection n'est pas null
+      lastSwipe = await this.prisma.swipe.findFirst({
+        where: {
+          recruiterId: user.recruiterProfile.id,
+          recruiterDirection: { not: null },
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
+      });
+      directionField = 'recruiterDirection';
+    } else {
+      throw new ForbiddenException("L'utilisateur n'a pas de profil actif.");
+    }
+
+    if (!lastSwipe) {
+      return { success: false, message: 'Aucun swipe à annuler.' };
+    }
+
+    // 3. Annuler le swipe en remettant la direction à null
+    await this.prisma.swipe.update({
+      where: { id: lastSwipe.id },
+      data: {
+        [directionField]: null,
+        // Si c'était un match, on le défait
+        isMatch: false,
+        matchedAt: null,
+      },
+    });
+
+    return { success: true };
+  }
 }

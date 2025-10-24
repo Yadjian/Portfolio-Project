@@ -18,4 +18,13 @@ export class SwipesController {
     // On passe l'ID de l'utilisateur (du JWT) et le DTO au service
     return this.swipesService.handleSwipe(userId, createSwipeDto);
   }
+
+  @Post('undo')
+  @UseGuards(AuthGuard('jwt'))
+  undoSwipe(@Req() req: Request) {
+    const user = req.user as { sub: string };
+    const userId = user.sub;
+
+    return this.swipesService.undoLastSwipe(userId);
+  }
 }

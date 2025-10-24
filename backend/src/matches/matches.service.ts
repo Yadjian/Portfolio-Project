@@ -37,23 +37,66 @@ export class MatchesService {
       include: {
         // Inclure le profil de l'AUTRE personne pour l'affichage
         candidate: {
-          select: { id: true, firstName: true, lastName: true, photoUrl: true },
+          select: { 
+            id: true, 
+            firstName: true, 
+            lastName: true, 
+            photoUrl: true,
+            desiredJobTitle: true,
+            desiredContractTypes: true,
+          },
         },
         recruiter: {
-          select: { id: true, firstName: true, lastName: true },
+          select: { 
+            id: true, 
+            firstName: true, 
+            lastName: true,
+            searchedCategories: {
+              select: { name: true },
+              take: 1,
+            },
+            desiredContractTypes: true,
+            memberships: {
+              include: {
+                company: {
+                  select: { name: true },
+                },
+              },
+              take: 1,
+            },
+          },
         },
       },
     });
 
     // On formate la réponse pour le front
-    return matches.map(match => ({
-      matchId: match.id, // L'ID du swipe (du match)
-      matchedAt: match.matchedAt,
-      // On renvoie le profil de l'autre personne
-      profile: user.candidateProfile
-        ? match.recruiter
-        : match.candidate,
-    }));
+    return matches.map(match => {
+      if (user.candidateProfile) {
+        // Candidat voit les recruteurs
+        const recruiter = match.recruiter;
+        return {
+          matchId: match.id,
+          matchedAt: match.matchedAt,
+          profile: {
+            ...recruiter,
+            companyName: recruiter.memberships?.[0]?.company?.name || null,
+            searchedJobTitle: recruiter.searchedCategories?.[0]?.name || null,
+            contractType: recruiter.desiredContractTypes?.[0] || null,
+          },
+        };
+      } else {
+        // Recruteur voit les candidats
+        const candidate = match.candidate;
+        return {
+          matchId: match.id,
+          matchedAt: match.matchedAt,
+          profile: {
+            ...candidate,
+            contractType: candidate.desiredContractTypes?.[0] || null,
+          },
+        };
+      }
+    });
   }
   async getMatchDetails(userId: string, swipeId: string) {
     // 1. Trouver le match
