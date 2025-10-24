@@ -34,7 +34,7 @@ const ActionButton = ({ onPress, small, color, icon, style }: {
       style,
     ]}
   >
-    <Feather name={icon} size={small ? 24 : 32} color={color} />
+    <Feather name={icon} size={small ? 20 : 26} color={color} />
   </TouchableOpacity>
 );
 
@@ -65,6 +65,32 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
 
         const data = await getProfilesToSwipe(userType, latitude, longitude);
         console.log('API Response Data:', data);
+
+        // PROFIL TEMPORAIRE EN DUR POUR TESTER LE DESIGN
+        const mockRecruiter = {
+          id: 'mock-1',
+          firstName: 'Sophie',
+          lastName: 'Martin',
+          avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
+          locationName: 'Paris, France',
+          searchDescription: 'Serveur / Serveuse\n\nRestaurant Le Gourmet recherche serveurs dynamiques pour sa terrasse avec vue sur la Seine. Rejoignez notre équipe dans un cadre d\'exception. Expérience souhaitée, formation assurée. Nous offrons un environnement stimulant au cœur de Paris.',
+          companyName: 'Le Gourmet Paris',
+          desiredExperienceLevel: 'INTERMEDIAIRE',
+          desiredContractTypes: ['CDI'],
+        };
+
+        // Mapper le profil mock
+        const mappedMockProfile = {
+          ...mockRecruiter,
+          location: mockRecruiter.locationName,
+          jobSeeking: 'Serveur / Serveuse',
+          experienceRequired: mockRecruiter.desiredExperienceLevel,
+          presentation: 'Restaurant Le Gourmet recherche serveurs dynamiques pour sa terrasse avec vue sur la Seine. Rejoignez notre équipe dans un cadre d\'exception. Expérience souhaitée, formation assurée. Nous offrons un environnement stimulant au cœur de Paris.',
+          contractType: mockRecruiter.desiredContractTypes.join(', '),
+        };
+
+        // Ajouter le profil mock aux données
+        const allProfiles = [mappedMockProfile];
 
         // Mapper les données de l'API pour correspondre aux props de SwipeCard
         if (data && data.length > 0) {
@@ -107,11 +133,27 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
               };
             }
           });
-          setProfiles(mappedProfiles);
-        } else {
-          console.log("Aucun profil reçu de l'API.");
-          setProfiles([]); // Tableau vide = message "Plus de profils"
+          allProfiles.push(...mappedProfiles);
         }
+        
+        // PROFIL TEMPORAIRE POUR TEST (à retirer après)
+        if (userType === 'candidate' && allProfiles.length === 0) {
+          const tempProfile = {
+            id: 'temp-recruiter-1',
+            firstName: 'Marie',
+            lastName: 'Dupont',
+            avatarUrl: 'https://randomuser.me/api/portraits/women/32.jpg',
+            location: 'Cannes, France',
+            jobSeeking: 'Serveur / Serveuse',
+            experienceRequired: 'INTERMEDIAIRE',
+            presentation: 'Le Restaurant Le Gourmet recherche un serveur dynamique ! Rejoignez notre équipe dans un cadre prestigieux. Expérience souhaitée, excellente présentation et sens du service requis.',
+            companyName: 'Restaurant Le Gourmet',
+            contractType: 'CDI',
+          } as any; // Bypass TypeScript pour le profil temporaire
+          allProfiles.push(tempProfile);
+        }
+        
+        setProfiles(allProfiles.length > 0 ? allProfiles : []);
       } catch (error) {
         console.error("Erreur lors de la récupération des profils à swiper:", error);
         setProfiles([]); // Tableau vide en cas d'erreur
@@ -167,7 +209,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
       // Start animation immediately
       Animated.timing(position, {
         toValue: { x: direction === 'right' ? width * 1.5 : -width * 1.5, y: 0 },
-        duration: 400,
+        duration: 600,
         useNativeDriver: false,
       }).start(() => {
         // Update state only after animation is complete
@@ -207,8 +249,20 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
     extrapolate: 'clamp',
   });
 
+  const likeOpacity = position.x.interpolate({
+    inputRange: [0, width / 4],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const nopeOpacity = position.x.interpolate({
+    inputRange: [-width / 4, 0],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
   const animatedStyle = {
-    transform: [{ translateX: position.x }],
+    transform: [{ translateX: position.x }, { rotate }],
   };
 
   const handleUndo = async () => {
@@ -235,6 +289,12 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
             key={animatingProfile.id}
             style={[styles.card, animatedStyle]}
           >
+            <Animated.View style={[styles.likeLabel, { opacity: likeOpacity }]}>
+              <Feather name="check" size={55} color="#4caf50" />
+            </Animated.View>
+            <Animated.View style={[styles.nopeLabel, { opacity: nopeOpacity }]}>
+              <Feather name="x" size={55} color="#f44336" />
+            </Animated.View>
             <SwipeCard userType={userType === 'candidate' ? 'recruiter' : 'candidate'} {...animatingProfile} />
           </Animated.View>
         ) : profiles.length > 0 ? (
@@ -242,6 +302,12 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
             key={profiles[0].id}
             style={[styles.card, animatedStyle]}
           >
+            <Animated.View style={[styles.likeLabel, { opacity: likeOpacity }]}>
+              <Feather name="check" size={55} color="#4caf50" />
+            </Animated.View>
+            <Animated.View style={[styles.nopeLabel, { opacity: nopeOpacity }]}>
+              <Feather name="x" size={55} color="#f44336" />
+            </Animated.View>
             <SwipeCard userType={userType === 'candidate' ? 'recruiter' : 'candidate'} {...profiles[0]} />
           </Animated.View>
         ) : (
@@ -254,7 +320,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
 
       <View style={styles.footer}>
         <ActionButton icon="x" color={Colors.light.error} onPress={() => swipe('left')} />
-        <ActionButton icon="refresh-cw" color={Colors.light.textSecondary} small onPress={handleUndo} style={{ marginTop: 15 }} />
+        <ActionButton icon="refresh-cw" color="#4930a3" small onPress={handleUndo} style={{ marginTop: 15 }} />
         <ActionButton icon="check" color={Colors.light.accent} onPress={() => swipe('right')} />
       </View>
       <BottomTabBar tabs={tabs} activeTabId="notifications" />
@@ -265,7 +331,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: '#f5f5f5',
   },
   deckContainer: {
     flex: 1,
@@ -274,8 +340,49 @@ const styles = StyleSheet.create({
   },
   card: {
     position: 'absolute',
-    width: width * 0.95,
-    top: 80,
+    width: width * 0.96,
+    top: 40,
+    bottom: 110,
+    zIndex: 1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  likeLabel: {
+    position: 'absolute',
+    top: 40,
+    left: 30,
+    zIndex: 1000,
+    backgroundColor: 'rgba(76, 175, 80, 0.2)',
+    borderWidth: 5,
+    borderColor: '#4caf50',
+    borderRadius: 50,
+    padding: 18,
+    transform: [{ rotate: '15deg' }],
+    shadowColor: '#4caf50',
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
+  },
+  nopeLabel: {
+    position: 'absolute',
+    top: 40,
+    right: 30,
+    zIndex: 1000,
+    backgroundColor: 'rgba(244, 67, 54, 0.2)',
+    borderWidth: 5,
+    borderColor: '#f44336',
+    borderRadius: 50,
+    padding: 18,
+    transform: [{ rotate: '-15deg' }],
+    shadowColor: '#f44336',
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 5,
   },
   noMoreProfiles: {
     alignItems: 'center',
@@ -288,31 +395,34 @@ const styles = StyleSheet.create({
   },
   footer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 110,
     left: 0,
     right: 0,
     flexDirection: 'row',
-    justifyContent: 'space-evenly',
+    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
-    paddingBottom: 140,
+    paddingVertical: 10,
     backgroundColor: 'transparent',
+    gap: 15,
+    zIndex: 100,
   },
   button: {
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    shadowOpacity: 0.18,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
     marginHorizontal: 10,
+    elevation: 12,
   },
   smallButton: {
-    width: 54,
-    height: 54,
+    width: 48,
+    height: 48,
   },
   largeButton: {
-    width: 72,
-    height: 72,
+    width: 60,
+    height: 60,
   },
 });
