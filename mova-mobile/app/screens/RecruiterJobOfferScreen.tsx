@@ -31,7 +31,7 @@ type JobOfferUI = {
 
 export default function RecruiterJobOfferScreen() {
   const navigation = useNavigation();
-  const { user } = useAuth(); // On récupère l'utilisateur connecté
+  const { user, refreshUser } = useAuth(); // On récupère l'utilisateur connecté et la fonction refresh
   const [offers, setOffers] = useState<JobOfferUI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [contractModalVisible, setContractModalVisible] = useState(false);
@@ -39,6 +39,12 @@ export default function RecruiterJobOfferScreen() {
   const [contractTypes, setContractTypes] = useState<string[]>([]);
 
   // --- DATA FETCHING ---
+
+  // Rafraîchir le profil utilisateur au chargement de l'écran
+  useEffect(() => {
+    console.log('🔄 [RecruiterJobOffer] Rafraîchissement du profil...');
+    refreshUser();
+  }, []);
 
   // Fetch metadata like contract types once
   useEffect(() => {
