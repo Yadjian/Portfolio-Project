@@ -23,10 +23,20 @@ export class DiscoveryController {
   // === ENDPOINT RECRUTEUR ===
   @Get('candidates')
   @UseGuards(AuthGuard('jwt'))
-  getCandidateDiscoveryDeck(@Req() req: Request) {
+  getCandidateDiscoveryDeck(@Req() req: Request, @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,) {
     const user = req.user as { sub: string };
     const userId = user.sub;
 
-    return this.discoveryService.getCandidatesForRecruiter(userId);
+    return this.discoveryService.getCandidatesForRecruiter(userId, radius);
+  }
+  
+  // === ENDPOINT NOTIFICATIONS RECRUTEUR ===
+  @Get('pending-candidates')
+  @UseGuards(AuthGuard('jwt'))
+  getPendingCandidates(@Req() req: Request) {
+    const user = req.user as { sub: string };
+    const userId = user.sub;
+
+    return this.discoveryService.getPendingCandidatesForRecruiter(userId);
   }
 }
