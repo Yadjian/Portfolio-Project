@@ -14,9 +14,24 @@ import { DiscoveryModule } from './discovery/discovery.module';
 import { SwipesModule } from './swipes/swipes.module';
 import { MatchesModule } from './matches/matches.module';
 import { FileStorageModule } from './file-storage/file-storage.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
-  imports: [AuthModule, PrismaModule, ProfileModule, SwipesModule, JobOfferModule, CompaniesModule, MetaModule, DiscoveryModule, MatchesModule, FileStorageModule],
+  imports: [
+    AuthModule, 
+    PrismaModule, 
+    ProfileModule, 
+    SwipesModule, 
+    JobOfferModule, 
+    CompaniesModule, 
+    MetaModule, 
+    DiscoveryModule, 
+    MatchesModule, 
+    FileStorageModule,
+    MulterModule.register({
+      dest: './uploads',
+    }),
+  ],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })

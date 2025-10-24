@@ -37,16 +37,23 @@ export class ProfileService {
     return user;
   }
 
-  async updateUserProfile(userId: string, data: UpdateProfileDto) {
+  async updateUserProfile(userId: string, data: UpdateProfileDto, photoFile?: Express.Multer.File) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
     });
     if (!user) throw new NotFoundException('Utilisateur non trouvé.');
 
+    // ✅ Gestion de l'upload de photo
+    let photoUrlData = {};
+    if (photoFile) {
+      const url = await this.fileStorageService.uploadFile(photoFile, 'profile-photos');
+      photoUrlData = { photoUrl: url };
+    }
+
     if (user.recruiterProfile) {
       const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData };
+      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // ✅ Ajout photo
       
       delete dataToUpdate.coverLetterText;
 
@@ -64,7 +71,7 @@ export class ProfileService {
       });
     } else if (user.candidateProfile) {
       const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData };
+      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // ✅ Ajout photo
 
       await this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
