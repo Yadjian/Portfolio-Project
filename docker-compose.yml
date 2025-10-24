@@ -56,10 +56,11 @@ services:
       - mova-network
     environment:
       - REACT_APP_API_URL=http://mova-backend-container:3000
+      - NODE_ENV=development
     volumes:
       - ./mova-admin:/usr/src/app
       - /usr/src/app/node_modules
-      - /usr/src/app/.next
+    command: npm run dev
 
 networks:
   mova-network:

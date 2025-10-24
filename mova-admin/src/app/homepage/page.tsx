@@ -8,6 +8,14 @@ export default function HomePage() {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const router = useRouter();
 
+  const handleLogout = () => {
+    // Supprimer les tokens du localStorage
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    // Rediriger vers la page de login
+    router.push('/');
+  };
+
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -35,11 +43,41 @@ export default function HomePage() {
           fontSize: 36, 
           fontWeight: 700, 
           color: 'var(--primary)', 
-          marginBottom: 40, 
+          marginBottom: 24, 
           textAlign: 'center' 
         }}>
           Portail Admin
         </div>
+        
+        {/* Bouton de déconnexion */}
+        <button
+          style={{ 
+            background: 'transparent', 
+            color: 'var(--text-secondary)', 
+            border: '1px solid var(--border)', 
+            borderRadius: 8, 
+            padding: '8px 20px', 
+            fontWeight: 500, 
+            cursor: 'pointer',
+            fontSize: 13,
+            marginBottom: 32,
+            transition: 'all 0.2s',
+          }}
+          onMouseOver={(e) => {
+            e.currentTarget.style.background = 'var(--background)';
+            e.currentTarget.style.borderColor = 'var(--primary)';
+            e.currentTarget.style.color = 'var(--primary)';
+          }}
+          onMouseOut={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.borderColor = 'var(--border)';
+            e.currentTarget.style.color = 'var(--text-secondary)';
+          }}
+          onClick={handleLogout}
+        >
+          Se déconnecter
+        </button>
+
         {selectedSection && (
           <button
             style={{ 
