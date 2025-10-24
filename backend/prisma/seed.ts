@@ -76,6 +76,7 @@ async function main() {
   // Créer des profils de test complets
   console.log('\n👥 Création des profils de test...');
   
+  const bcrypt = require('bcrypt');
   const testPassword = await bcrypt.hash('Test123!', 10);
 
   // Créer un compte admin (sans profil candidat ni recruteur)
