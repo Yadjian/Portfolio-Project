@@ -128,9 +128,11 @@ export async function sendSwipeAction(profileId: string, direction: 'LEFT' | 'RI
 }
 
 export async function undoPreviousSwipe() {
-  // Placeholder function
-  console.log("API CALL (simulation): Undoing last swipe.");
-  return Promise.resolve({ success: true });
+  const response = await fetch(`${API_URL}/swipes/undo`, {
+    method: 'POST',
+    headers: await getHeaders(true),
+  });
+  return handleResponse(response);
 }
 
 // ----------------------
