@@ -57,6 +57,8 @@ export default function RecruiterProfilePage() {
 
   if (!recruiter) return <div>Chargement...</div>;
 
+  // Style for input fields
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const inputStyle = {
     width: '100%',
     marginBottom: 16,

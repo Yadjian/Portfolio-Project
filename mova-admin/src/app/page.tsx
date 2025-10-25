@@ -72,7 +72,7 @@ export default function LoginPage() {
               Connexion Admin
             </div>
             <div style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>
-              Accédez au panneau d'administration Mova
+              Accédez au panneau d&apos;administration Mova
             </div>
           </div>
         </div>

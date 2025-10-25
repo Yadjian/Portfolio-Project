@@ -96,13 +96,49 @@ export async function getMyProfile() {
   return handleResponse(response);
 }
 
-export async function updateProfile(profileData: any) {
-  // La route pour mettre à jour le profil de l'utilisateur courant
+export async function updateProfile(
+  profileData: any,
+  photoUri?: string
+) {
+  // 1. Toujours envoyer les données textuelles en JSON
   const response = await fetch(`${API_URL}/profile/me`, {
     method: 'PUT',
     headers: await getHeaders(true),
     body: JSON.stringify(profileData),
   });
+  const result = await handleResponse(response);
+  
+  // 2. Si une photo est fournie, l'envoyer séparément sur /profile/photo
+  if (photoUri) {
+    await uploadProfilePhoto(photoUri);
+  }
+  
+  return result;
+}
+
+export async function uploadProfilePhoto(photoUri: string) {
+  const token = await SecureStore.getItemAsync('auth_token');
+  const formData = new FormData();
+  
+  const filename = photoUri.split('/').pop() || 'photo.jpg';
+  const match = /\.(\w+)$/.exec(filename);
+  const type = match ? `image/${match[1]}` : 'image/jpeg';
+  
+  formData.append('photoFile', {
+    uri: photoUri,
+    name: filename,
+    type,
+  } as any);
+  
+  const response = await fetch(`${API_URL}/profile/photo`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'ngrok-skip-browser-warning': 'true',
+    },
+    body: formData,
+  });
+  
   return handleResponse(response);
 }
 

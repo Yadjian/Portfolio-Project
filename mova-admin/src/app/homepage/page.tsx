@@ -44,7 +44,7 @@ export default function HomePage() {
                 Portail Administrateur
               </div>
               <div style={{ fontSize: 14, color: '#666' }}>
-                Bienvenue sur le panneau d'administration Mova
+                Bienvenue sur le panneau d&apos;administration Mova
               </div>
             </div>
           </div>
@@ -152,7 +152,7 @@ export default function HomePage() {
               onClick={() => router.push('/services/joboffers')}
             >
               <div style={{ fontSize: 48 }}>💼</div>
-              <div>Offres d'emploi</div>
+              <div>Offres d&apos;emploi</div>
             </div>
           </div>
 

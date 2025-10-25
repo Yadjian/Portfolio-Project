@@ -36,6 +36,7 @@ export default function EditProfileScreen() {
   const [locationName, setLocationName] = useState('');
   const [locationWKT, setLocationWKT] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
+  const [selectedPhotoUri, setSelectedPhotoUri] = useState<string | null>(null); // URI locale de la photo sélectionnée
   const [job, setJob] = useState('');
   const [selectedJobCategoryId, setSelectedJobCategoryId] = useState<string | null>(null);
   const [jobModalVisible, setJobModalVisible] = useState(false);
@@ -194,7 +195,7 @@ export default function EditProfileScreen() {
     }
 
     try {
-      await updateProfile(profileData);
+      await updateProfile(profileData, selectedPhotoUri || undefined);
       await refreshUser(); // On rafraîchit les données utilisateur
 
       // Naviguer vers l'écran de profil final
@@ -233,6 +234,13 @@ export default function EditProfileScreen() {
         <View style={styles.formCard}>
           {/* Image Picker */}
           <TouchableOpacity style={styles.imagePicker} onPress={async () => {
+            // Demander les permissions d'abord
+            const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+            if (status !== 'granted') {
+              alert('Désolé, nous avons besoin de la permission pour accéder à vos photos !');
+              return;
+            }
+            
             const result = await ImagePicker.launchImageLibraryAsync({
               mediaTypes: ImagePicker.MediaTypeOptions.Images,
               allowsEditing: true,
@@ -240,7 +248,9 @@ export default function EditProfileScreen() {
               quality: 0.7,
             });
             if (!result.canceled && result.assets && result.assets.length > 0) {
-              setAvatarUrl(result.assets[0].uri);
+              const uri = result.assets[0].uri;
+              setAvatarUrl(uri); // Affichage local
+              setSelectedPhotoUri(uri); // Stockage pour l'upload
             }
           }}>
             <Image
@@ -521,7 +531,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
-    elevation: 8,
+    elevation: 3, // Réduit de 8 à 3 pour éviter les conflits avec l'image picker
     borderWidth: 1,
     borderColor: '#e8e8e8',
   },

@@ -115,7 +115,7 @@ export class SwipesService {
       },
     });
 
-    if (!swiperUser) {
+    if (!user) {
       throw new NotFoundException('Utilisateur non trouvé.');
     }
 

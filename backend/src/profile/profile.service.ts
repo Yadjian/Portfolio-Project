@@ -156,13 +156,16 @@ export class ProfileService {
 
     let profileModel: any;
     let profileId: string;
+    let oldPhotoUrl: string | null = null;
 
     if (user.candidateProfile) {
       profileModel = this.prisma.candidateProfile;
       profileId = user.candidateProfile.id;
+      oldPhotoUrl = user.candidateProfile.photoUrl;
     } else if (user.recruiterProfile) {
       profileModel = this.prisma.recruiterProfile;
       profileId = user.recruiterProfile.id;
+      oldPhotoUrl = user.recruiterProfile.photoUrl;
     } else {
       throw new NotFoundException('Profil non trouvé.');
     }
@@ -175,6 +178,11 @@ export class ProfileService {
         'profile-photos',
       );
       photoUrlData = { photoUrl: url };
+      
+      // Supprimer l'ancienne photo si elle existe
+      if (oldPhotoUrl) {
+        await this.fileStorageService.deleteFileByUrl(oldPhotoUrl);
+      }
     }
 
     // 3. Gérer les catégories (si elles sont fournies)
@@ -210,6 +218,55 @@ export class ProfileService {
     });
   }
 
+  // === MÉTHODE POUR UPLOADER UNIQUEMENT LA PHOTO DE PROFIL ===
+  async updateProfilePhoto(userId: string, photoFile: Express.Multer.File) {
+    // 1. Trouver le profil de l'utilisateur
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { candidateProfile: true, recruiterProfile: true },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé.');
+    }
+
+    // 2. Récupérer l'ancienne URL de photo pour la supprimer
+    let oldPhotoUrl: string | null = null;
+    if (user.candidateProfile) {
+      oldPhotoUrl = user.candidateProfile.photoUrl;
+    } else if (user.recruiterProfile) {
+      oldPhotoUrl = user.recruiterProfile.photoUrl;
+    }
+
+    // 3. Upload de la nouvelle photo sur R2
+    const photoUrl = await this.fileStorageService.uploadFile(
+      photoFile,
+      'profile-photos',
+    );
+
+    // 4. Mettre à jour le profil avec la nouvelle photoUrl
+    if (user.candidateProfile) {
+      await this.prisma.candidateProfile.update({
+        where: { id: user.candidateProfile.id },
+        data: { photoUrl },
+      });
+    } else if (user.recruiterProfile) {
+      await this.prisma.recruiterProfile.update({
+        where: { id: user.recruiterProfile.id },
+        data: { photoUrl },
+      });
+    } else {
+      throw new NotFoundException('Profil non trouvé.');
+    }
+
+    // 5. Supprimer l'ancienne photo de R2 (si elle existe)
+    if (oldPhotoUrl) {
+      await this.fileStorageService.deleteFileByUrl(oldPhotoUrl);
+    }
+
+    return { photoUrl };
+  }
+
   async updateResume(userId: string, file: Express.Multer.File) {
     // 1. Trouver le profil candidat
     const profile = await this.prisma.candidateProfile.findUnique({
@@ -220,11 +277,15 @@ export class ProfileService {
       throw new NotFoundException('Profil candidat non trouvé.');
     }
 
-    // 2. Envoyer le fichier à R2
-    // On le stocke dans un dossier "resumes" avec un nom unique
+    // 2. Envoyer le nouveau fichier à R2
     const fileUrl = await this.fileStorageService.uploadFile(file, 'resumes');
 
-    // 3. Sauvegarder l'URL publique dans la BDD
+    // 3. Supprimer l'ancien CV de R2 (si il existe)
+    if (profile.resumeUrl) {
+      await this.fileStorageService.deleteFileByUrl(profile.resumeUrl);
+    }
+
+    // 4. Sauvegarder l'URL publique dans la BDD
     const updatedProfile = await this.prisma.candidateProfile.update({
       where: { id: profile.id },
       data: {
@@ -248,7 +309,12 @@ export class ProfileService {
       throw new NotFoundException('Profil candidat non trouvé.');
     }
 
-    // 2. Supprimer l'URL du CV dans la BDD (on ne supprime pas le fichier R2 pour l'instant)
+    // 2. Supprimer le fichier de R2 (si il existe)
+    if (profile.resumeUrl) {
+      await this.fileStorageService.deleteFileByUrl(profile.resumeUrl);
+    }
+
+    // 3. Supprimer l'URL du CV dans la BDD
     await this.prisma.candidateProfile.update({
       where: { id: profile.id },
       data: {

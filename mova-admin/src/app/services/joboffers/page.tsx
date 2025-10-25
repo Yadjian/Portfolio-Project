@@ -156,6 +156,7 @@ export default function JobOffersServices() {
         const data = await res.json();
         
         // Mapper createdBy vers recruiter pour correspondre à l'interface
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedData = data.map((offer: any) => ({
           ...offer,
           recruiter: offer.createdBy ? {
