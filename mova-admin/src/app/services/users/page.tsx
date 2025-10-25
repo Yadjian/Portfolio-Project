@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import MovaLogo from '../../components/MovaLogo';
 
 type User = {
   id: string;
@@ -128,6 +129,11 @@ export default function UsersServices() {
         alignItems: 'center',
         border: '1px solid var(--border)'
       }}>
+        {/* Logo Mova */}
+        <div style={{ marginBottom: 24 }}>
+          <MovaLogo size={80} />
+        </div>
+        
         {/* AJOUT DU TITRE ET DU BOUTON */}
         <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--primary)', marginBottom: 24, textAlign: 'center' }}>
           Portail Admin
@@ -159,8 +165,21 @@ export default function UsersServices() {
           <button
             style={{
               ...styles.button,
-              background: selectedService === 'create' ? 'var(--primary)' : 'var(--secondary)',
-              boxShadow: selectedService === 'create' ? '0 4px 12px rgba(73, 48, 163, 0.3)' : '0 4px 12px rgba(7, 185, 255, 0.3)',
+              background: selectedService === 'create' ? 'var(--primary)' : 'transparent',
+              color: selectedService === 'create' ? '#fff' : 'var(--primary)',
+              border: '2px solid var(--primary)',
+            }}
+            onMouseOver={(e) => {
+              if (selectedService !== 'create') {
+                e.currentTarget.style.background = 'var(--primary)';
+                e.currentTarget.style.color = '#fff';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (selectedService !== 'create') {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--primary)';
+              }
             }}
             onClick={() => toggleService('create')}
           >
@@ -169,8 +188,21 @@ export default function UsersServices() {
           <button
             style={{
               ...styles.button,
-              background: selectedService === 'list' ? 'var(--primary)' : 'var(--secondary)',
-              boxShadow: selectedService === 'list' ? '0 4px 12px rgba(73, 48, 163, 0.3)' : '0 4px 12px rgba(7, 185, 255, 0.3)',
+              background: selectedService === 'list' ? 'var(--primary)' : 'transparent',
+              color: selectedService === 'list' ? '#fff' : 'var(--primary)',
+              border: '2px solid var(--primary)',
+            }}
+            onMouseOver={(e) => {
+              if (selectedService !== 'list') {
+                e.currentTarget.style.background = 'var(--primary)';
+                e.currentTarget.style.color = '#fff';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (selectedService !== 'list') {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--primary)';
+              }
             }}
             onClick={() => toggleService('list')}
           >
@@ -179,8 +211,21 @@ export default function UsersServices() {
           <button
             style={{
               ...styles.button,
-              background: selectedService === 'findUser' ? 'var(--primary)' : 'var(--secondary)',
-              boxShadow: selectedService === 'findUser' ? '0 4px 12px rgba(73, 48, 163, 0.3)' : '0 4px 12px rgba(7, 185, 255, 0.3)',
+              background: selectedService === 'findUser' ? 'var(--primary)' : 'transparent',
+              color: selectedService === 'findUser' ? '#fff' : 'var(--primary)',
+              border: '2px solid var(--primary)',
+            }}
+            onMouseOver={(e) => {
+              if (selectedService !== 'findUser') {
+                e.currentTarget.style.background = 'var(--primary)';
+                e.currentTarget.style.color = '#fff';
+              }
+            }}
+            onMouseOut={(e) => {
+              if (selectedService !== 'findUser') {
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--primary)';
+              }
             }}
             onClick={() => toggleService('findUser')}
           >

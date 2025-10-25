@@ -7,20 +7,19 @@ export default function MovaLogo({ size = 120 }: { size?: number }) {
         width: size,
         height: size,
         borderRadius: size / 2,
-        background: 'linear-gradient(90deg, #6746a8, #6b25f9, #07b9ff)',
+        background: 'linear-gradient(135deg, #5546CC, #4930a3)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        border: '2px solid #fff',
-        margin: '0 auto 24px auto',
+        boxShadow: '0 8px 20px rgba(73, 48, 163, 0.3)',
       }}
     >
       <span style={{
         fontWeight: 'bold',
         color: '#fff',
         fontSize: size * 0.32,
-        fontFamily: 'sans-serif',
-        letterSpacing: 2,
+        fontFamily: 'Poppins, sans-serif',
+        letterSpacing: 1,
       }}>
         Mova
       </span>

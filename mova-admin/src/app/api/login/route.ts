@@ -4,8 +4,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    // Utiliser le nom du container directement
-    const res = await fetch('http://mova-backend-container:3000/auth/login', {
+    // Si BACKEND_URL est défini (Docker), l'utiliser, sinon utiliser localhost (dev local)
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:3000';
+    
+    const res = await fetch(`${backendUrl}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),

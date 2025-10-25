@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import UsersServices from '../services/users/page';
+import MovaLogo from '../components/MovaLogo';
 
 export default function HomePage() {
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
@@ -39,6 +40,11 @@ export default function HomePage() {
         alignItems: 'center',
         border: '1px solid var(--border)'
       }}>
+        {/* Logo Mova */}
+        <div style={{ marginBottom: 24 }}>
+          <MovaLogo size={80} />
+        </div>
+        
         <div style={{ 
           fontSize: 36, 
           fontWeight: 700, 
@@ -101,10 +107,32 @@ export default function HomePage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
             {/* Boutons actifs */}
             <div style={{ marginBottom: 12 }}>
-              <button style={buttonStyle} onClick={() => router.push('/services/users')}>
+              <button 
+                style={buttonStyle}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'var(--primary)';
+                  e.currentTarget.style.color = '#fff';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'var(--primary)';
+                }}
+                onClick={() => router.push('/services/users')}
+              >
                 👥 Utilisateurs
               </button>
-              <button style={buttonStyle} onClick={() => router.push('/services/joboffers')}>
+              <button 
+                style={buttonStyle}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'var(--primary)';
+                  e.currentTarget.style.color = '#fff';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                  e.currentTarget.style.color = 'var(--primary)';
+                }}
+                onClick={() => router.push('/services/joboffers')}
+              >
                 💼 Offres d&apos;emploi
               </button>
             </div>
@@ -140,14 +168,13 @@ const buttonStyle = {
   width: '100%',
   height: 56,
   borderRadius: 12,
-  background: 'var(--primary)',
-  color: '#fff',
+  background: 'transparent',
+  color: 'var(--primary)',
   fontWeight: 600,
   fontSize: 16,
-  border: 'none',
+  border: '2px solid var(--primary)',
   marginBottom: 12,
   cursor: 'pointer',
-  boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
   transition: 'all 0.2s',
 };
 
