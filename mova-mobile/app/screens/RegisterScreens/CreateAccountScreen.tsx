@@ -80,7 +80,6 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
         contentContainerStyle={keyboardVisible ? styles.scrollContent : styles.content}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        scrollEnabled={keyboardVisible}
       >
         {/* Header avec logo */}
         <View style={styles.header}>
