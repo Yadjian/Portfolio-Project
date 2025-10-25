@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../lib/types';
 import MovaLogo from '../../components/ui/MovaLogo';
@@ -10,8 +10,16 @@ import Colors from '../../constants/Colors';
 const { height, width } = Dimensions.get('window');
 
 export default function UserHomeScreen() {
-  const { logout, user } = useAuth();
+  const { logout, user, refreshUser } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+
+  // Rafraîchir les données utilisateur à chaque fois qu'on arrive sur cet écran
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🔄 [UserHomeScreen] Rafraîchissement des données utilisateur...');
+      refreshUser();
+    }, [])
+  );
 
   const handleLogout = () => {
     logout();
@@ -19,12 +27,20 @@ export default function UserHomeScreen() {
   };
 
   const handleGoToProfile = () => {
-    if (user?.type === 'candidate') {
-      navigation.navigate('CandidateProfile', {});
-    } else if (user?.type === 'recruiter') {
-      navigation.navigate('RecruiterProfile', {});
+    console.log('🔍 [UserHomeScreen] handleGoToProfile appelé');
+    console.log('🔍 [UserHomeScreen] user complet:', JSON.stringify(user, null, 2));
+    console.log('🔍 [UserHomeScreen] candidateProfile:', user?.candidateProfile);
+    console.log('🔍 [UserHomeScreen] recruiterProfile:', user?.recruiterProfile);
+    
+    if (user?.candidateProfile) {
+      console.log('✅ [UserHomeScreen] Navigation vers CandidateProfile');
+      navigation.navigate('CandidateProfile', { startEditing: false });
+    } else if (user?.recruiterProfile) {
+      console.log('✅ [UserHomeScreen] Navigation vers RecruiterProfile');
+      navigation.navigate('RecruiterProfile', { startEditing: false });
+    } else {
+      console.log('❌ [UserHomeScreen] Aucun profil trouvé');
     }
-    // Si le type d'utilisateur n'est pas défini, ne fait rien pour éviter une erreur.
   };
 
   return (
