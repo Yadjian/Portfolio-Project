@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import MovaLogo from './components/MovaLogo'; // adapte le chemin si besoin
+import MovaLogo from './components/MovaLogo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -39,104 +39,143 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)' 
+    <div style={{
+      width: '100%',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)',
+      padding: '40px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
     }}>
-      <form onSubmit={handleLogin} style={{ 
-        background: 'var(--card-background)', 
-        padding: 48, 
-        borderRadius: 24, 
-        boxShadow: '0 8px 32px rgba(73, 48, 163, 0.12)', 
-        width: 400,
-        maxWidth: 400,
-        border: '1px solid var(--border)'
+      <div style={{
+        maxWidth: 500,
+        width: '100%',
+        background: '#fff',
+        borderRadius: 16,
+        boxShadow: '0 4px 24px rgba(73, 48, 163, 0.1)',
+        overflow: 'hidden'
       }}>
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 32 }}>
-          <MovaLogo size={100} />
-        </div>
-        <h1 style={{ 
-          fontSize: 32, 
-          color: 'var(--primary)', 
-          marginBottom: 8, 
-          textAlign: 'center',
-          fontWeight: 700
+        {/* Header */}
+        <div style={{
+          background: '#fff',
+          padding: '32px 48px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 16,
+          borderBottom: '3px solid #4930a3'
         }}>
-          Connexion Admin
-        </h1>
-        <p style={{
-          textAlign: 'center',
-          color: 'var(--text-secondary)',
-          marginBottom: 32,
-          fontSize: 15
-        }}>
-          Accédez au panneau d&apos;administration
-        </p>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          style={{ 
-            width: '100%', 
-            padding: 14, 
-            borderRadius: 12, 
-            border: '2px solid var(--border)', 
-            marginBottom: 16, 
-            fontSize: 16,
-            background: 'var(--card-background)',
-            boxSizing: 'border-box'
-          }}
-        />
-        <input
-          type="password"
-          placeholder="Mot de passe"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={{ 
-            width: '100%', 
-            padding: 14, 
-            borderRadius: 12, 
-            border: '2px solid var(--border)', 
-            marginBottom: 20, 
-            fontSize: 16,
-            background: 'var(--card-background)',
-            boxSizing: 'border-box'
-          }}
-        />
-        {error && (
-          <div style={{ 
-            color: 'var(--error)', 
-            marginBottom: 20,
-            padding: 12,
-            background: 'rgba(239, 68, 68, 0.1)',
-            borderRadius: 8,
-            fontSize: 14
-          }}>
-            {error}
+          <MovaLogo size={70} />
+          <div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: '#4930a3', textAlign: 'center', marginBottom: 4 }}>
+              Connexion Admin
+            </div>
+            <div style={{ fontSize: 14, color: '#666', textAlign: 'center' }}>
+              Accédez au panneau d'administration Mova
+            </div>
           </div>
-        )}
-        <button
-          type="submit"
-          style={{ 
-            width: '100%', 
-            height: 52, 
-            borderRadius: 12, 
-            background: 'var(--primary)', 
-            color: '#fff', 
-            fontWeight: 600, 
-            fontSize: 16, 
-            border: 'none', 
-            cursor: 'pointer',
-            boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)'
-          }}
-        >
-          Se connecter
-        </button>
-      </form>
+        </div>
+
+        {/* Form */}
+        <form onSubmit={handleLogin} style={{ padding: '48px' }}>
+          <div style={{ marginBottom: 20 }}>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: 8, 
+              fontSize: 14, 
+              fontWeight: 600, 
+              color: '#4930a3' 
+            }}>
+              Email
+            </label>
+            <input
+              type="email"
+              placeholder="admin@mova.app"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              style={{ 
+                width: '100%', 
+                padding: '14px 16px', 
+                borderRadius: 8, 
+                border: '2px solid #e0e0ff', 
+                fontSize: 15,
+                background: '#fff',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.2s'
+              }}
+              onFocus={(e) => e.currentTarget.style.borderColor = '#4930a3'}
+              onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0ff'}
+            />
+          </div>
+
+          <div style={{ marginBottom: 24 }}>
+            <label style={{ 
+              display: 'block', 
+              marginBottom: 8, 
+              fontSize: 14, 
+              fontWeight: 600, 
+              color: '#4930a3' 
+            }}>
+              Mot de passe
+            </label>
+            <input
+              type="password"
+              placeholder="••••••••"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              style={{ 
+                width: '100%', 
+                padding: '14px 16px', 
+                borderRadius: 8, 
+                border: '2px solid #e0e0ff', 
+                fontSize: 15,
+                background: '#fff',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.2s'
+              }}
+              onFocus={(e) => e.currentTarget.style.borderColor = '#4930a3'}
+              onBlur={(e) => e.currentTarget.style.borderColor = '#e0e0ff'}
+            />
+          </div>
+
+          {error && (
+            <div style={{ 
+              color: '#e53935',
+              marginBottom: 24,
+              padding: 12,
+              background: 'rgba(229, 57, 53, 0.1)',
+              borderRadius: 8,
+              fontSize: 14,
+              fontWeight: 500,
+              textAlign: 'center'
+            }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            style={{ 
+              width: '100%', 
+              height: 52, 
+              borderRadius: 8, 
+              background: '#4930a3', 
+              color: '#fff', 
+              fontWeight: 600, 
+              fontSize: 16, 
+              border: 'none', 
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.background = '#6746a8'}
+            onMouseOut={(e) => e.currentTarget.style.background = '#4930a3'}
+          >
+            Se connecter
+          </button>
+        </form>
+      </div>
     </div>
   );
 }

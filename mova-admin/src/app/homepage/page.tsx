@@ -1,195 +1,249 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
-import UsersServices from '../services/users/page';
 import MovaLogo from '../components/MovaLogo';
 
 export default function HomePage() {
-  const [selectedSection, setSelectedSection] = useState<string | null>(null);
   const router = useRouter();
 
   const handleLogout = () => {
-    // Supprimer les tokens du localStorage
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    // Rediriger vers la page de login
     router.push('/');
   };
 
   return (
-    <div style={{ 
-      minHeight: '100vh', 
-      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      paddingTop: 60,
-      paddingBottom: 60 
+    <div style={{
+      width: '100%',
+      minHeight: '100vh',
+      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)',
+      padding: '40px 20px'
     }}>
-      <div style={{ 
-        background: 'var(--card-background)', 
-        borderRadius: 24, 
-        boxShadow: '0 8px 32px rgba(73, 48, 163, 0.12)', 
-        padding: '48px 40px', 
-        minWidth: 400, 
-        marginTop: 24, 
-        marginBottom: 24, 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center',
-        border: '1px solid var(--border)'
+      <div style={{
+        maxWidth: 1200,
+        margin: '0 auto',
+        background: '#fff',
+        borderRadius: 16,
+        boxShadow: '0 4px 24px rgba(73, 48, 163, 0.1)',
+        overflow: 'hidden'
       }}>
-        {/* Logo Mova */}
-        <div style={{ marginBottom: 24 }}>
-          <MovaLogo size={80} />
-        </div>
-        
-        <div style={{ 
-          fontSize: 36, 
-          fontWeight: 700, 
-          color: 'var(--primary)', 
-          marginBottom: 24, 
-          textAlign: 'center' 
+        {/* Header */}
+        <div style={{
+          background: '#fff',
+          padding: '32px 48px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '3px solid #4930a3'
         }}>
-          Portail Admin
-        </div>
-        
-        {/* Bouton de déconnexion */}
-        <button
-          style={{ 
-            background: 'transparent', 
-            color: 'var(--text-secondary)', 
-            border: '1px solid var(--border)', 
-            borderRadius: 8, 
-            padding: '8px 20px', 
-            fontWeight: 500, 
-            cursor: 'pointer',
-            fontSize: 13,
-            marginBottom: 32,
-            transition: 'all 0.2s',
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = 'var(--background)';
-            e.currentTarget.style.borderColor = 'var(--primary)';
-            e.currentTarget.style.color = 'var(--primary)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.borderColor = 'var(--border)';
-            e.currentTarget.style.color = 'var(--text-secondary)';
-          }}
-          onClick={handleLogout}
-        >
-          Se déconnecter
-        </button>
-
-        {selectedSection && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <MovaLogo size={60} />
+            <div>
+              <div style={{ fontSize: 32, fontWeight: 700, color: '#4930a3', marginBottom: 4 }}>
+                Portail Administrateur
+              </div>
+              <div style={{ fontSize: 14, color: '#666' }}>
+                Bienvenue sur le panneau d'administration Mova
+              </div>
+            </div>
+          </div>
           <button
             style={{ 
-              marginTop: 24, 
-              background: 'var(--background)', 
-              color: 'var(--primary)', 
-              border: '2px solid var(--border)', 
-              borderRadius: 12, 
-              padding: '12px 32px', 
-              fontWeight: 600, 
+              background: '#e53935', 
+              color: '#fff',
+              border: 'none', 
+              borderRadius: 8, 
+              padding: '10px 24px', 
+              fontWeight: 600,
               cursor: 'pointer',
-              fontSize: 15,
+              fontSize: 14,
               transition: 'all 0.2s'
             }}
-            onClick={() => setSelectedSection(null)}
+            onMouseOver={(e) => e.currentTarget.style.background = '#c62828'}
+            onMouseOut={(e) => e.currentTarget.style.background = '#e53935'}
+            onClick={handleLogout}
           >
-            ← Retour au menu principal
+            Déconnexion
           </button>
-        )}
-        {!selectedSection && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 320 }}>
-            {/* Boutons actifs */}
-            <div style={{ marginBottom: 12 }}>
-              <button 
-                style={buttonStyle}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'var(--primary)';
-                  e.currentTarget.style.color = '#fff';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'var(--primary)';
-                }}
-                onClick={() => router.push('/services/users')}
-              >
-                👥 Utilisateurs
-              </button>
-              <button 
-                style={buttonStyle}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.background = 'var(--primary)';
-                  e.currentTarget.style.color = '#fff';
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'var(--primary)';
-                }}
-                onClick={() => router.push('/services/joboffers')}
-              >
-                💼 Offres d&apos;emploi
-              </button>
-            </div>
-            {/* Titre et boutons floutés */}
-            <div style={{ 
-              marginTop: 20,
-              marginBottom: 12, 
-              fontWeight: 600, 
-              color: 'var(--text-secondary)', 
-              fontSize: 16, 
-              textAlign: 'center',
-              textTransform: 'uppercase',
-              letterSpacing: '0.5px'
-            }}>
-              Prochainement
-            </div>
-            <button style={{ ...buttonStyleDisabled }}>📄 CVs</button>
-            <button style={{ ...buttonStyleDisabled }}>🤝 Matchs</button>
-            <button style={{ ...buttonStyleDisabled }}>👆 Swipes</button>
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: '48px' }}>
+          <div style={{ 
+            fontSize: 24, 
+            fontWeight: 700, 
+            color: '#4930a3', 
+            marginBottom: 32,
+            textAlign: 'center'
+          }}>
+            Services disponibles
           </div>
-        )}
 
-        {/* Section utilisateurs : affiche tous les services users */}
-        {selectedSection === 'users' && <UsersServices />}
+          {/* Liste de services */}
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 20,
+            marginBottom: 48,
+            justifyContent: 'center',
+            flexWrap: 'wrap'
+          }}>
+            {/* Utilisateurs */}
+            <div
+              style={{
+                background: '#f8f9ff',
+                border: '2px solid #e0e0ff',
+                borderRadius: 12,
+                padding: '24px 32px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                color: '#4930a3',
+                fontWeight: 600,
+                fontSize: 16,
+                minWidth: 200,
+                maxWidth: 250
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = '#e8e9ff';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = '#f8f9ff';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+              onClick={() => router.push('/services/users')}
+            >
+              <div style={{ fontSize: 48 }}>👥</div>
+              <div>Utilisateurs</div>
+            </div>
 
-        {/* Ajoute ici les autres sections */}
+            {/* Offres d'emploi */}
+            <div
+              style={{
+                background: '#f8f9ff',
+                border: '2px solid #e0e0ff',
+                borderRadius: 12,
+                padding: '24px 32px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                color: '#4930a3',
+                fontWeight: 600,
+                fontSize: 16,
+                minWidth: 200,
+                maxWidth: 250
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.background = '#e8e9ff';
+                e.currentTarget.style.transform = 'translateY(-2px)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.background = '#f8f9ff';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+              onClick={() => router.push('/services/joboffers')}
+            >
+              <div style={{ fontSize: 48 }}>💼</div>
+              <div>Offres d'emploi</div>
+            </div>
+          </div>
+
+          {/* Services à venir */}
+          <div style={{ 
+            fontSize: 14, 
+            fontWeight: 700, 
+            color: '#999', 
+            marginBottom: 20,
+            textTransform: 'uppercase',
+            letterSpacing: '1px',
+            textAlign: 'center'
+          }}>
+            Prochainement
+          </div>
+
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'row',
+            gap: 20,
+            justifyContent: 'center',
+            flexWrap: 'wrap'
+          }}>
+            {/* CVs */}
+            <div
+              style={{
+                background: '#f5f5f5',
+                borderRadius: 12,
+                padding: '24px 32px',
+                opacity: 0.5,
+                cursor: 'not-allowed',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                minWidth: 200,
+                maxWidth: 250
+              }}
+            >
+              <div style={{ fontSize: 48 }}>📄</div>
+              <div style={{ color: '#999' }}>CVs</div>
+            </div>
+
+            {/* Matchs */}
+            <div
+              style={{
+                background: '#f5f5f5',
+                borderRadius: 12,
+                padding: '24px 32px',
+                opacity: 0.5,
+                cursor: 'not-allowed',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                minWidth: 200,
+                maxWidth: 250
+              }}
+            >
+              <div style={{ fontSize: 48 }}>🤝</div>
+              <div style={{ color: '#999' }}>Matchs</div>
+            </div>
+
+            {/* Swipes */}
+            <div
+              style={{
+                background: '#f5f5f5',
+                borderRadius: 12,
+                padding: '24px 32px',
+                opacity: 0.5,
+                cursor: 'not-allowed',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+                fontSize: 16,
+                fontWeight: 600,
+                minWidth: 200,
+                maxWidth: 250
+              }}
+            >
+              <div style={{ fontSize: 48 }}>👆</div>
+              <div style={{ color: '#999' }}>Swipes</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
-
-const buttonStyle = {
-  width: '100%',
-  height: 56,
-  borderRadius: 12,
-  background: 'transparent',
-  color: 'var(--primary)',
-  fontWeight: 600,
-  fontSize: 16,
-  border: '2px solid var(--primary)',
-  marginBottom: 12,
-  cursor: 'pointer',
-  transition: 'all 0.2s',
-};
-
-const buttonStyleDisabled = {
-  width: '100%',
-  height: 56,
-  borderRadius: 12,
-  background: 'var(--border)',
-  color: 'var(--text-secondary)',
-  fontWeight: 600,
-  fontSize: 16,
-  border: 'none',
-  marginBottom: 12,
-  cursor: 'not-allowed',
-  opacity: 0.5,
-  filter: 'blur(1px)',
-  pointerEvents: 'none' as const,
-};

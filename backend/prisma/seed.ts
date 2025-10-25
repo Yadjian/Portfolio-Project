@@ -1,4 +1,5 @@
 import { PrismaClient, ContractType, ExperienceLevel } from '@prisma/client';
+import * as bcrypt from 'bcrypt';
 
 // Initialiser le client Prisma
 const prisma = new PrismaClient();
@@ -75,7 +76,6 @@ async function main() {
   // Créer des profils de test complets
   console.log('\n👥 Création des profils de test...');
   
-  const bcrypt = require('bcrypt');
   const testPassword = await bcrypt.hash('Test123!', 10);
 
   // Créer un compte admin (sans profil candidat ni recruteur)
@@ -387,6 +387,150 @@ async function main() {
   }
 
   console.log('🎉 Tous les profils de test ont été créés !');
+
+  // Créer des offres d'emploi pour les recruteurs
+  console.log('\n💼 Création des offres d\'emploi...');
+
+  const jobOffers = [
+    {
+      recruiterEmail: 'kevin.sport@gmail.com',
+      title: 'Chauffeur / Chauffeuse',
+      description: 'Kévin Moov\' recherche des chauffeurs VTC motivés ! Rejoignez notre équipe dynamique et bénéficiez d\'une grande flexibilité horaire. Nous offrons des conditions attractives : véhicules récents, secteurs touristiques privilégiés et accompagnement personnalisé. Permis B requis.',
+      contractType: ContractType.CDD,
+      experienceLevel: 'DEBUTANT' as ExperienceLevel,
+      workHours: '35',
+      salaryMin: 1800,
+      salaryMax: 2200,
+      location: { lat: 43.4332, lon: 6.7378, name: 'Fréjus, France' },
+    },
+    {
+      recruiterEmail: 'marc.jean@gmail.com',
+      title: 'Vendeur / Vendeuse',
+      description: 'Boutique de prêt-à-porter recherche vendeurs passionnés ! Vous évoluerez dans un cadre prestigieux sur le port de Saint-Raphaël. Nous recherchons des profils dynamiques avec un excellent sens du contact client et une sensibilité pour la mode haut de gamme.',
+      contractType: ContractType.CDI,
+      experienceLevel: 'CONFIRME' as ExperienceLevel,
+      workHours: '35',
+      salaryMin: 2000,
+      salaryMax: 2500,
+      location: { lat: 43.4255, lon: 6.7321, name: 'Saint-Raphaël, France' },
+    },
+    {
+      recruiterEmail: 'fred.petit@gmail.com',
+      title: 'Serveur / Serveuse',
+      description: 'Le restaurant La Table du Puget recherche des serveurs dynamiques ! Vous travaillerez dans un cadre convivial avec une vue sur l\'Argens. Nous valorisons le professionnalisme, la bonne humeur et le service de qualité. Formation interne assurée.',
+      contractType: ContractType.ALTERNANCE,
+      experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+      workHours: '35',
+      salaryMin: 1600,
+      salaryMax: 1800,
+      location: { lat: 43.4520, lon: 6.6180, name: 'Puget-sur-Argens, France' },
+    },
+    {
+      recruiterEmail: 'recruteur.sophia@mova.com',
+      title: 'Cuisinier / Cuisinière',
+      description: 'Restaurant gastronomique Le Gourmet recherche un cuisinier talentueux ! Rejoignez notre brigade dans un cadre exceptionnel à Roquebrune. Nous valorisons la créativité, les produits frais locaux et l\'esprit d\'équipe. Évoluez dans un environnement stimulant.',
+      contractType: ContractType.CDI,
+      experienceLevel: 'CONFIRME' as ExperienceLevel,
+      workHours: '39',
+      salaryMin: 2200,
+      salaryMax: 2800,
+      location: { lat: 43.4447, lon: 6.6375, name: 'Roquebrune-sur-Argens, France' },
+    },
+    {
+      recruiterEmail: 'recruteur.monaco@mova.com',
+      title: 'Réceptionniste',
+      description: 'Hôtel 4 étoiles recherche réceptionniste bilingue ! Situé en plein cœur de Sainte-Maxime, notre établissement accueille une clientèle internationale exigeante. Vous serez le premier contact avec nos clients et incarnerez l\'image de notre hôtel.',
+      contractType: ContractType.CDD,
+      experienceLevel: 'DEBUTANT' as ExperienceLevel,
+      workHours: '35',
+      salaryMin: 1900,
+      salaryMax: 2100,
+      location: { lat: 43.3078, lon: 6.7731, name: 'Sainte-Maxime, France' },
+    },
+    {
+      recruiterEmail: 'recruteur.cannes@mova.com',
+      title: 'Vendeur / Vendeuse',
+      description: 'Boutique de luxe recherche vendeurs passionnés avec un excellent sens du service client ! Rejoignez notre boutique au cœur du Muy. Nous vous offrons un environnement stimulant, des produits d\'exception et une clientèle internationale exigeante.',
+      contractType: ContractType.CDI,
+      experienceLevel: 'CONFIRME' as ExperienceLevel,
+      workHours: '35',
+      salaryMin: 2100,
+      salaryMax: 2600,
+      location: { lat: 43.4475, lon: 6.5689, name: 'Le Muy, France' },
+    },
+    {
+      recruiterEmail: 'recruteur.test@mova.com',
+      title: 'Réceptionniste',
+      description: 'Le Grand Hôtel de Fréjus recherche un réceptionniste expérimenté pour accueillir notre clientèle internationale. Vous serez le visage de notre établissement 4 étoiles. Maîtrise du français et de l\'anglais indispensable.',
+      contractType: ContractType.CDI,
+      experienceLevel: 'CONFIRME' as ExperienceLevel,
+      workHours: '35',
+      salaryMin: 2000,
+      salaryMax: 2400,
+      location: { lat: 43.4125, lon: 6.7458, name: 'Fréjus, France' },
+    },
+  ];
+
+  for (const offerData of jobOffers) {
+    // Trouver le recruteur
+    const user = await prisma.user.findUnique({ where: { email: offerData.recruiterEmail } });
+    if (!user) {
+      console.log(`❌ Utilisateur non trouvé: ${offerData.recruiterEmail}`);
+      continue;
+    }
+
+    const recruiterProfile = await prisma.recruiterProfile.findUnique({
+      where: { userId: user.id },
+      include: { memberships: { include: { company: true } } }
+    });
+    
+    if (!recruiterProfile) {
+      console.log(`❌ Profil recruteur non trouvé pour: ${offerData.recruiterEmail}`);
+      continue;
+    }
+
+    // Récupérer la première entreprise du recruteur
+    const companyId = recruiterProfile.memberships[0]?.companyId;
+    if (!companyId) {
+      console.log(`❌ Pas d'entreprise pour le recruteur: ${offerData.recruiterEmail}`);
+      continue;
+    }
+
+    // Vérifier si l'offre existe déjà
+    const existingOffer = await prisma.jobOffer.findFirst({
+      where: {
+        createdById: recruiterProfile.id,
+        title: offerData.title,
+      },
+    });
+
+    if (existingOffer) {
+      console.log(`ℹ️  Offre existante: ${offerData.title} (${offerData.recruiterEmail})`);
+      continue;
+    }
+
+    const locationWKT = `POINT(${offerData.location.lon} ${offerData.location.lat})`;
+
+    await prisma.jobOffer.create({
+      data: {
+        createdById: recruiterProfile.id,
+        companyId: companyId,
+        title: offerData.title,
+        description: offerData.description,
+        contractType: offerData.contractType,
+        experienceLevel: offerData.experienceLevel,
+        workHours: offerData.workHours,
+        locationWKT: locationWKT,
+        locationName: offerData.location.name,
+        salaryMin: offerData.salaryMin,
+        salaryMax: offerData.salaryMax,
+      },
+    });
+
+    console.log(`✅ Offre créée: ${offerData.title} par ${offerData.recruiterEmail}`);
+  }
+
+  console.log('💼 Création des offres d\'emploi terminée !');
 }
 
 main()

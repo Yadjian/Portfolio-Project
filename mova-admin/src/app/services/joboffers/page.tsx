@@ -1,7 +1,12 @@
 'use client';
 
-import React, { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 import MovaLogo from '../../components/MovaLogo';
+
+interface JobCategory {
+  id: string;
+  name: string;
+}
 
 interface JobOffer {
   id: string;
@@ -15,14 +20,14 @@ interface JobOffer {
   salaryMin?: number;
   salaryMax?: number;
   workHours?: string;
-  currency?: string;
-  isActive?: boolean;
-  expiresAt?: string;
   experienceLevel?: string;
-  company?: {
-    name: string;
+  recruiter?: {
+    firstName: string;
+    lastName: string;
+    company?: {
+      name: string;
+    };
   };
-  categories?: Array<{ name: string }>;
 }
 
 type State = {
@@ -30,7 +35,18 @@ type State = {
   error: string | null;
   selectedService: 'list' | 'create' | 'findOffer' | 'editOffer' | null;
   foundOffer: JobOffer | null;
-  form: Omit<JobOffer, 'id' | 'company' | 'categories' | 'contractType' | 'experienceLevel' | 'isActive' | 'createdAt' | 'updatedAt'> & { id?: string };
+  form: {
+    id?: string;
+    title: string;
+    description: string;
+    contractType: string;
+    experienceLevel: string;
+    workHours: string;
+    locationName: string;
+    locationWKT: string;
+    salaryMin: number | null;
+    salaryMax: number | null;
+  };
 };
 
 type Action =
@@ -50,12 +66,13 @@ const initialState: State = {
   form: {
     title: '',
     description: '',
-    locationWKT: '',
-    locationName: '',
+    contractType: 'CDI',
+    experienceLevel: 'DEBUTANT',
     workHours: '',
-    currency: 'EUR',
-    salaryMin: undefined,
-    salaryMax: undefined,
+    locationName: '',
+    locationWKT: '',
+    salaryMin: null,
+    salaryMax: null,
   },
 };
 
@@ -75,7 +92,18 @@ function reducer(state: State, action: Action): State {
         ...state,
         selectedService: 'editOffer',
         foundOffer: null,
-        form: { ...action.payload },
+        form: {
+          id: action.payload.id,
+          title: action.payload.title,
+          description: action.payload.description,
+          contractType: action.payload.contractType,
+          experienceLevel: action.payload.experienceLevel || 'DEBUTANT',
+          workHours: action.payload.workHours || '',
+          locationName: action.payload.locationName || '',
+          locationWKT: action.payload.locationWKT || '',
+          salaryMin: action.payload.salaryMin ?? null,
+          salaryMax: action.payload.salaryMax ?? null,
+        },
       };
     case 'UPDATE_FORM':
       return { ...state, form: { ...state.form, [action.payload.field]: action.payload.value } };
@@ -89,6 +117,31 @@ function reducer(state: State, action: Action): State {
 export default function JobOffersServices() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { offers, error, selectedService, foundOffer, form } = state;
+  const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
+
+  // Charger les catégories d'emploi
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        const res = await fetch('/api/meta/job-categories', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        if (res.ok) {
+          const data = await res.json();
+          console.log('Catégories chargées:', data);
+          setJobCategories(data);
+        } else {
+          console.error('Erreur HTTP:', res.status, res.statusText);
+        }
+      } catch (err) {
+        console.error('Erreur lors du chargement des catégories:', err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     const fetchOffers = async () => {
@@ -101,7 +154,18 @@ export default function JobOffersServices() {
         });
         if (!res.ok) throw new Error('Erreur de chargement');
         const data = await res.json();
-        dispatch({ type: 'SET_OFFERS', payload: data });
+        
+        // Mapper createdBy vers recruiter pour correspondre à l'interface
+        const mappedData = data.map((offer: any) => ({
+          ...offer,
+          recruiter: offer.createdBy ? {
+            firstName: offer.createdBy.firstName,
+            lastName: offer.createdBy.lastName,
+            company: offer.createdBy.memberships?.[0]?.company,
+          } : undefined,
+        }));
+        
+        dispatch({ type: 'SET_OFFERS', payload: mappedData });
       } catch {
         dispatch({ type: 'SET_ERROR', payload: 'Erreur de chargement' });
       }
@@ -122,129 +186,140 @@ export default function JobOffersServices() {
 
   return (
     <div style={{
-      width: '100vw',
+      width: '100%',
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      padding: '40px 0'
+      padding: '40px 20px'
     }}>
       <div style={{
-        background: 'var(--card-background)',
-        borderRadius: 24,
-        boxShadow: '0 8px 32px rgba(73, 48, 163, 0.12)',
-        padding: '48px 32px',
-        minWidth: 350,
-        maxWidth: 900,
-        marginTop: 24,
-        marginBottom: 24,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        border: '1px solid var(--border)'
+        maxWidth: 1400,
+        margin: '0 auto',
+        background: '#fff',
+        borderRadius: 16,
+        boxShadow: '0 4px 24px rgba(73, 48, 163, 0.1)',
+        overflow: 'hidden'
       }}>
-        {/* Logo Mova */}
-        <div style={{ marginBottom: 24 }}>
-          <MovaLogo size={80} />
+        {/* Header */}
+        <div style={{
+          background: '#fff',
+          padding: '32px 48px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderBottom: '3px solid #4930a3'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <MovaLogo size={60} />
+            <div>
+              <div style={{ fontSize: 32, fontWeight: 700, color: '#4930a3', marginBottom: 4 }}>
+                Gestion des Offres d&apos;Emploi
+              </div>
+              <div style={{ fontSize: 14, color: '#666' }}>
+                Portail Administrateur Mova
+              </div>
+            </div>
+          </div>
+          <button
+            style={{ 
+              background: '#4930a3', 
+              color: '#fff',
+              border: 'none', 
+              borderRadius: 8, 
+              padding: '10px 24px', 
+              fontWeight: 600, 
+              cursor: 'pointer',
+              fontSize: 14,
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.3)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
+            }}
+            onClick={() => window.location.href = '/homepage'}
+          >
+            ← Retour au menu
+          </button>
         </div>
-        
-        {/* Titre et bouton menu principal */}
-        <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--primary)', marginBottom: 32, textAlign: 'center' }}>
-          Portail Admin
-        </div>
-        <button
-          style={{ 
-            marginTop: 0, 
-            background: 'var(--background)', 
-            color: 'var(--primary)', 
-            border: '2px solid var(--border)', 
-            borderRadius: 12, 
-            padding: '12px 32px', 
-            fontWeight: 600, 
-            cursor: 'pointer',
-            fontSize: 15,
-            transition: 'all 0.2s'
-          }}
-          onClick={() => window.location.href = '/homepage'}
-        >
-          Retour au menu principal
-        </button>
 
-        <div style={{ fontSize: 26, fontWeight: 700, color: 'var(--primary)', marginTop: 32, marginBottom: 32, textAlign: 'center' }}>
-          💼 Services Offres d&apos;emploi
+        {/* Navigation des services */}
+        <div style={{ 
+          padding: '32px 48px',
+          borderBottom: '1px solid #e8e9ff'
+        }}>
+          <div style={{ fontSize: 18, fontWeight: 600, color: '#666', marginBottom: 20 }}>
+            Services disponibles
+          </div>
+          <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
+            <button
+              style={{
+                ...styles.navButton,
+                background: selectedService === 'create' ? 'var(--primary)' : '#f8f9ff',
+                color: selectedService === 'create' ? '#fff' : 'var(--primary)',
+                border: selectedService === 'create' ? '2px solid var(--primary)' : '2px solid #e0e0ff',
+              }}
+              onMouseOver={(e) => {
+                if (selectedService !== 'create') {
+                  e.currentTarget.style.background = '#e8e9ff';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (selectedService !== 'create') {
+                  e.currentTarget.style.background = '#f8f9ff';
+                }
+              }}
+              onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'create' })}
+            >
+              ➕ Créer une offre
+            </button>
+            <button
+              style={{
+                ...styles.navButton,
+                background: selectedService === 'list' ? 'var(--primary)' : '#f8f9ff',
+                color: selectedService === 'list' ? '#fff' : 'var(--primary)',
+                border: selectedService === 'list' ? '2px solid var(--primary)' : '2px solid #e0e0ff',
+              }}
+              onMouseOver={(e) => {
+                if (selectedService !== 'list') {
+                  e.currentTarget.style.background = '#e8e9ff';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (selectedService !== 'list') {
+                  e.currentTarget.style.background = '#f8f9ff';
+                }
+              }}
+              onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'list' })}
+            >
+              📋 Lister les offres
+            </button>
+            <button
+              style={{
+                ...styles.navButton,
+                background: selectedService === 'findOffer' ? 'var(--primary)' : '#f8f9ff',
+                color: selectedService === 'findOffer' ? '#fff' : 'var(--primary)',
+                border: selectedService === 'findOffer' ? '2px solid var(--primary)' : '2px solid #e0e0ff',
+              }}
+              onMouseOver={(e) => {
+                if (selectedService !== 'findOffer') {
+                  e.currentTarget.style.background = '#e8e9ff';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (selectedService !== 'findOffer') {
+                  e.currentTarget.style.background = '#f8f9ff';
+                }
+              }}
+              onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'findOffer' })}
+            >
+              🔍 Rechercher une offre
+            </button>
+          </div>
         </div>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginBottom: 32 }}>
-          <button
-            style={{
-              ...styles.button,
-              background: selectedService === 'create' ? 'var(--primary)' : 'transparent',
-              color: selectedService === 'create' ? '#fff' : 'var(--primary)',
-              border: '2px solid var(--primary)',
-            }}
-            onMouseOver={(e) => {
-              if (selectedService !== 'create') {
-                e.currentTarget.style.background = 'var(--primary)';
-                e.currentTarget.style.color = '#fff';
-              }
-            }}
-            onMouseOut={(e) => {
-              if (selectedService !== 'create') {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--primary)';
-              }
-            }}
-            onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'create' })}
-          >
-            ➕ Créer une offre
-          </button>
-          <button
-            style={{
-              ...styles.button,
-              background: selectedService === 'list' ? 'var(--primary)' : 'transparent',
-              color: selectedService === 'list' ? '#fff' : 'var(--primary)',
-              border: '2px solid var(--primary)',
-            }}
-            onMouseOver={(e) => {
-              if (selectedService !== 'list') {
-                e.currentTarget.style.background = 'var(--primary)';
-                e.currentTarget.style.color = '#fff';
-              }
-            }}
-            onMouseOut={(e) => {
-              if (selectedService !== 'list') {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--primary)';
-              }
-            }}
-            onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'list' })}
-          >
-            📋 Lister les offres
-          </button>
-          <button
-            style={{
-              ...styles.button,
-              background: selectedService === 'findOffer' ? 'var(--primary)' : 'transparent',
-              color: selectedService === 'findOffer' ? '#fff' : 'var(--primary)',
-              border: '2px solid var(--primary)',
-            }}
-            onMouseOver={(e) => {
-              if (selectedService !== 'findOffer') {
-                e.currentTarget.style.background = 'var(--primary)';
-                e.currentTarget.style.color = '#fff';
-              }
-            }}
-            onMouseOut={(e) => {
-              if (selectedService !== 'findOffer') {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--primary)';
-              }
-            }}
-            onClick={() => dispatch({ type: 'TOGGLE_SERVICE', payload: 'findOffer' })}
-          >
-            🔍 Rechercher une offre
-          </button>
-        </div>
+
+        {/* Content area */}
+        <div style={{ padding: '48px' }}>
 
         {/* Liste des offres */}
         {selectedService === 'list' && (
@@ -255,16 +330,41 @@ export default function JobOffersServices() {
               <thead>
                 <tr style={{ background: '#eaeaea' }}>
                   <th style={tableStyles.th}>ID</th>
-                  <th style={tableStyles.th}>Entreprise</th>
-                  <th style={tableStyles.th}>Titre</th>
+                  <th style={tableStyles.th}>Recruteur</th>
+                  <th style={tableStyles.th}>Titre (Poste)</th>
+                  <th style={tableStyles.th}>Lieu</th>
+                  <th style={tableStyles.th}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {offers.map((offer: JobOffer) => (
                   <tr key={offer.id} style={{ background: '#fff' }}>
-                    <td style={tableStyles.td}>{offer.id}</td>
-                    <td style={tableStyles.td}>{offer.company?.name || 'N/A'}</td>
+                    <td style={{...tableStyles.td, fontFamily: 'monospace', fontSize: 11, maxWidth: 100, wordBreak: 'break-all' as const}}>
+                      {offer.id}
+                    </td>
+                    <td style={tableStyles.td}>{offer.recruiter ? `${offer.recruiter.firstName} ${offer.recruiter.lastName}` : 'N/A'}</td>
                     <td style={tableStyles.td}>{offer.title}</td>
+                    <td style={tableStyles.td}>{offer.locationName || 'Non spécifié'}</td>
+                    <td style={tableStyles.td}>
+                      <button
+                        style={{
+                          background: 'var(--primary)',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '6px 12px',
+                          fontSize: 12,
+                          cursor: 'pointer',
+                          fontWeight: 600,
+                        }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(offer.id);
+                          alert('ID copié !');
+                        }}
+                      >
+                        📋 Copier ID
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -305,65 +405,95 @@ export default function JobOffersServices() {
               }}
               style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
             >
-              <input
+              <select
                 name="title"
-                type="text"
-                placeholder="Titre de l'offre"
                 required
                 value={form.title}
                 onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'title', value: e.target.value } })}
                 style={styles.input}
-              />
-              <textarea
-                name="description"
-                placeholder="Description complète de l'offre"
+              >
+                <option value="">Sélectionner un poste</option>
+                {jobCategories.map(category => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              
+              <select
+                name="contractType"
                 required
-                value={form.description}
-                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'description', value: e.target.value } })}
-                style={{...styles.input, height: 100, resize: 'vertical' as const}}
+                value={form.contractType}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'contractType', value: e.target.value } })}
+                style={styles.input}
+              >
+                <option value="">Type de contrat</option>
+                <option value="CDI">CDI</option>
+                <option value="CDD">CDD</option>
+                <option value="INTERIM">Intérim</option>
+                <option value="ALTERNANCE">Alternance</option>
+                <option value="STAGE">Stage</option>
+              </select>
+
+              <select
+                name="experienceLevel"
+                required
+                value={form.experienceLevel}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'experienceLevel', value: e.target.value } })}
+                style={styles.input}
+              >
+                <option value="">Expérience requise</option>
+                <option value="DEBUTANT">Débutant</option>
+                <option value="INTERMEDIAIRE">Intermédiaire</option>
+                <option value="CONFIRME">Confirmé</option>
+              </select>
+
+              <input
+                name="workHours"
+                type="text"
+                placeholder="Heures / semaine (ex: 35)"
+                value={form.workHours}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'workHours', value: e.target.value } })}
+                style={styles.input}
               />
+
               <input
                 name="locationName"
                 type="text"
-                placeholder="Ville (ex: Paris, Lyon)"
+                placeholder="Lieu (ex: Paris, Lyon)"
                 required
                 value={form.locationName}
                 onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'locationName', value: e.target.value } })}
                 style={styles.input}
               />
-              <input
-                name="locationWKT"
-                type="text"
-                placeholder="Coordonnées GPS (ex: POINT(2.3522 48.8566))"
-                required
-                value={form.locationWKT}
-                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'locationWKT', value: e.target.value } })}
-                style={styles.input}
-              />
-              <input
-                name="workHours"
-                type="text"
-                placeholder="Horaires (ex: 35h/semaine, 9h-17h)"
-                value={form.workHours}
-                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'workHours', value: e.target.value } })}
-                style={styles.input}
-              />
+
               <input
                 name="salaryMin"
                 type="number"
-                placeholder="Salaire minimum (€/an)"
+                placeholder="Salaire minimum (€ brut mensuel)"
                 value={form.salaryMin || ''}
                 onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMin', value: e.target.value } })}
                 style={styles.input}
               />
+              
               <input
                 name="salaryMax"
                 type="number"
-                placeholder="Salaire maximum (€/an)"
+                placeholder="Salaire maximum (€ brut mensuel)"
                 value={form.salaryMax || ''}
                 onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMax', value: e.target.value } })}
                 style={styles.input}
               />
+
+              <textarea
+                name="description"
+                placeholder="Description du poste"
+                required
+                value={form.description}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'description', value: e.target.value } })}
+                style={{...styles.input, height: 120, resize: 'vertical' as const}}
+              />
+              
               <button type="submit" style={styles.smallButton}>
                 Créer
               </button>
@@ -399,229 +529,146 @@ export default function JobOffersServices() {
             {error && <div style={styles.error}>{error}</div>}
             {foundOffer && (
               <div style={{ 
-                marginTop: 24, 
-                width: '100%', 
-                maxWidth: 600,
-                background: 'var(--card-background)',
-                borderRadius: 16,
-                padding: 24,
-                boxShadow: '0 4px 16px rgba(73, 48, 163, 0.08)',
-                border: '1px solid var(--border)',
+                marginTop: 32,
+                background: '#fff',
+                borderRadius: 12,
+                padding: 0,
+                boxShadow: '0 2px 16px rgba(73, 48, 163, 0.1)',
+                border: '1px solid #e0e0ff',
+                overflow: 'hidden',
               }}>
-                {/* En-tête avec titre et statut */}
+                {/* En-tête avec gradient */}
                 <div style={{ 
-                  marginBottom: 20, 
-                  paddingBottom: 16, 
-                  borderBottom: '2px solid var(--border)' 
+                  background: 'linear-gradient(135deg, #4930a3 0%, #6746a8 100%)',
+                  padding: 24,
+                  color: '#fff'
                 }}>
                   <div style={{ 
-                    fontSize: 22, 
-                    fontWeight: 700, 
-                    color: 'var(--primary)',
+                    fontSize: 26, 
+                    fontWeight: 700,
                     marginBottom: 8 
                   }}>
                     {foundOffer.title}
                   </div>
                   <div style={{ 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: 12,
-                    fontSize: 14 
+                    fontSize: 12,
+                    opacity: 0.9,
+                    fontFamily: 'monospace'
                   }}>
-                    <span style={{ 
-                      background: foundOffer.isActive ? '#10b981' : '#ef4444',
-                      color: '#fff',
-                      padding: '4px 12px',
-                      borderRadius: 8,
-                      fontWeight: 600,
-                      fontSize: 13
-                    }}>
-                      {foundOffer.isActive ? '✅ Active' : '❌ Inactive'}
-                    </span>
-                    <span style={{ color: '#666', fontSize: 13 }}>
-                      ID: {foundOffer.id.slice(0, 8)}...
-                    </span>
+                    ID: {foundOffer.id}
                   </div>
                 </div>
 
-                {/* Informations principales */}
-                <div style={{ marginBottom: 20 }}>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>🏢 Entreprise</span>
-                    <span style={detailStyles.value}>{foundOffer.company?.name || 'Non spécifiée'}</span>
+                <div style={{ padding: 32 }}>
+                  {/* Grille d'informations */}
+                  <div style={{ 
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                    gap: 24,
+                    marginBottom: 32
+                  }}>
+                    <div style={detailStyles.row}>
+                      <span style={detailStyles.label}>👤 Recruteur</span>
+                      <span style={detailStyles.value}>
+                        {foundOffer.recruiter ? `${foundOffer.recruiter.firstName} ${foundOffer.recruiter.lastName}` : 'Non spécifié'}
+                      </span>
+                    </div>
+                    <div style={detailStyles.row}>
+                      <span style={detailStyles.label}>🏢 Entreprise</span>
+                      <span style={detailStyles.value}>{foundOffer.recruiter?.company?.name || 'Non spécifiée'}</span>
+                    </div>
                   </div>
+
                   <div style={detailStyles.row}>
                     <span style={detailStyles.label}>📝 Description</span>
                     <span style={detailStyles.value}>{foundOffer.description}</span>
                   </div>
-                </div>
 
-                {/* Détails du contrat */}
-                <div style={{ 
-                  background: 'var(--background)', 
-                  borderRadius: 12, 
-                  padding: 16,
-                  marginBottom: 20 
-                }}>
                   <div style={{ 
-                    fontSize: 16, 
-                    fontWeight: 700, 
-                    color: 'var(--primary)',
-                    marginBottom: 12 
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: 20,
+                    marginTop: 32,
+                    marginBottom: 24
                   }}>
-                    📋 Détails du contrat
+                    <div style={detailStyles.row}>
+                      <span style={detailStyles.label}>📋 Type de contrat</span>
+                      <span style={detailStyles.value}>{foundOffer.contractType}</span>
+                    </div>
+                    <div style={detailStyles.row}>
+                      <span style={detailStyles.label}>📊 Expérience</span>
+                      <span style={detailStyles.value}>{foundOffer.experienceLevel || 'Non spécifié'}</span>
+                    </div>
+                    <div style={detailStyles.row}>
+                      <span style={detailStyles.label}>⏰ Heures / sem</span>
+                      <span style={detailStyles.value}>{foundOffer.workHours ? `${foundOffer.workHours}h` : 'Non spécifiées'}</span>
+                    </div>
                   </div>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>Type de contrat</span>
-                    <span style={detailStyles.value}>{foundOffer.contractType}</span>
-                  </div>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>Niveau d&apos;expérience</span>
-                    <span style={detailStyles.value}>{foundOffer.experienceLevel || 'Non spécifié'}</span>
-                  </div>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>⏰ Horaires</span>
-                    <span style={detailStyles.value}>{foundOffer.workHours || 'Non spécifiés'}</span>
-                  </div>
-                </div>
 
-                {/* Localisation */}
-                <div style={{ 
-                  background: 'var(--background)', 
-                  borderRadius: 12, 
-                  padding: 16,
-                  marginBottom: 20 
-                }}>
                   <div style={{ 
-                    fontSize: 16, 
-                    fontWeight: 700, 
-                    color: 'var(--primary)',
-                    marginBottom: 12 
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                    gap: 20,
+                    marginBottom: 24
                   }}>
-                    📍 Localisation
+                    <div style={detailStyles.row}>
+                      <span style={detailStyles.label}>📍 Lieu</span>
+                      <span style={detailStyles.value}>{foundOffer.locationName || 'Non spécifié'}</span>
+                    </div>
+                    <div style={detailStyles.row}>
+                      <span style={detailStyles.label}>💰 Salaire min</span>
+                      <span style={detailStyles.value}>
+                        {foundOffer.salaryMin ? `${foundOffer.salaryMin.toLocaleString()} €` : 'Non spécifié'}
+                      </span>
+                    </div>
+                    <div style={detailStyles.row}>
+                      <span style={detailStyles.label}>💰 Salaire max</span>
+                      <span style={detailStyles.value}>
+                        {foundOffer.salaryMax ? `${foundOffer.salaryMax.toLocaleString()} €` : 'Non spécifié'}
+                      </span>
+                    </div>
                   </div>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>Lieu</span>
-                    <span style={detailStyles.value}>{foundOffer.locationName || 'Non spécifié'}</span>
-                  </div>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>Coordonnées GPS</span>
-                    <span style={{ ...detailStyles.value, fontSize: 12, fontFamily: 'monospace' }}>
-                      {foundOffer.locationWKT || 'Non spécifiées'}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Rémunération */}
-                <div style={{ 
-                  background: 'var(--background)', 
-                  borderRadius: 12, 
-                  padding: 16,
-                  marginBottom: 20 
-                }}>
-                  <div style={{ 
-                    fontSize: 16, 
-                    fontWeight: 700, 
-                    color: 'var(--primary)',
-                    marginBottom: 12 
-                  }}>
-                    💰 Rémunération
-                  </div>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>Salaire minimum</span>
-                    <span style={detailStyles.value}>
-                      {foundOffer.salaryMin ? `${foundOffer.salaryMin.toLocaleString()} ${foundOffer.currency || '€'}` : 'Non spécifié'}
-                    </span>
-                  </div>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>Salaire maximum</span>
-                    <span style={detailStyles.value}>
-                      {foundOffer.salaryMax ? `${foundOffer.salaryMax.toLocaleString()} ${foundOffer.currency || '€'}` : 'Non spécifié'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Informations complémentaires */}
-                <div style={{ 
-                  background: 'var(--background)', 
-                  borderRadius: 12, 
-                  padding: 16,
-                  marginBottom: 20 
-                }}>
-                  <div style={{ 
-                    fontSize: 16, 
-                    fontWeight: 700, 
-                    color: 'var(--primary)',
-                    marginBottom: 12 
-                  }}>
-                    ℹ️ Informations complémentaires
-                  </div>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>🏷️ Catégories</span>
-                    <span style={detailStyles.value}>
-                      {foundOffer.categories?.length ? (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                          {foundOffer.categories.map((c, i) => (
-                            <span key={i} style={{
-                              background: 'var(--primary)',
-                              color: '#fff',
-                              padding: '3px 10px',
-                              borderRadius: 6,
-                              fontSize: 12,
-                              fontWeight: 600
-                            }}>
-                              {c.name}
-                            </span>
-                          ))}
-                        </div>
-                      ) : 'Aucune'}
-                    </span>
-                  </div>
                   <div style={detailStyles.row}>
                     <span style={detailStyles.label}>📅 Date de création</span>
                     <span style={detailStyles.value}>
                       {foundOffer.createdAt ? new Date(foundOffer.createdAt).toLocaleDateString('fr-FR') : 'Date inconnue'}
                     </span>
                   </div>
-                  <div style={detailStyles.row}>
-                    <span style={detailStyles.label}>⏳ Date d&apos;expiration</span>
-                    <span style={detailStyles.value}>
-                      {foundOffer.expiresAt ? new Date(foundOffer.expiresAt).toLocaleDateString('fr-FR') : 'Pas de date d\'expiration'}
-                    </span>
-                  </div>
-                </div>
 
-                {/* Boutons d'action */}
-                <div style={{ display: 'flex', gap: 12, marginTop: 24, justifyContent: 'center' }}>
-                  <button
-                    style={styles.smallButton}
-                    onClick={() => dispatch({ type: 'START_EDIT', payload: foundOffer })}
-                  >
-                    ✏️ Modifier
-                  </button>
-                  <button
-                    style={{ ...styles.smallButton, background: '#e53935' }}
-                    onClick={async () => {
-                      if (!foundOffer) return;
-                      try {
-                        const token = localStorage.getItem('accessToken');
-                        const res = await fetch(`/api/joboffers/${foundOffer.id}`, {
-                          method: 'DELETE',
-                          headers: {
-                            'Authorization': `Bearer ${token}`,
-                          },
-                        });
-                        if (!res.ok) throw new Error('Erreur lors de la suppression');
-                        refetchOffers();
-                        dispatch({ type: 'TOGGLE_SERVICE', payload: null });
-                      } catch (err) {
-                        const message = err instanceof Error ? err.message : 'Erreur lors de la suppression';
-                        dispatch({ type: 'SET_ERROR', payload: message });
-                      }
-                    }}
-                  >
-                    🗑️ Supprimer
-                  </button>
+                  {/* Boutons d'action */}
+                  <div style={{ display: 'flex', gap: 12, marginTop: 32, paddingTop: 24, borderTop: '1px solid #e0e0ff' }}>
+                    <button
+                      style={styles.smallButton}
+                      onClick={() => dispatch({ type: 'START_EDIT', payload: foundOffer })}
+                    >
+                      ✏️ Modifier
+                    </button>
+                    <button
+                      style={{ ...styles.smallButton, background: '#e53935' }}
+                      onClick={async () => {
+                        if (!foundOffer) return;
+                        if (!confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) return;
+                        try {
+                          const token = localStorage.getItem('accessToken');
+                          const res = await fetch(`/api/joboffers/${foundOffer.id}`, {
+                            method: 'DELETE',
+                            headers: {
+                              'Authorization': `Bearer ${token}`,
+                            },
+                          });
+                          if (!res.ok) throw new Error('Erreur lors de la suppression');
+                          refetchOffers();
+                          dispatch({ type: 'TOGGLE_SERVICE', payload: null });
+                        } catch (err) {
+                          const message = err instanceof Error ? err.message : 'Erreur lors de la suppression';
+                          dispatch({ type: 'SET_ERROR', payload: message });
+                        }
+                      }}
+                    >
+                      🗑️ Supprimer
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
@@ -652,65 +699,95 @@ export default function JobOffersServices() {
               }}
               style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
             >
-              <input
+              <select
                 name="editTitle"
-                type="text"
-                placeholder="Titre"
                 required
                 value={form.title}
                 onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'title', value: e.target.value } })}
                 style={styles.input}
+              >
+                <option value="">Sélectionner un poste</option>
+                {jobCategories.map(category => (
+                  <option key={category.id} value={category.name}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              
+              <select
+                name="editContractType"
+                required
+                value={form.contractType}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'contractType', value: e.target.value } })}
+                style={styles.input}
+              >
+                <option value="">Type de contrat</option>
+                <option value="CDI">CDI</option>
+                <option value="CDD">CDD</option>
+                <option value="INTERIM">Intérim</option>
+                <option value="ALTERNANCE">Alternance</option>
+                <option value="STAGE">Stage</option>
+              </select>
+
+              <select
+                name="editExperienceLevel"
+                required
+                value={form.experienceLevel}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'experienceLevel', value: e.target.value } })}
+                style={styles.input}
+              >
+                <option value="">Expérience requise</option>
+                <option value="DEBUTANT">Débutant</option>
+                <option value="INTERMEDIAIRE">Intermédiaire</option>
+                <option value="CONFIRME">Confirmé</option>
+              </select>
+
+              <input
+                name="editWorkHours"
+                type="text"
+                placeholder="Heures / semaine"
+                value={form.workHours}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'workHours', value: e.target.value } })}
+                style={styles.input}
               />
+
+              <input
+                name="editLocationName"
+                type="text"
+                placeholder="Lieu"
+                required
+                value={form.locationName}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'locationName', value: e.target.value } })}
+                style={styles.input}
+              />
+
+              <input
+                name="editSalaryMin"
+                type="number"
+                placeholder="Salaire minimum (€ brut mensuel)"
+                value={form.salaryMin || ''}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMin', value: e.target.value } })}
+                style={styles.input}
+              />
+              
+              <input
+                name="editSalaryMax"
+                type="number"
+                placeholder="Salaire maximum (€ brut mensuel)"
+                value={form.salaryMax || ''}
+                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMax', value: e.target.value } })}
+                style={styles.input}
+              />
+
               <textarea
                 name="editDescription"
                 placeholder="Description"
                 required
                 value={form.description}
                 onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'description', value: e.target.value } })}
-                style={{...styles.input, height: 100, resize: 'vertical' as const}}
+                style={{...styles.input, height: 120, resize: 'vertical' as const}}
               />
-              <input
-                name="editLocationName"
-                type="text"
-                placeholder="Ville"
-                required
-                value={form.locationName}
-                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'locationName', value: e.target.value } })}
-                style={styles.input}
-              />
-              <input
-                name="editLocationWKT"
-                type="text"
-                placeholder="Coordonnées GPS"
-                required
-                value={form.locationWKT}
-                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'locationWKT', value: e.target.value } })}
-                style={styles.input}
-              />
-              <input
-                name="editWorkHours"
-                type="text"
-                placeholder="Horaires"
-                value={form.workHours}
-                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'workHours', value: e.target.value } })}
-                style={styles.input}
-              />
-              <input
-                name="editSalaryMin"
-                type="number"
-                placeholder="Salaire minimum (€)"
-                value={form.salaryMin || ''}
-                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMin', value: e.target.value } })}
-                style={styles.input}
-              />
-              <input
-                name="editSalaryMax"
-                type="number"
-                placeholder="Salaire maximum (€)"
-                value={form.salaryMax || ''}
-                onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'salaryMax', value: e.target.value } })}
-                style={styles.input}
-              />
+              
               <button type="submit" style={styles.smallButton}>
                 Enregistrer
               </button>
@@ -725,6 +802,7 @@ export default function JobOffersServices() {
             {error && <div style={styles.error}>{error}</div>}
           </div>
         )}
+        </div>
       </div>
     </div>
   );
@@ -733,12 +811,19 @@ export default function JobOffersServices() {
 const styles = {
   section: {
     width: '100%',
-    background: 'var(--background)',
-    borderRadius: 16,
+    background: '#fff',
+    borderRadius: 12,
     padding: 32,
     marginBottom: 24,
-    boxShadow: '0 4px 16px rgba(73, 48, 163, 0.08)',
-    border: '1px solid var(--border)',
+  },
+  navButton: {
+    padding: '12px 24px',
+    borderRadius: 8,
+    fontWeight: 600,
+    fontSize: 14,
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    border: 'none',
   },
   button: {
     width: 240,
@@ -753,75 +838,76 @@ const styles = {
     transition: 'all 0.2s',
   },
   smallButton: {
-    width: 140,
-    height: 44,
-    borderRadius: 12,
+    padding: '10px 20px',
+    borderRadius: 8,
     background: 'var(--primary)',
     color: '#fff',
     fontWeight: 600,
-    fontSize: 15,
+    fontSize: 14,
     border: 'none',
     cursor: 'pointer',
-    boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
+    boxShadow: '0 2px 8px rgba(73, 48, 163, 0.2)',
     transition: 'all 0.2s',
   },
   backButton: {
-    marginTop: 24,
-    background: 'var(--background)',
+    marginTop: 16,
+    padding: '10px 20px',
+    background: '#f8f9ff',
     color: 'var(--primary)',
-    border: '2px solid var(--border)',
-    borderRadius: 12,
-    padding: '12px 32px',
+    border: '2px solid #e0e0ff',
+    borderRadius: 8,
     fontWeight: 600,
     cursor: 'pointer',
-    fontSize: 15,
+    fontSize: 14,
     transition: 'all 0.2s',
   },
   input: {
     width: '100%',
-    maxWidth: 300,
-    padding: 14,
-    borderRadius: 12,
-    border: '2px solid var(--border)',
+    maxWidth: 500,
+    padding: 12,
+    borderRadius: 8,
+    border: '2px solid #e0e0ff',
     marginBottom: 16,
-    fontSize: 15,
+    fontSize: 14,
     boxSizing: 'border-box' as const,
-    background: 'var(--card-background)',
+    background: '#fff',
   },
   error: {
-    color: 'var(--error)',
-    marginBottom: 16,
+    color: '#e53935',
+    marginTop: 16,
     fontWeight: 600,
     textAlign: 'center' as const,
     padding: 12,
-    background: 'rgba(239, 68, 68, 0.1)',
+    background: 'rgba(229, 57, 53, 0.1)',
     borderRadius: 8,
     fontSize: 14,
   },
   title: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 700,
     color: 'var(--primary)',
     marginBottom: 24,
-    textAlign: 'center' as const,
   },
 };
 
 const tableStyles = {
   th: {
-    padding: '14px 18px',
+    padding: '16px 20px',
     textAlign: 'left' as const,
     fontWeight: 700,
-    color: 'var(--primary)',
-    fontSize: 15,
-    borderBottom: '2px solid var(--border)',
-    background: 'var(--background)',
+    color: '#4930a3',
+    fontSize: 13,
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.5px',
+    borderBottom: '3px solid #4930a3',
+    background: '#f8f9ff',
   },
   td: {
-    padding: '14px 18px',
-    fontSize: 15,
-    borderBottom: '1px solid var(--background)',
+    padding: '16px 20px',
+    fontSize: 14,
+    borderBottom: '1px solid #f0f0f0',
     color: '#333',
+    verticalAlign: 'middle' as const,
   },
 };
 
@@ -830,16 +916,19 @@ const detailStyles = {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: 6,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   label: {
-    fontSize: 13,
-    fontWeight: 600,
+    fontSize: 12,
+    fontWeight: 700,
     color: '#666',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.5px',
   },
   value: {
     fontSize: 15,
     fontWeight: 500,
     color: '#333',
+    lineHeight: 1.6,
   },
 };
