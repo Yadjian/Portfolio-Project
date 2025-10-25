@@ -25,18 +25,25 @@ const ProfileSection: React.FC<ProfileSectionProps> = ({ title, icon, iconColor 
 const styles = StyleSheet.create({
   section: {
     backgroundColor: Colors.light.backgroundCard,
-    marginTop: 10,
+    marginHorizontal: 8,
+    marginTop: 12,
     padding: 20,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: Colors.light.text,
-    marginLeft: 10,
+    marginLeft: 8,
   },
   sectionContent: {
     marginTop: 15,

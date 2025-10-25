@@ -21,9 +21,7 @@ interface SwipeCardProps {
 // Redesigned InfoTag
 const InfoTag = ({ icon, text }: { icon: keyof typeof Feather.glyphMap; text: string }) => (
   <View style={styles.tag}>
-    <View style={styles.tagIconContainer}>
-      <Feather name={icon} size={16} color="#fff" />
-    </View>
+    <Feather name={icon} size={16} color={Colors.light.text} />
     <Text style={styles.tagText}>{text}</Text>
   </View>
 );
@@ -41,23 +39,26 @@ export default function SwipeCard(props: SwipeCardProps) {
 
   return (
     <View style={[styles.card, { height: cardHeight }]} pointerEvents="box-none">
-      {/* Header Section with Gradient Background */}
-      <View style={styles.headerGradient} pointerEvents="none">
-        <View style={styles.header}>
-          <View style={styles.avatarContainer}>
-            <Image
-              source={avatarUrl ? { uri: avatarUrl } : require('../../assets/images/icon.png')}
-              style={styles.avatar}
-            />
-          </View>
-          <Text style={styles.name}>{name}</Text>
-          {location && (
-            <View style={styles.locationContainer}>
-              <Feather name="map-pin" size={16} color="#fff" />
-              <Text style={styles.location}>{location}</Text>
-            </View>
-          )}
+      {/* Header Section */}
+      <View style={styles.header} pointerEvents="none">
+        {/* Bande violette en arrière-plan */}
+        <View style={styles.headerBackground} />
+        
+        {/* Avatar qui chevauche la bande */}
+        <View style={styles.avatarContainer}>
+          <Image
+            source={avatarUrl ? { uri: avatarUrl } : require('../../assets/images/icon.png')}
+            style={styles.avatar}
+          />
         </View>
+        
+        <Text style={styles.name}>{name}</Text>
+        {location && (
+          <View style={styles.locationContainer}>
+            <Feather name="map-pin" size={14} color={Colors.light.textSecondary} />
+            <Text style={styles.location}>{location}</Text>
+          </View>
+        )}
       </View>
 
       {/* Info Section */}
@@ -100,19 +101,23 @@ const styles = StyleSheet.create({
     elevation: 12,
     overflow: 'hidden',
   },
-  headerGradient: {
-    backgroundColor: '#4930a3',
-    paddingTop: 25,
-    paddingBottom: 18,
-  },
   header: {
     alignItems: 'center',
+    paddingBottom: 20,
+    backgroundColor: Colors.light.backgroundCard,
+  },
+  headerBackground: {
+    backgroundColor: '#4930a3',
+    height: 100,
+    width: '100%',
+    position: 'absolute',
+    top: 0,
   },
   avatarContainer: {
-    padding: 4,
-    backgroundColor: '#fff',
-    borderRadius: 80,
-    marginBottom: 15,
+    marginTop: 30,
+    borderWidth: 4,
+    borderColor: Colors.light.backgroundCard,
+    borderRadius: 74,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
@@ -126,27 +131,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#e5e5e5',
   },
   name: {
-    fontSize: 26,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 8,
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
+    color: Colors.light.text,
+    marginTop: 10,
   },
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
+    marginTop: 8,
   },
   location: {
-    fontSize: 15,
-    color: '#fff',
-    marginLeft: 6,
-    fontWeight: '500',
+    fontSize: 14,
+    color: Colors.light.text,
+    marginLeft: 4,
   },
   infoSection: {
     padding: 24,
@@ -174,28 +172,21 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
-    gap: 10,
+    marginBottom: 20,
+    gap: 8,
   },
   tag: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderRadius: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    backgroundColor: '#4930a3',
-    shadowColor: '#4930a3',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  tagIconContainer: {
-    marginRight: 6,
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(73, 48, 163, 0.08)',
+    gap: 6,
   },
   tagText: {
-    color: '#fff',
-    fontSize: 14,
+    color: Colors.light.text,
+    fontSize: 13,
     fontWeight: '600',
   },
   divider: {

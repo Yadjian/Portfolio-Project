@@ -105,7 +105,7 @@ export default function CandidateProfileScreen() {
         </ProfileSection>
 
         {/* Spacer at the bottom */}
-        <View style={{ height: 100 }} />
+        <View style={{ height: 140 }} />
       </ScrollView>
       <BottomTabBar tabs={tabs} activeTabId="profile" />
     </View>
@@ -115,7 +115,7 @@ export default function CandidateProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
+    backgroundColor: Colors.light.backgroundCard,
   },
   scrollContainer: {
     flex: 1,
@@ -125,6 +125,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 20,
     backgroundColor: Colors.light.backgroundCard,
+    marginHorizontal: 8,
+    marginTop: 12,
+    borderRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    overflow: 'hidden',
   },
   headerBackground: {
     backgroundColor: '#4930a3',
