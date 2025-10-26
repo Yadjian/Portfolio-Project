@@ -3,11 +3,13 @@
 import React, { useEffect, useReducer, useState } from 'react';
 import MovaLogo from '../../components/MovaLogo';
 
+// Job category interface for dropdown options
 interface JobCategory {
   id: string;
   name: string;
 }
 
+// Job offer interface matching backend response structure
 interface JobOffer {
   id: string;
   createdAt: string;
@@ -30,6 +32,7 @@ interface JobOffer {
   };
 }
 
+// Component state managed by reducer
 type State = {
   offers: JobOffer[];
   error: string | null;
@@ -49,6 +52,7 @@ type State = {
   };
 };
 
+// Reducer action types
 type Action =
   | { type: 'SET_OFFERS'; payload: JobOffer[] }
   | { type: 'SET_ERROR'; payload: string | null }
@@ -58,6 +62,7 @@ type Action =
   | { type: 'UPDATE_FORM'; payload: { field: keyof State['form']; value: string } }
   | { type: 'RESET' };
 
+// Initial state for the reducer
 const initialState: State = {
   offers: [],
   error: null,
@@ -76,6 +81,7 @@ const initialState: State = {
   },
 };
 
+// State reducer function handling all state transitions
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'SET_OFFERS':
@@ -114,12 +120,15 @@ function reducer(state: State, action: Action): State {
   }
 }
 
+// Main job offers management component
 export default function JobOffersServices() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { offers, error, selectedService, foundOffer, form } = state;
   const [jobCategories, setJobCategories] = useState<JobCategory[]>([]);
+  const [contractTypes, setContractTypes] = useState<string[]>([]);
+  const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
 
-  // Charger les catégories d'emploi
+  // Fetch job categories from API on mount
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -143,6 +152,38 @@ export default function JobOffersServices() {
     fetchCategories();
   }, []);
 
+  // Fetch contract types and experience levels metadata
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        
+        const [contractTypesRes, experienceLevelsRes] = await Promise.all([
+          fetch('/api/meta/contract-types', {
+            headers: { 'Authorization': `Bearer ${token}` },
+          }),
+          fetch('/api/meta/experience-levels', {
+            headers: { 'Authorization': `Bearer ${token}` },
+          }),
+        ]);
+
+        if (contractTypesRes.ok) {
+          const data = await contractTypesRes.json();
+          setContractTypes(data);
+        }
+
+        if (experienceLevelsRes.ok) {
+          const data = await experienceLevelsRes.json();
+          setExperienceLevels(data);
+        }
+      } catch (err) {
+        console.error('Erreur lors du chargement des métadonnées:', err);
+      }
+    };
+    fetchMetadata();
+  }, []);
+
+  // Fetch job offers from API on mount
   useEffect(() => {
     const fetchOffers = async () => {
       try {
@@ -155,7 +196,7 @@ export default function JobOffersServices() {
         if (!res.ok) throw new Error('Erreur de chargement');
         const data = await res.json();
         
-        // Mapper createdBy vers recruiter pour correspondre à l'interface
+        // Map createdBy field to recruiter to match interface
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedData = data.map((offer: any) => ({
           ...offer,
@@ -174,7 +215,8 @@ export default function JobOffersServices() {
     fetchOffers();
   }, []);
 
-    const refetchOffers = () => {
+  // Helper function to refresh offers list after mutations
+  const refetchOffers = () => {
     const token = localStorage.getItem('accessToken');
     fetch('/api/joboffers', {
       headers: {
@@ -200,7 +242,7 @@ export default function JobOffersServices() {
         boxShadow: '0 4px 24px rgba(73, 48, 163, 0.1)',
         overflow: 'hidden'
       }}>
-        {/* Header */}
+        {/* Page header with logo and navigation */}
         <div style={{
           background: '#fff',
           padding: '32px 48px',
@@ -244,7 +286,7 @@ export default function JobOffersServices() {
           </button>
         </div>
 
-        {/* Navigation des services */}
+        {/* Service navigation buttons */}
         <div style={{ 
           padding: '32px 48px',
           borderBottom: '1px solid #e8e9ff'
@@ -319,10 +361,10 @@ export default function JobOffersServices() {
           </div>
         </div>
 
-        {/* Content area */}
+        {/* Main content area */}
         <div style={{ padding: '48px' }}>
 
-        {/* Liste des offres */}
+        {/* List view: display all job offers in a table */}
         {selectedService === 'list' && (
           <div style={styles.section}>
             <div style={styles.title}>Lister les offres</div>
@@ -373,7 +415,7 @@ export default function JobOffersServices() {
           </div>
         )}
 
-        {/* Création offre */}
+        {/* Create view: form to create a new job offer */}
         {selectedService === 'create' && (
           <div style={styles.section}>
             <div style={styles.title}>Créer une offre</div>
@@ -429,11 +471,11 @@ export default function JobOffersServices() {
                 style={styles.input}
               >
                 <option value="">Type de contrat</option>
-                <option value="CDI">CDI</option>
-                <option value="CDD">CDD</option>
-                <option value="INTERIM">Intérim</option>
-                <option value="ALTERNANCE">Alternance</option>
-                <option value="STAGE">Stage</option>
+                {contractTypes.map(type => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
               </select>
 
               <select
@@ -444,9 +486,11 @@ export default function JobOffersServices() {
                 style={styles.input}
               >
                 <option value="">Expérience requise</option>
-                <option value="DEBUTANT">Débutant</option>
-                <option value="INTERMEDIAIRE">Intermédiaire</option>
-                <option value="CONFIRME">Confirmé</option>
+                {experienceLevels.map(level => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
               </select>
 
               <input
@@ -503,7 +547,7 @@ export default function JobOffersServices() {
           </div>
         )}
 
-        {/* Trouver une offre */}
+        {/* Find view: search for a job offer by ID */}
         {selectedService === 'findOffer' && (
           <div style={styles.section}>
             <div style={styles.title}>Trouver une offre par ID</div>
@@ -538,7 +582,7 @@ export default function JobOffersServices() {
                 border: '1px solid #e0e0ff',
                 overflow: 'hidden',
               }}>
-                {/* En-tête avec gradient */}
+                {/* Header with gradient background */}
                 <div style={{ 
                   background: 'linear-gradient(135deg, #4930a3 0%, #6746a8 100%)',
                   padding: 24,
@@ -561,7 +605,7 @@ export default function JobOffersServices() {
                 </div>
 
                 <div style={{ padding: 32 }}>
-                  {/* Grille d'informations */}
+                  {/* Information grid */}
                   <div style={{ 
                     display: 'grid',
                     gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
@@ -637,7 +681,7 @@ export default function JobOffersServices() {
                     </span>
                   </div>
 
-                  {/* Boutons d'action */}
+                  {/* Action buttons */}
                   <div style={{ display: 'flex', gap: 12, marginTop: 32, paddingTop: 24, borderTop: '1px solid #e0e0ff' }}>
                     <button
                       style={styles.smallButton}
@@ -676,7 +720,7 @@ export default function JobOffersServices() {
           </div>
         )}
 
-        {/* Modifier une offre */}
+        {/* Edit view: form to update an existing job offer */}
         {selectedService === 'editOffer' && (
           <div style={styles.section}>
             <div style={styles.title}>Modifier une offre</div>
@@ -723,11 +767,11 @@ export default function JobOffersServices() {
                 style={styles.input}
               >
                 <option value="">Type de contrat</option>
-                <option value="CDI">CDI</option>
-                <option value="CDD">CDD</option>
-                <option value="INTERIM">Intérim</option>
-                <option value="ALTERNANCE">Alternance</option>
-                <option value="STAGE">Stage</option>
+                {contractTypes.map(type => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
               </select>
 
               <select
@@ -738,9 +782,11 @@ export default function JobOffersServices() {
                 style={styles.input}
               >
                 <option value="">Expérience requise</option>
-                <option value="DEBUTANT">Débutant</option>
-                <option value="INTERMEDIAIRE">Intermédiaire</option>
-                <option value="CONFIRME">Confirmé</option>
+                {experienceLevels.map(level => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
               </select>
 
               <input
@@ -809,6 +855,7 @@ export default function JobOffersServices() {
   );
 }
 
+// Component styles
 const styles = {
   section: {
     width: '100%',
@@ -891,6 +938,7 @@ const styles = {
   },
 };
 
+// Table styles
 const tableStyles = {
   th: {
     padding: '16px 20px',
@@ -912,6 +960,7 @@ const tableStyles = {
   },
 };
 
+// Detail view styles
 const detailStyles = {
   row: {
     display: 'flex',

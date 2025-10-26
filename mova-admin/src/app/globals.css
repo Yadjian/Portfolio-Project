@@ -21,7 +21,8 @@
   --error: #ef4444;
 }
 
-@theme inline {
+/* Theme variables for 'inline' theme (use data-theme="inline" on an element) */
+[data-theme="inline"] {
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-background: var(--background);

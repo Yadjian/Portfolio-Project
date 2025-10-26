@@ -4,9 +4,12 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import MovaLogo from '../components/MovaLogo';
 
+/* HomePage component - client-side dashboard that shows available admin services.
+   It uses client navigation and localStorage to handle logout. */
 export default function HomePage() {
   const router = useRouter();
 
+  // Remove stored tokens and navigate back to the login page
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
@@ -38,8 +41,10 @@ export default function HomePage() {
           borderBottom: '3px solid #4930a3'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            {/* Brand/logo component */}
             <MovaLogo size={60} />
             <div>
+              {/* Title and subtitle */}
               <div style={{ fontSize: 32, fontWeight: 700, color: '#4930a3', marginBottom: 4 }}>
                 Portail Administrateur
               </div>
@@ -48,6 +53,7 @@ export default function HomePage() {
               </div>
             </div>
           </div>
+          {/* Logout button (clears tokens and redirects to login) */}
           <button
             style={{ 
               background: '#e53935', 
@@ -77,10 +83,11 @@ export default function HomePage() {
             marginBottom: 32,
             textAlign: 'center'
           }}>
+            {/* Section heading for available services */}
             Services disponibles
           </div>
 
-          {/* Liste de services */}
+          {/* Services list */}
           <div style={{ 
             display: 'flex',
             flexDirection: 'row',
@@ -89,7 +96,7 @@ export default function HomePage() {
             justifyContent: 'center',
             flexWrap: 'wrap'
           }}>
-            {/* Utilisateurs */}
+            {/* Users card */}
             <div
               style={{
                 background: '#f8f9ff',
@@ -116,13 +123,14 @@ export default function HomePage() {
                 e.currentTarget.style.background = '#f8f9ff';
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
+              // navigate to users management page
               onClick={() => router.push('/services/users')}
             >
               <div style={{ fontSize: 48 }}>👥</div>
               <div>Utilisateurs</div>
             </div>
 
-            {/* Offres d'emploi */}
+            {/* Job offers card */}
             <div
               style={{
                 background: '#f8f9ff',
@@ -149,6 +157,7 @@ export default function HomePage() {
                 e.currentTarget.style.background = '#f8f9ff';
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
+              // navigate to job offers management page
               onClick={() => router.push('/services/joboffers')}
             >
               <div style={{ fontSize: 48 }}>💼</div>
@@ -156,7 +165,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Services à venir */}
+          {/* Upcoming features section */}
           <div style={{ 
             fontSize: 14, 
             fontWeight: 700, 
@@ -176,7 +185,7 @@ export default function HomePage() {
             justifyContent: 'center',
             flexWrap: 'wrap'
           }}>
-            {/* CVs */}
+            {/* Placeholder card for CVs feature */}
             <div
               style={{
                 background: '#f5f5f5',
@@ -198,7 +207,7 @@ export default function HomePage() {
               <div style={{ color: '#999' }}>CVs</div>
             </div>
 
-            {/* Matchs */}
+            {/* Placeholder card for Matches feature */}
             <div
               style={{
                 background: '#f5f5f5',
@@ -220,7 +229,7 @@ export default function HomePage() {
               <div style={{ color: '#999' }}>Matchs</div>
             </div>
 
-            {/* Swipes */}
+            {/* Placeholder card for Swipes feature */}
             <div
               style={{
                 background: '#f5f5f5',

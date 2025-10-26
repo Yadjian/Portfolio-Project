@@ -3,19 +3,26 @@
 import { useState } from 'react';
 import MovaLogo from './components/MovaLogo';
 
+// Login page component - handles admin authentication
 export default function LoginPage() {
+  // Form state management
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  // Handle form submission and authentication
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    
+    // Validate required fields
     if (!email || !password) {
       setError('Email et mot de passe requis');
       return;
     }
+    
     try {
+      // Call login API endpoint
       const res = await fetch('/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -28,10 +35,11 @@ export default function LoginPage() {
       
       const data = await res.json();
       
-      // Stocker les tokens
+      // Store JWT tokens in localStorage
       localStorage.setItem('accessToken', data.accessToken);
       localStorage.setItem('refreshToken', data.refreshToken);
       
+      // Redirect to homepage after successful login
       window.location.href = '/homepage';
     } catch {
       setError('Identifiants invalides');
@@ -56,7 +64,7 @@ export default function LoginPage() {
         boxShadow: '0 4px 24px rgba(73, 48, 163, 0.1)',
         overflow: 'hidden'
       }}>
-        {/* Header */}
+        {/* Header section with logo and title */}
         <div style={{
           background: '#fff',
           padding: '32px 48px',
@@ -77,8 +85,9 @@ export default function LoginPage() {
           </div>
         </div>
 
-        {/* Form */}
+        {/* Login form */}
         <form onSubmit={handleLogin} style={{ padding: '48px' }}>
+          {/* Email input field */}
           <div style={{ marginBottom: 20 }}>
             <label style={{ 
               display: 'block', 
@@ -109,6 +118,7 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* Password input field */}
           <div style={{ marginBottom: 24 }}>
             <label style={{ 
               display: 'block', 
@@ -139,6 +149,7 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* Error message display */}
           {error && (
             <div style={{ 
               color: '#e53935',
@@ -154,6 +165,7 @@ export default function LoginPage() {
             </div>
           )}
 
+          {/* Submit button */}
           <button
             type="submit"
             style={{ 
