@@ -10,12 +10,31 @@ import { Ionicons } from '@expo/vector-icons';
 
 const { height, width } = Dimensions.get('window');
 
+/**
+ * CreateCompanyScreen
+ *
+ * This screen allows a recruiter to register a new company.
+ *
+ * Main features:
+ * - Displays a form for entering company name and SIRET number.
+ * - Handles form state, input validation, and keyboard events.
+ * - Calls the backend to create the company with the provided info.
+ * - Navigates to the recruiter profile edit screen upon success.
+ * - Shows the app logo and a styled submit button.
+ *
+ * Key logic:
+ * - Uses React state for form fields and keyboard visibility.
+ * - Handles form submission and error display.
+ * - Uses KeyboardAvoidingView and ScrollView for mobile UX.
+ */
+
 export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthStackParamList, 'CreateCompany'> }) {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const [companyName, setCompanyName] = useState('');
   const [siret, setSiret] = useState('');
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
+  // Listen for keyboard show/hide events to adjust UI if needed
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -30,6 +49,7 @@ export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthSt
     };
   }, []);
 
+  // Handle form submission and company creation
   const handleSubmit = async () => {
     if (!companyName || !siret) {
       alert("Veuillez remplir tous les champs.");
@@ -57,6 +77,7 @@ export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthSt
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Header with logo and title */}
         <View style={styles.header}>
           <MovaLogo />
           <Text style={styles.title}>Créez votre entreprise</Text>
@@ -65,7 +86,9 @@ export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthSt
           </Text>
         </View>
 
+        {/* Company registration form card */}
         <View style={styles.formCard}>
+          {/* Company name input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Raison Sociale</Text>
             <View style={styles.inputContainer}>
@@ -80,6 +103,7 @@ export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthSt
             </View>
           </View>
 
+          {/* SIRET number input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Numéro SIRET</Text>
             <View style={styles.inputContainer}>
@@ -96,6 +120,7 @@ export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthSt
             </View>
           </View>
 
+          {/* Submit button */}
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
             <Text style={styles.submitButtonText}>Valider</Text>
           </TouchableOpacity>
@@ -105,6 +130,7 @@ export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthSt
   );
 }
 
+// Styles for the CreateCompanyScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

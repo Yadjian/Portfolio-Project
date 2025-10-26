@@ -2,6 +2,29 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { View, TextInput, TouchableOpacity, Text, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+/**
+ * CustomPlacesAutocomplete
+ *
+ * A custom Google Places Autocomplete input for address suggestions.
+ *
+ * Main features:
+ * - Fetches address suggestions from Google Places API as the user types.
+ * - Displays a dropdown list of suggestions.
+ * - Calls onSelect with the selected suggestion.
+ * - Shows a loading indicator and error messages.
+ * - Syncs internal input state with external value prop.
+ *
+ * Props:
+ * - apiKey: string — Google Places API key.
+ * - value: string — current value of the input.
+ * - onSelect: (item: Suggestion) => void — callback when a suggestion is selected.
+ *
+ * Key logic:
+ * - Uses fetchSuggestions to call the Google API.
+ * - Handles loading, error, and suggestion state.
+ * - Renders suggestions in a dropdown below the input.
+ */
+
 export type Suggestion = {
   description: string;
   place_id: string;

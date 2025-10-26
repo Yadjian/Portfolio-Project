@@ -2,18 +2,37 @@ import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+/**
+ * GradientBackground (ColorBackground.tsx)
+ *
+ * A reusable component that renders a horizontal linear gradient background.
+ *
+ * Main features:
+ * - Wraps its children in a gradient background.
+ * - Accepts custom styles for the container.
+ * - Uses a predefined color gradient (purple to blue).
+ *
+ * Props:
+ * - children: React.ReactNode — content to display inside the gradient.
+ * - style?: ViewStyle — optional custom style for the container.
+ *
+ * Key logic:
+ * - Uses expo-linear-gradient for performant gradients.
+ * - Combines default and custom styles.
+ */
+
 interface GradientBackgroundProps {
-  children: React.ReactNode; // Contenu à afficher dans le dégradé
-  style?: ViewStyle; // Style personnalisé pour le conteneur
+  children: React.ReactNode;
+  style?: ViewStyle;
 }
 
 export default function GradientBackground({ children, style }: GradientBackgroundProps) {
   return (
     <LinearGradient
-      colors={['#6746a8', '#6b25f9', '#07b9ff']} // Couleurs du dégradé
-      start={{ x: 0, y: 0 }} // Début du dégradé
-      end={{ x: 1, y: 0 }} // Fin du dégradé
-      style={[styles.gradientBackground, style]} // Combine les styles par défaut et personnalisés
+      colors={['#6746a8', '#6b25f9', '#07b9ff']}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={[styles.gradientBackground, style]}
     >
       {children}
     </LinearGradient>
@@ -22,6 +41,6 @@ export default function GradientBackground({ children, style }: GradientBackgrou
 
 const styles = StyleSheet.create({
   gradientBackground: {
-    flex: 1, // Prend tout l'espace disponible
+    flex: 1,
   },
 });

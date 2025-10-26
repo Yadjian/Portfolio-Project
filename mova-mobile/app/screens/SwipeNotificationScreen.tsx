@@ -11,6 +11,30 @@ import Colors from '@/constants/Colors';
 
 const { width } = Dimensions.get('window');
 
+/**
+ * SwipeNotificationScreen
+ * 
+ * This screen implements the "swipe" experience (like Tinder) for both candidates and recruiters.
+ * - Candidates swipe on recruiter/company profiles (job offers).
+ * - Recruiters swipe on candidate profiles.
+ * 
+ * Main features:
+ * - Fetches profiles to swipe based on user type and geolocation.
+ * - Displays one profile at a time as a card, with swipe gestures (left = "nope", right = "like").
+ * - Handles swipe animations and sends swipe actions to the backend.
+ * - Allows undoing the last swipe.
+ * - Shows a bottom tab bar for navigation.
+ * 
+ * Key logic:
+ * - Uses PanResponder and Animated for swipe gestures and card animations.
+ * - Fetches profiles from the backend (with a mock profile for demo/testing).
+ * - Maps backend data to the UI card format.
+ * - Handles swipe actions (API call + animation + removing card from stack).
+ * - Handles undo (API call + restoring previous card).
+ * - Shows a message when there are no more profiles to swipe.
+ */
+
+// ActionButton: UI component for swipe/undo buttons
 const ActionButton = ({ onPress, small, color, icon, style }: {
   onPress: () => void;
   small?: boolean;
@@ -39,34 +63,41 @@ const ActionButton = ({ onPress, small, color, icon, style }: {
 );
 
 export default function SwipeNotificationScreen({ route, navigation }: any) {
+  // userType: 'candidate' or 'recruiter'
   const userType: UserType = route?.params?.userType ?? 'candidate';
 
+  // profiles: stack of profiles to swipe
   const [profiles, setProfiles] = useState<any[]>([]);
+  // lastSwipedProfile: for undo functionality
   const [lastSwipedProfile, setLastSwipedProfile] = useState<any | null>(null);
+  // isAnimating: prevents multiple swipes at once
   const [isAnimating, setIsAnimating] = useState(false);
+  // animatingProfile: profile currently being animated out
   const [animatingProfile, setAnimatingProfile] = useState<any | null>(null);
+  // position: animated value for swipe gesture
   const position = useRef(new Animated.ValueXY()).current;
+  // panResponderRef: PanResponder for swipe gestures
   const panResponderRef = useRef<any>(null);
 
+  // Fetch profiles to swipe on mount
   useEffect(() => {
     const getLocationAndFetchProfiles = async () => {
+      // Request geolocation permission
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         console.error('Permission to access location was denied');
-        // You can show an alert here to the user
         return;
       }
 
       try {
-        console.log('Fetching profiles for userType:', userType);
+        // Get current location
         let location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
-        console.log('Sending Location:', { latitude, longitude });
 
+        // Fetch profiles from backend
         const data = await getProfilesToSwipe(userType, latitude, longitude);
-        console.log('API Response Data:', data);
 
-        // PROFIL TEMPORAIRE EN DUR POUR TESTER LE DESIGN
+        // Add a mock recruiter profile for demo/testing
         const mockRecruiter = {
           id: 'mock-1',
           firstName: 'Sophie',
@@ -79,7 +110,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
           desiredContractTypes: ['CDI'],
         };
 
-        // Mapper le profil mock
+        // Map mock profile to UI format
         const mappedMockProfile = {
           ...mockRecruiter,
           location: mockRecruiter.locationName,
@@ -89,19 +120,17 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
           contractType: mockRecruiter.desiredContractTypes.join(', '),
         };
 
-        // Ajouter le profil mock aux données
+        // Add the mock profile to the stack
         const allProfiles = [mappedMockProfile];
 
-        // Mapper les données de l'API pour correspondre aux props de SwipeCard
+        // Map backend profiles to UI format
         if (data && data.length > 0) {
           const mappedProfiles = data.map((profile: any) => {
             if (userType === 'candidate') {
-              // Le candidat voit des recruteurs
-              // Extraire le titre et la description depuis searchDescription
+              // Candidate sees recruiters
               const descriptionParts = profile.searchDescription ? profile.searchDescription.split('\n\n') : [];
               const jobTitle = descriptionParts[0] || 'Poste non spécifié';
               const description = descriptionParts.slice(1).join('\n\n') || 'Aucune présentation disponible';
-              
               return {
                 ...profile,
                 avatarUrl: profile.avatarUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
@@ -115,11 +144,9 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
                   : 'Non spécifié',
               };
             } else {
-              // Le recruteur voit des candidats
-              // Extraire le poste depuis desiredJobTitle et la présentation depuis coverLetterText
+              // Recruiter sees candidates
               const jobTitle = profile.desiredJobTitle || 'Poste non spécifié';
               const description = profile.coverLetterText || 'Aucune présentation disponible';
-              
               return {
                 ...profile,
                 avatarUrl: profile.photoUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
@@ -135,8 +162,8 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
           });
           allProfiles.push(...mappedProfiles);
         }
-        
-        // PROFIL TEMPORAIRE POUR TEST (à retirer après)
+
+        // Add a temporary profile if needed for demo
         if (userType === 'candidate' && allProfiles.length === 0) {
           const tempProfile = {
             id: 'temp-recruiter-1',
@@ -149,27 +176,29 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
             presentation: 'Le Restaurant Le Gourmet recherche un serveur dynamique ! Rejoignez notre équipe dans un cadre prestigieux. Expérience souhaitée, excellente présentation et sens du service requis.',
             companyName: 'Restaurant Le Gourmet',
             contractType: 'CDI',
-          } as any; // Bypass TypeScript pour le profil temporaire
+          } as any;
           allProfiles.push(tempProfile);
         }
-        
+
         setProfiles(allProfiles.length > 0 ? allProfiles : []);
       } catch (error) {
         console.error("Erreur lors de la récupération des profils à swiper:", error);
-        setProfiles([]); // Tableau vide en cas d'erreur
+        setProfiles([]);
       }
     };
 
     getLocationAndFetchProfiles();
   }, []);
 
+  // Tab bar configuration
   const baseTabs = userType === 'recruiter' ? getRecruiterTabs(navigation, 0) : getCandidateTabs(navigation, 0);
   const tabs = baseTabs.map(tab =>
     tab.id === 'notifications'
-      ? { ...tab, onPress: () => {} } // Disable click on active tab
+      ? { ...tab, onPress: () => {} }
       : tab
   );
 
+  // Reset card position if not swiped enough
   const resetPosition = useCallback(() => {
     Animated.spring(position, {
       toValue: { x: 0, y: 0 },
@@ -178,9 +207,10 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
     }).start();
   }, [position]);
 
+  // Handle swipe action (left/right)
   const swipe = useCallback((direction: 'right' | 'left') => {
     setIsAnimating(prev => {
-      if (prev) return prev; // Already animating
+      if (prev) return prev;
       return true;
     });
 
@@ -195,7 +225,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
 
       const action = direction === 'right' ? 'RIGHT' : 'LEFT';
 
-      // Fire-and-forget API call
+      // Send swipe action to backend
       sendSwipeAction(currentProfile.id, action)
         .then(response => {
           if (response && response.isMatch) {
@@ -206,13 +236,12 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
           console.error("Erreur lors de l'envoi de l'action de swipe:", error);
         });
 
-      // Start animation immediately
+      // Animate card out
       Animated.timing(position, {
         toValue: { x: direction === 'right' ? width * 1.5 : -width * 1.5, y: 0 },
         duration: 600,
         useNativeDriver: false,
       }).start(() => {
-        // Update state only after animation is complete
         setLastSwipedProfile(currentProfile);
         setProfiles(prevProfiles => prevProfiles.slice(1));
         position.setValue({ x: 0, y: 0 });
@@ -220,11 +249,11 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         setAnimatingProfile(null);
       });
 
-      return currentProfiles; // Don't change profiles yet, wait for animation
+      return currentProfiles;
     });
   }, [position]);
 
-  // Initialize panResponder once, but it will always use the latest swipe/resetPosition
+  // PanResponder for swipe gestures
   if (!panResponderRef.current) {
     panResponderRef.current = PanResponder.create({
       onMoveShouldSetPanResponder: () => true,
@@ -240,34 +269,31 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
       },
     });
   }
-
   const panResponder = panResponderRef.current;
 
+  // Animation interpolations for card rotation and labels
   const rotate = position.x.interpolate({
     inputRange: [-width / 2, 0, width / 2],
     outputRange: ['-10deg', '0deg', '10deg'],
     extrapolate: 'clamp',
   });
-
   const likeOpacity = position.x.interpolate({
     inputRange: [0, width / 4],
     outputRange: [0, 1],
     extrapolate: 'clamp',
   });
-
   const nopeOpacity = position.x.interpolate({
     inputRange: [-width / 4, 0],
     outputRange: [1, 0],
     extrapolate: 'clamp',
   });
-
   const animatedStyle = {
     transform: [{ translateX: position.x }, { rotate }],
   };
 
+  // Undo last swipe
   const handleUndo = async () => {
     if (!lastSwipedProfile) return;
-
     try {
       const response = await undoPreviousSwipe();
       if (response && response.success) {
@@ -282,8 +308,8 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
 
   return (
     <View style={styles.container}>
+      {/* Card deck: show current card or animating card */}
       <View style={styles.deckContainer} {...panResponder.panHandlers}>
-        {/* Show animating card OR current card */}
         {(isAnimating && animatingProfile) ? (
           <Animated.View
             key={animatingProfile.id}
@@ -311,6 +337,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
             <SwipeCard userType={userType === 'candidate' ? 'recruiter' : 'candidate'} {...profiles[0]} />
           </Animated.View>
         ) : (
+          // No more profiles to swipe
           <View style={styles.noMoreProfiles}>
             <Feather name="briefcase" size={80} color={Colors.light.textSecondary} />
             <Text style={styles.noMoreProfilesText}>Plus de profils pour le moment</Text>
@@ -318,16 +345,19 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         )}
       </View>
 
+      {/* Footer with swipe and undo buttons */}
       <View style={styles.footer}>
         <ActionButton icon="x" color={Colors.light.error} onPress={() => swipe('left')} />
         <ActionButton icon="refresh-cw" color="#4930a3" small onPress={handleUndo} style={{ marginTop: 15 }} />
         <ActionButton icon="check" color={Colors.light.accent} onPress={() => swipe('right')} />
       </View>
+      {/* Bottom tab bar for navigation */}
       <BottomTabBar tabs={tabs} activeTabId="notifications" />
     </View>
   );
 }
 
+// Styles for the SwipeNotificationScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -4,11 +4,29 @@ import { Ionicons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import { getMatchDetails } from '../../services/api';
 
+/**
+ * MatchDetailScreen
+ *
+ * This screen displays detailed information about a specific match.
+ * - For candidates: shows job offer details (one or several offers).
+ * - For recruiters: shows candidate profile details and allows CV download.
+ *
+ * Main features:
+ * - Fetches match details from the backend using the matchId.
+ * - Shows a loading indicator while fetching.
+ * - Handles errors if details cannot be loaded.
+ * - For candidates: displays job offer info (company, recruiter, contract, salary, etc.).
+ * - For recruiters: displays candidate info (desired job, experience, contract, location, cover letter, CV).
+ * - Allows recruiters to download the candidate's CV if available.
+ * - Provides a back button to return to the previous screen.
+ */
+
 export default function MatchDetailScreen({ route, navigation }: { route: any; navigation: any }) {
   const { matchId, userType } = route.params;
   const [details, setDetails] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // Fetch match details on mount or when matchId changes
   useEffect(() => {
     const fetchDetails = async () => {
       try {
@@ -27,6 +45,7 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
     fetchDetails();
   }, [matchId]);
 
+  // Handle opening the candidate's CV (for recruiters)
   const handleOpenCV = async (cvUrl: string) => {
     try {
       const supported = await Linking.canOpenURL(cvUrl);
@@ -42,6 +61,7 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
   };
 
   if (loading) {
+    // Show loading indicator while fetching details
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color={Colors.light.primary} />
@@ -50,6 +70,7 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
   }
 
   if (!details) {
+    // Show error if no details are available
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <Text style={styles.errorText}>Aucun détail disponible</Text>
@@ -59,7 +80,7 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Header with back button and title */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#4930a3" />
@@ -69,7 +90,7 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {userType === 'candidate' ? (
-          // Candidat voit les Job Offers
+          // Candidate view: display job offers
           details.map((jobOffer: any, index: number) => (
             <View key={jobOffer.id || index} style={styles.card}>
               <View style={styles.cardHeader}>
@@ -82,7 +103,7 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
                 <Text style={styles.value}>{jobOffer.company?.name || 'Non spécifié'}</Text>
               </View>
 
-              {/* Récupérer le nom du recruteur depuis createdBy */}
+              {/* Recruiter name from createdBy */}
               {jobOffer.createdBy && (
                 <View style={styles.section}>
                   <Text style={styles.label}>Recruteur</Text>
@@ -132,7 +153,7 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
             </View>
           ))
         ) : (
-          // Recruteur voit le profil du candidat avec son CV
+          // Recruiter view: display candidate profile and CV
           <View style={styles.card}>
             <View style={styles.cardHeader}>
               <Ionicons name="person" size={32} color="#4930a3" />
@@ -176,7 +197,7 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
               </View>
             )}
 
-            {/* Bouton CV */}
+            {/* CV download button */}
             {details.resumeUrl && (
               <TouchableOpacity
                 style={styles.cvButton}
@@ -193,6 +214,7 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
   );
 }
 
+// Styles for the MatchDetailScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -11,12 +11,30 @@ import { AuthStackParamList, getApiUrl } from '@/lib/types';
 
 const { height, width } = Dimensions.get('window');
 
+/**
+ * HomeScreen
+ *
+ * This is the landing page of the app, shown to users who are not logged in.
+ *
+ * Main features:
+ * - Checks backend connectivity and displays the status at the top.
+ * - Requests geolocation permission and periodically sends the user's location to the backend.
+ * - Shows the app logo and slogan.
+ * - Provides navigation to registration and login screens.
+ * - Handles loading state for login.
+ *
+ * Key logic:
+ * - Uses useEffect to check backend health on mount.
+ * - Uses useEffect to request/send location every 5 minutes.
+ * - Uses AuthContext to check loading state for login.
+ */
+
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { loading } = useAuth();
   const [backendStatus, setBackendStatus] = useState('Vérification de la connexion...');
 
-  // Test de connexion au backend
+  // Test backend connectivity on mount
   useEffect(() => {
     const testBackendConnection = async () => {
       const API_URL = getApiUrl();
@@ -36,7 +54,7 @@ export default function HomeScreen() {
     testBackendConnection();
   }, []);
 
-  // Géolocalisation : demande la permission et envoie périodiquement
+  // Request geolocation permission and send location periodically
   useEffect(() => {
     let interval: number;
 
@@ -66,11 +84,12 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Affichage du statut backend */}
+        {/* Backend status display */}
         <View style={styles.statusContainer}>
           <Text style={styles.statusText}>{backendStatus}</Text>
         </View>
 
+        {/* App logo and slogan */}
         <View style={styles.header}>
           <MovaLogo />
           <Text style={styles.slogan}>
@@ -78,6 +97,7 @@ export default function HomeScreen() {
           </Text>
         </View>
 
+        {/* Registration and login buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={styles.primaryButton}
@@ -101,6 +121,7 @@ export default function HomeScreen() {
   );
 }
 
+// Styles for the HomeScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

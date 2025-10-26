@@ -9,11 +9,28 @@ import Colors from '../../constants/Colors';
 
 const { height, width } = Dimensions.get('window');
 
+/**
+ * UserHomeScreen
+ *
+ * This screen is shown after login and acts as a simple home/dashboard for authenticated users.
+ * 
+ * Main features:
+ * - Welcomes the user and displays the app slogan.
+ * - Provides a button to return to the user's profile (candidate or recruiter).
+ * - Provides a logout button.
+ * - Refreshes user data every time the screen is focused.
+ * 
+ * Key logic:
+ * - Uses the AuthContext to access user info and logout/refresh functions.
+ * - Navigates to the correct profile screen based on user type.
+ * - Handles navigation and logout actions.
+ */
+
 export default function UserHomeScreen() {
   const { logout, user, refreshUser } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
-  // Rafraîchir les données utilisateur à chaque fois qu'on arrive sur cet écran
+  // Refresh user data every time the screen is focused
   useFocusEffect(
     React.useCallback(() => {
       console.log('🔄 [UserHomeScreen] Rafraîchissement des données utilisateur...');
@@ -21,11 +38,13 @@ export default function UserHomeScreen() {
     }, [])
   );
 
+  // Handle logout action
   const handleLogout = () => {
     logout();
     navigation.navigate('Home');
   };
 
+  // Handle navigation to the user's profile (candidate or recruiter)
   const handleGoToProfile = () => {
     console.log('🔍 [UserHomeScreen] handleGoToProfile appelé');
     console.log('🔍 [UserHomeScreen] user complet:', JSON.stringify(user, null, 2));

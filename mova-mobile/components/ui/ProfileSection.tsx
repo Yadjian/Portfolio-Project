@@ -3,6 +3,27 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 
+/**
+ * ProfileSection
+ *
+ * A reusable section component for profile screens.
+ *
+ * Main features:
+ * - Displays a section with a title, optional icon, and content.
+ * - Uses consistent styling for background, padding, and shadow.
+ * - Accepts custom icon and color.
+ *
+ * Props:
+ * - title: string — section title.
+ * - icon?: keyof typeof Feather.glyphMap — optional Feather icon name.
+ * - iconColor?: string — optional icon color (default: theme primary).
+ * - children: React.ReactNode — section content.
+ *
+ * Key logic:
+ * - Renders icon and title in the header.
+ * - Wraps children in a styled container.
+ */
+
 interface ProfileSectionProps {
   title: string;
   icon?: keyof typeof Feather.glyphMap;

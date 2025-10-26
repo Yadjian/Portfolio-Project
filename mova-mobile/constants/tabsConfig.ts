@@ -1,4 +1,17 @@
-import { AuthStackParamList } from '../lib/types';
+/**
+ * tabsConfig.ts
+ *
+ * Centralizes the configuration for bottom tab navigation for both candidates and recruiters.
+ *
+ * Main features:
+ * - Exports functions to generate tab definitions for each user type.
+ * - Each tab includes id, label, icon names, navigation handler, and optional badge.
+ * - Makes it easy to update tab structure or icons in one place.
+ *
+ * Usage:
+ *   import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
+ *   const tabs = getCandidateTabs(navigation, notificationCount);
+ */
 
 export const getCandidateTabs = (navigation: any, notificationCount: number = 0) => [
   {

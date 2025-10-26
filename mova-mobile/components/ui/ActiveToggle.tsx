@@ -2,6 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { TouchableOpacity, Text, Animated, StyleSheet, useWindowDimensions, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+/**
+ * ActiveToggle
+ *
+ * A custom toggle switch component with animated transition and gradient background.
+ *
+ * Main features:
+ * - Displays a toggle switch with "Actif" (active) and "Inactif" (inactive) labels.
+ * - Uses a gradient background when active, and gray when inactive.
+ * - Animates the switch circle when toggled.
+ * - Dynamically sizes the switch based on screen width.
+ * - Calls the onToggle callback with the new value when toggled.
+ *
+ * Props:
+ * - initialValue?: boolean — initial state of the toggle (default: false)
+ * - onToggle: (value: boolean) => void — callback called when the toggle changes
+ *
+ * Key logic:
+ * - Uses Animated.Value for smooth transition of the switch circle.
+ * - Updates state and animation when initialValue changes.
+ * - Responsive sizing for different screen widths.
+ */
+
 interface ActiveToggleProps {
   initialValue?: boolean;
   onToggle: (value: boolean) => void;
@@ -15,7 +37,7 @@ export default function ActiveToggle({
   const [isActive, setIsActive] = useState(initialValue);
   const animatedValue = useState(new Animated.Value(initialValue ? 1 : 0))[0];
 
-  // Tailles dynamiques basées sur la largeur de l'écran - AGRANDIES
+  // Dynamic sizes based on screen width
   const switchWidth = width * 0.12;
   const switchHeight = switchWidth * 0.55;
   const circleSize = switchHeight * 0.8;
@@ -58,7 +80,7 @@ export default function ActiveToggle({
   const labelStyle = {
     fontSize: fontSize,
     fontWeight: '600' as const,
-    color: isActive ? '#6b25f9' : '#7e7e7e', // Violet si actif, gris si inactif
+    color: isActive ? '#6b25f9' : '#7e7e7e',
   };
 
   const switchBackgroundStyle = {

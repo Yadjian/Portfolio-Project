@@ -8,6 +8,26 @@ import { register } from '../../../services/api';
 
 type CreateAccountProps = NativeStackScreenProps<AuthStackParamList, 'CreateAccount'>;
 
+/**
+ * CreateAccountScreen
+ *
+ * This screen allows the user to register as a candidate or recruiter.
+ *
+ * Main features:
+ * - Handles form state for email, password, and password confirmation.
+ * - Allows toggling password visibility for both password fields.
+ * - Validates required fields and password match/length before submitting.
+ * - Calls the backend to register the user.
+ * - Navigates to the next registration step based on user type (company creation for recruiters, profile edit for candidates).
+ * - Handles loading and error states.
+ * - Provides a link to the login screen.
+ *
+ * Key logic:
+ * - Uses React state for form fields, loading, and keyboard visibility.
+ * - Uses KeyboardAvoidingView and ScrollView for mobile UX.
+ * - Uses Alert for error messages.
+ */
+
 export default function CreateAccountScreen({ route, navigation }: CreateAccountProps) {
   const userType = route?.params?.userType ?? 'candidate';
   const [formData, setFormData] = useState({
@@ -20,6 +40,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Listen for keyboard show/hide events to adjust UI if needed
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -34,6 +55,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
     };
   }, []);
 
+  // Handle form submission and registration
   const handleSubmit = async () => {
     if (formData.password !== formData.confirmPassword) {
       Alert.alert('Erreur', 'Les mots de passe ne correspondent pas.');
@@ -56,6 +78,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
 
       console.log('Compte créé avec succès:', data);
 
+      // Navigate to the next step based on user type
       if (userType === 'recruiter') {
         navigation.navigate('CreateCompany', { userId: data.userId });
       } else {
@@ -81,7 +104,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Header avec logo */}
+        {/* Header with logo and title */}
         <View style={styles.header}>
           <MovaLogo />
           <Text style={styles.title}>Créez un compte</Text>
@@ -90,9 +113,9 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
           </Text>
         </View>
 
-        {/* Formulaire dans une card */}
+        {/* Registration form card */}
         <View style={styles.formCard}>
-          {/* Email */}
+          {/* Email input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputContainer}>
@@ -109,7 +132,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
             </View>
           </View>
 
-          {/* Mot de passe */}
+          {/* Password input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Mot de passe</Text>
             <View style={styles.inputContainer}>
@@ -122,6 +145,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
                 value={formData.password}
                 onChangeText={(text) => setFormData({ ...formData, password: text })}
               />
+              {/* Toggle password visibility */}
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons 
                   name={showPassword ? "eye-outline" : "eye-off-outline"} 
@@ -132,7 +156,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
             </View>
           </View>
 
-          {/* Confirmation mot de passe */}
+          {/* Confirm password input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Confirmation</Text>
             <View style={styles.inputContainer}>
@@ -145,6 +169,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
                 value={formData.confirmPassword}
                 onChangeText={(text) => setFormData({ ...formData, confirmPassword: text })}
               />
+              {/* Toggle confirm password visibility */}
               <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
                 <Ionicons 
                   name={showConfirmPassword ? "eye-outline" : "eye-off-outline"} 
@@ -155,7 +180,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
             </View>
           </View>
 
-          {/* Bouton Créer */}
+          {/* Submit button */}
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
             {isLoading ? (
               <ActivityIndicator color="#fff" />
@@ -164,7 +189,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
             )}
           </TouchableOpacity>
 
-          {/* Lien connexion */}
+          {/* Link to login screen */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>Vous avez déjà un compte ? </Text>
             <TouchableOpacity onPress={() => navigation.navigate('Login')}>
@@ -177,6 +202,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
   );
 }
 
+// Styles for the CreateAccountScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

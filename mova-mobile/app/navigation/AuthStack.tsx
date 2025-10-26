@@ -19,8 +19,27 @@ import UserHomeScreen from '../screens/UserHomeScreen';
 import HistoricalScreen from '../screens/HistoricalScreen';
 import MatchDetailScreen from '../screens/MatchDetailScreen';
 
+/**
+ * AuthStack
+ *
+ * This component defines the authentication and onboarding navigation stack.
+ *
+ * Main features:
+ * - Manages all screens related to authentication, registration, and onboarding.
+ * - Uses React Navigation's native stack navigator.
+ * - Customizes headers for each screen (logo, back button, home button, etc.).
+ * - Handles navigation between login, registration, profile, and onboarding flows.
+ *
+ * Key logic:
+ * - Each Stack.Screen represents a screen in the authentication/onboarding flow.
+ * - Uses headerLeft/headerRight to customize navigation bar.
+ * - Uses headerShown: false for screens that manage their own header.
+ */
+
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
+// Main component that renders the authentication stack navigator
+// Each Stack.Screen below represents a screen in the authentication/onboarding flow
 export default function AuthStack() {
   return (
     <Stack.Navigator
@@ -28,14 +47,16 @@ export default function AuthStack() {
       screenOptions={{
         headerStyle: { backgroundColor: '#fff' },
         headerShadowVisible: false,
-        headerTitle: '', // force le header à être vide partout
+        headerTitle: '', // force header to be empty everywhere
       }}
     >
+      {/* Home screen for unauthenticated users */}
       <Stack.Screen
         name="Home"
-        component={HomeScreen} // Page d'accueil pour les non-connectés
+        component={HomeScreen}
         options={{ headerShown: false }}
       />
+      {/* Login screen */}
       <Stack.Screen
         name="Login"
         component={LoginScreen}
@@ -46,6 +67,7 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* Screen to choose registration type (candidate or recruiter) */}
       <Stack.Screen
         name="ChooseRegisterType"
         component={ChooseRegisterTypeScreen}
@@ -56,6 +78,7 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* Candidate profile screen */}
       <Stack.Screen
         name="CandidateProfile"
         component={CandidateProfileScreen}
@@ -65,6 +88,7 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* Recruiter profile screen */}
       <Stack.Screen
         name="RecruiterProfile"
         component={RecruiterProfileScreen}
@@ -74,6 +98,7 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* Historical screen for user activity/history */}
       <Stack.Screen
         name="HistoricalScreen"
         component={HistoricalScreen}
@@ -83,11 +108,13 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* Swipe notification screen */}
       <Stack.Screen
         name="SwipeNotification"
         component={SwipeNotificationScreen}
         options={{ headerShown: false }}
       />
+      {/* Edit profile screen */}
       <Stack.Screen
         name="EditProfileScreen"
         component={EditProfileScreen}
@@ -98,6 +125,7 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* Candidate CV screen */}
       <Stack.Screen
         name="CandidateCVScreen"
         component={CandidateCVScreen}
@@ -107,6 +135,7 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* Recruiter job offer screen */}
       <Stack.Screen
         name="RecruiterJobOfferScreen"
         component={RecruiterJobOfferScreen}
@@ -116,6 +145,7 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* Create account screen */}
       <Stack.Screen
         name="CreateAccount"
         component={CreateAccountScreen}
@@ -127,6 +157,7 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* Create company screen */}
       <Stack.Screen
         name="CreateCompany"
         component={CreateCompanyScreen}
@@ -138,11 +169,13 @@ export default function AuthStack() {
           headerBackTitleVisible: false,
         })}
       />
+      {/* User home screen (for authenticated users) */}
       <Stack.Screen
         name="UserHome"
         component={UserHomeScreen}
         options={{ headerShown: false }}
       />
+      {/* Match detail screen */}
       <Stack.Screen
         name="MatchDetail"
         component={MatchDetailScreen}

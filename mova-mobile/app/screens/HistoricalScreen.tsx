@@ -7,23 +7,45 @@ import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '../../constants/tabsConfig';
 import { getMatches } from '../../services/api';
 
+/**
+ * HistoricalScreen
+ *
+ * This screen displays the match history for both candidates and recruiters.
+ *
+ * Main features:
+ * - Shows a list of matches (job offers for candidates, candidates for recruiters).
+ * - Fetches match data from the backend and displays it in a card list.
+ * - Allows navigation to a detailed match view on card press.
+ * - Shows a loading indicator while fetching data.
+ * - Handles empty state if there are no matches.
+ * - Displays a bottom tab bar for navigation.
+ *
+ * Key logic:
+ * - Uses useFocusEffect to refresh matches every time the screen is focused.
+ * - Maps backend match data to a UI-friendly format.
+ * - Renders different views for candidates and recruiters.
+ * - Handles navigation to MatchDetailScreen with the correct user type.
+ */
+
 // --- Types ---
+// Match type for displaying match history cards
 type Match = {
   id: string;
   title: string;
   subtitle: string;
-  meta: string; // Champ générique pour contrat ou expérience
+  meta: string;
   matchDate: string;
   avatarUrl: string;
 };
 
-// --- Helpers & Composants UI ---
-
+// --- Helpers & UI Components ---
+// Format the match date for display
 const formatDate = (dateString: string) => {
   const date = new Date(dateString);
   return `Match le ${date.toLocaleDateString('fr-FR')}`;
 };
 
+// Card component for each match in the list
 const MatchCard = ({ item, onPress }: { item: Match; onPress: () => void }) => {
   const { title, subtitle, meta, matchDate, avatarUrl } = item;
 
@@ -43,7 +65,8 @@ const MatchCard = ({ item, onPress }: { item: Match; onPress: () => void }) => {
   );
 };
 
-// --- VUE POUR LE CANDIDAT ---
+// --- Candidate View ---
+// Displays the match history for candidates
 const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,18 +79,19 @@ const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
           const data = await getMatches();
           console.log('Matches data:', data);
 
-          // Mapper les données du backend vers le format du composant
+          // Map backend data to Match type for the component
           const normalizedMatches: Match[] = data.map((match: any) => ({
             id: match.matchId,
-            title: `${match.profile.firstName} ${match.profile.lastName}`, // Nom et prénom du recruteur
-            subtitle: match.profile.searchedJobTitle || 'Poste non spécifié', // Poste recherché
-            meta: '', // Pas de meta pour les candidats
+            title: `${match.profile.firstName} ${match.profile.lastName}`,
+            subtitle: match.profile.searchedJobTitle || 'Poste non spécifié',
+            meta: '',
             matchDate: match.matchedAt,
             avatarUrl: `https://ui-avatars.com/api/?name=${match.profile.firstName}+${match.profile.lastName}&size=200&background=4930a3&color=fff`,
           }));
 
           setMatches(normalizedMatches);
         } catch (error) {
+          // Error fetching matches for candidate
           console.error('Erreur lors de la récupération des matchs:', error);
         } finally {
           setLoading(false);
@@ -78,6 +102,7 @@ const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
     }, [])
   );
 
+  // Handle navigation to match detail
   const handleMatchPress = (matchId: string) => {
     console.log('Match clicked:', matchId);
     navigation.navigate('MatchDetail', { matchId, userType: 'candidate' });
@@ -110,7 +135,8 @@ const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
   );
 };
 
-// --- VUE POUR LE RECRUTEUR ---
+// --- Recruiter View ---
+// Displays the match history for recruiters
 const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,18 +149,19 @@ const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
           const data = await getMatches();
           console.log('Matches data:', data);
 
-          // Mapper les données du backend vers le format du composant
+          // Map backend data to Match type for the component
           const normalizedMatches: Match[] = data.map((match: any) => ({
             id: match.matchId,
-            title: `${match.profile.firstName} ${match.profile.lastName}`, // Prénom et nom
-            subtitle: match.profile.desiredJobTitle || 'Poste non spécifié', // Poste
-            meta: match.profile.experienceLevel || '', // Expérience
+            title: `${match.profile.firstName} ${match.profile.lastName}`,
+            subtitle: match.profile.desiredJobTitle || 'Poste non spécifié',
+            meta: match.profile.experienceLevel || '',
             matchDate: match.matchedAt,
             avatarUrl: match.profile.photoUrl || `https://ui-avatars.com/api/?name=${match.profile.firstName}+${match.profile.lastName}&size=200&background=4930a3&color=fff`,
           }));
 
           setMatches(normalizedMatches);
         } catch (error) {
+          // Error fetching matches for recruiter
           console.error('Erreur lors de la récupération des matchs:', error);
         } finally {
           setLoading(false);
@@ -145,6 +172,7 @@ const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
     }, [])
   );
 
+  // Handle navigation to match detail
   const handleMatchPress = (matchId: string) => {
     console.log('Match clicked:', matchId);
     navigation.navigate('MatchDetail', { matchId, userType: 'recruiter' });
@@ -177,17 +205,20 @@ const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
   );
 };
 
-// --- Écran Principal (qui choisit quelle vue afficher) ---
+// --- Main Screen ---
+// Decides which view to display based on user type (candidate or recruiter)
 export default function HistoricalScreen({ route }: { route: any }) {
   const navigation = useNavigation();
   const userType = route.params?.userType ?? 'candidate';
   const isRecruiter = userType === 'recruiter';
 
+  // Get the correct tab configuration for the user type
   const tabs = isRecruiter ? getRecruiterTabs(navigation) : getCandidateTabs(navigation);
 
   return (
     <View style={styles.container}>
       {isRecruiter ? <RecruiterHistoryView navigation={navigation} /> : <CandidateHistoryView navigation={navigation} />}
+      {/* Bottom tab bar for navigation */}
       <BottomTabBar tabs={tabs} activeTabId="matches" />
     </View>
   );

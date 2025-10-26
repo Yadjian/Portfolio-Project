@@ -3,6 +3,24 @@ import { View, Text, StyleSheet, useWindowDimensions } from 'react-native';
 import { useFonts, Poppins_700Bold } from '@expo-google-fonts/poppins';
 import { LinearGradient } from 'expo-linear-gradient';
 
+/**
+ * MovaLogo
+ *
+ * A reusable logo component for the Mova app.
+ *
+ * Main features:
+ * - Renders a circular gradient background with the "Mova" text.
+ * - Uses the Poppins_700Bold font for the logo text.
+ * - Dynamically sizes the logo based on screen dimensions or a provided sizeProp.
+ *
+ * Props:
+ * - sizeProp?: number — optional size for the logo (defaults to 30% of width or 18% of height).
+ *
+ * Key logic:
+ * - Uses expo-linear-gradient for the background.
+ * - Responsive sizing for different screens.
+ */
+
 export default function MovaLogo({ sizeProp }: { sizeProp?: number }) {
   const { width, height } = useWindowDimensions();
   const size = sizeProp || Math.min(width * 0.30, height * 0.18);

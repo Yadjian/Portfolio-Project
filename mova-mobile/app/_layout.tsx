@@ -10,6 +10,25 @@ import AuthStack from './navigation/AuthStack';
 import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
 import * as ExpoCrypto from 'expo-crypto';
 
+/**
+ * RootLayout
+ *
+ * This is the main entry point for the app layout.
+ *
+ * Main features:
+ * - Loads custom fonts and icons before rendering the app.
+ * - Polyfills global.crypto.getRandomValues for compatibility.
+ * - Wraps the app in the AuthProvider for authentication context.
+ * - Handles splash screen display until fonts are loaded.
+ * - Chooses between dark and light theme based on user preference.
+ * - Renders the authentication stack (AuthStack) for both authenticated and unauthenticated users (can be customized).
+ *
+ * Key logic:
+ * - Polyfills crypto for secure random values (needed by some libraries).
+ * - Uses useFonts and SplashScreen to ensure assets are loaded before showing the app.
+ * - Uses useAuth to check authentication state and loading.
+ */
+
 // Polyfill global.crypto.getRandomValues — doit être exécuté en tout premier
 if (!global.crypto) {
   const getRandomValues = <T extends ArrayBufferView>(array: T): T => {

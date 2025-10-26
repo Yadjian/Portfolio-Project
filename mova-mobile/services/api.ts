@@ -4,7 +4,22 @@ import { jwtDecode } from 'jwt-decode';
 
 const API_URL = getApiUrl();
 
-// Helper pour gérer les réponses de l'API et les erreurs
+/**
+ * api.ts
+ *
+ * Centralizes all API calls and helpers for the app.
+ *
+ * Main features:
+ * - Handles authentication (login, register, token storage).
+ * - Fetches and updates user profiles, job offers, companies, and metadata.
+ * - Manages swipes, matches, resumes, and notifications.
+ * - Provides helpers for consistent error handling and headers.
+ *
+ * Usage:
+ *   import { login, getMyProfile, createCompany, ... } from '@/services/api';
+ */
+
+// Helper to handle API responses and errors
 async function handleResponse(response: Response) {
   const text = await response.text();
   let data;
@@ -12,25 +27,21 @@ async function handleResponse(response: Response) {
   try {
     data = text ? JSON.parse(text) : {};
   } catch (error) {
-    // Si le parsing échoue, on log le texte brut et on lève une erreur claire.
     console.error("La réponse du serveur n'est pas un JSON valide:", text);
     throw new Error(`Erreur HTTP ${response.status}: Réponse non-JSON du serveur.`);
   }
 
   if (!response.ok) {
-    // Gestion silencieuse du cas 401 Unauthorized
     if (response.status === 401) {
-      // Ne rien afficher, ne pas perturber l'utilisateur
       return null;
     }
-    // En cas d'autre erreur, on log la réponse brute pour avoir plus de contexte.
     console.error("Réponse d'erreur brute du serveur:", text);
     throw new Error(data.message || `Erreur HTTP ${response.status}`);
   }
   return data;
 }
 
-// Helper pour créer les headers, avec ou sans token d'authentification
+// Helper to create headers, with or without authentication
 async function getHeaders(authenticated = false) {
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
@@ -45,11 +56,8 @@ async function getHeaders(authenticated = false) {
   return headers;
 }
 
-// ----------------------
-// AUTHENTIFICATION
-// ----------------------
+// AUTHENTICATION
 export async function register(email: string, password: string, role: 'CANDIDATE' | 'RECRUITER') {
-  // Cette route n'était pas dans les fichiers, mais est nécessaire pour CreateAccountScreen
   const response = await fetch(`${API_URL}/auth/signup`, {
     method: 'POST',
     headers: await getHeaders(),
@@ -71,7 +79,6 @@ export async function register(email: string, password: string, role: 'CANDIDATE
 }
 
 export async function login(email: string, password: string) {
-  // Cette route n'était pas dans les fichiers, mais est nécessaire pour LoginScreen
   const response = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: await getHeaders(),
@@ -85,11 +92,8 @@ export async function login(email: string, password: string) {
   return data;
 }
 
-// ----------------------
-// PROFIL & SWIPE
-// ----------------------
+// PROFILE & SWIPE
 export async function getMyProfile() {
-  // Route nécessaire pour LoginScreen, CandidateProfileScreen, RecruiterProfileScreen
   const response = await fetch(`${API_URL}/profile/me`, {
     headers: await getHeaders(true),
   });
@@ -100,7 +104,6 @@ export async function updateProfile(
   profileData: any,
   photoUri?: string
 ) {
-  // 1. Toujours envoyer les données textuelles en JSON
   const response = await fetch(`${API_URL}/profile/me`, {
     method: 'PUT',
     headers: await getHeaders(true),
@@ -108,7 +111,6 @@ export async function updateProfile(
   });
   const result = await handleResponse(response);
   
-  // 2. Si une photo est fournie, l'envoyer séparément sur /profile/photo
   if (photoUri) {
     await uploadProfilePhoto(photoUri);
   }
@@ -143,9 +145,7 @@ export async function uploadProfilePhoto(photoUri: string) {
 }
 
 export async function getProfilesToSwipe(userType: UserType, latitude: number, longitude: number) {
-  // Détermine le bon endpoint en fonction du type d'utilisateur
   const endpoint = userType === 'candidate' ? 'recruiters' : 'candidates';
-  // Le backend utilise le radius en query param (défaut 20000m)
   const url = `${API_URL}/discovery/${endpoint}`;
 
   const response = await fetch(url, {
@@ -171,9 +171,7 @@ export async function undoPreviousSwipe() {
   return handleResponse(response);
 }
 
-// ----------------------
 // JOB OFFERS
-// ----------------------
 export async function getMyJobOffers() {
   const response = await fetch(`${API_URL}/job-offers/my-offers`, {
     headers: await getHeaders(true),
@@ -204,18 +202,14 @@ export async function deleteJobOffer(id: string) {
     method: 'DELETE',
     headers: await getHeaders(true),
   });
-  // For DELETE, we might not get a JSON body, so handle differently if needed
   if (response.status === 204) {
-    return {}; // Or some other indicator of success
+    return {};
   }
   return handleResponse(response);
 }
 
-// ----------------------
-// ENTREPRISE
-// ----------------------
+// COMPANY
 export async function createCompany(data: { companyName: string; siret: string }) {
-  // Route extraite de la version originale de ce fichier
   const response = await fetch(`${API_URL}/companies/onboarding`, {
     method: 'POST',
     headers: await getHeaders(true),
@@ -225,7 +219,6 @@ export async function createCompany(data: { companyName: string; siret: string }
 }
 
 export async function joinCompany(data: { siret: string }) {
-  // Route extraite de la version originale de ce fichier
   const response = await fetch(`${API_URL}/onboarding/recruiter/join-company`, {
     method: 'POST',
     headers: await getHeaders(true),
@@ -234,10 +227,7 @@ export async function joinCompany(data: { siret: string }) {
   return handleResponse(response);
 }
 
-// ----------------------
 // META DATA
-// ----------------------
-
 export async function getContractTypes() {
   const response = await fetch(`${API_URL}/meta/contract-types`, {
     headers: await getHeaders(),
@@ -259,11 +249,8 @@ export async function getJobCategories() {
   return handleResponse(response);
 }
 
-// ----------------------
-// UTILITAIRES
-// ----------------------
+// UTILITIES
 export async function checkBackendHealth() {
-  // Route extraite de HomeScreen.tsx
   const response = await fetch(`${API_URL}/health`, {
     headers: await getHeaders(),
   });
@@ -281,9 +268,7 @@ export async function getGoogleGeolocation(latitude: number, longitude: number) 
   return handleResponse(response);
 }
 
-// ----------------------
 // CV / RESUME
-// ----------------------
 export async function uploadResume(file: { uri: string; name: string; type: string }) {
   const token = await SecureStore.getItemAsync('auth_token');
   if (!token) {
@@ -302,7 +287,6 @@ export async function uploadResume(file: { uri: string; name: string; type: stri
     headers: {
       'Authorization': `Bearer ${token}`,
       'ngrok-skip-browser-warning': 'true',
-      // Ne pas mettre Content-Type pour multipart/form-data, il sera auto-généré
     },
     body: formData,
   });
@@ -327,9 +311,7 @@ export async function deleteResume() {
   return handleResponse(response);
 }
 
-// ----------------------
-// MATCHES / HISTORIQUE
-// ----------------------
+// MATCHES / HISTORY
 export async function getMatches() {
   const headers = await getHeaders(true);
   const response = await fetch(`${API_URL}/matches`, {

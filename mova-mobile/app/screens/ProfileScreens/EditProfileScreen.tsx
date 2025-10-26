@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform, TextInput, Keyboard, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -10,33 +11,57 @@ import MovaLogo from '../../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native';
 import { getMyProfile, updateProfile, getContractTypes, getExperienceLevels, getJobCategories } from '../../../services/api';
-import { GooglePlaceDetail } from 'react-native-google-places-autocomplete'; // Importation explicite du type
 import CustomPlacesAutocomplete, { Suggestion } from '../../../components/ui/CustomPlacesAutocomplete';
 import Constants from 'expo-constants';
 import { useAuth } from '../../../contexts/AuthContext';
 
+/**
+ * EditProfileScreen
+ *
+ * This screen allows the user (candidate or recruiter) to edit their profile information.
+ *
+ * Main features:
+ * - Handles form state for all profile fields (name, location, job, experience, contract, presentation, etc.).
+ * - Allows picking and uploading a profile photo.
+ * - Uses Google Places Autocomplete for location selection.
+ * - Fetches dropdown options (contract types, experience levels, job categories) from the backend.
+ * - Pre-fills the form with current user data.
+ * - Validates required fields before saving.
+ * - Calls the backend to update the profile and uploads the avatar if changed.
+ * - Navigates to the correct profile screen after saving.
+ * - Handles loading and error states.
+ * - Uses modals for job, experience, and contract selection.
+ * - Uses KeyboardAwareScrollView for mobile UX.
+ *
+ * Key logic:
+ * - Uses useEffect to fetch metadata and pre-fill form fields.
+ * - Uses useFocusEffect to refresh user data after update.
+ * - Maps form fields to the backend DTO for updateProfile.
+ * - Handles both candidate and recruiter profile logic.
+ */
+
 export default function EditProfileScreen() {
+  // Navigation and route hooks
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const route = useRoute<RouteProp<AuthStackParamList, 'EditProfileScreen'>>();
   const { userType, userId, companyName: companyNameFromNav } = route.params;
   const { refreshUser } = useAuth();
 
+  // State for keyboard visibility
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
-  // Définition de la clé API (utiliser la variable globale GOOGLE_PLACES_API_KEY)
+  // Google Places API key (from app config or environment)
   const GOOGLE_PLACES_API_KEY =
-    // priorité à la valeur injectée via app config (expo constants)
     Constants.expoConfig?.extra?.GOOGLE_PLACES_API_KEY
-    // fallback vers process.env si disponible
     ?? process.env.GOOGLE_PLACES_API_KEY;
 
-  // Champs pour candidat
+  // Candidate profile fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [locationName, setLocationName] = useState('');
   const [locationWKT, setLocationWKT] = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
-  const [selectedPhotoUri, setSelectedPhotoUri] = useState<string | null>(null); // URI locale de la photo sélectionnée
+  const [selectedPhotoUri, setSelectedPhotoUri] = useState<string | null>(null);
   const [job, setJob] = useState('');
   const [selectedJobCategoryId, setSelectedJobCategoryId] = useState<string | null>(null);
   const [jobModalVisible, setJobModalVisible] = useState(false);
@@ -44,19 +69,22 @@ export default function EditProfileScreen() {
   const [contractType, setContractType] = useState('');
   const [presentation, setPresentation] = useState('');
 
-  // Champ pour recruteur
+  // Recruiter profile field
   const [companyName, setCompanyName] = useState(companyNameFromNav || '');
 
+  // State for modal visibility
   const [experienceModalVisible, setExperienceModalVisible] = useState(false);
   const [contractModalVisible, setContractModalVisible] = useState(false);
 
+  // Loading state for async actions
   const [isLoading, setIsLoading] = useState(false);
 
-  // State for dropdowns
+  // Dropdown options for contract types, experience levels, and job categories
   const [contractTypes, setContractTypes] = useState<string[]>([]);
   const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
   const [jobCategories, setJobCategories] = useState<{ id: string; name: string }[]>([]);
 
+  // Listen for keyboard show/hide events to adjust UI if needed
   useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -71,6 +99,7 @@ export default function EditProfileScreen() {
     };
   }, []);
 
+  // Fetch contract types, experience levels, and job categories from the backend
   useEffect(() => {
     const fetchMetaData = async () => {
       try {
@@ -81,10 +110,11 @@ export default function EditProfileScreen() {
         ]);
         setContractTypes(contracts);
         setExperienceLevels(experiences);
-        // Trier les catégories par ordre alphabétique
+        // Sort categories alphabetically for better UX
         const sortedCategories = [...categories].sort((a, b) => a.name.localeCompare(b.name));
         setJobCategories(sortedCategories);
       } catch (error) {
+        // Error fetching metadata
         console.error("Erreur lors de la récupération des métadonnées:", error);
       }
     };
@@ -92,7 +122,7 @@ export default function EditProfileScreen() {
     fetchMetaData();
   }, []);
 
-  // Pré-remplir les champs avec les données de l'utilisateur actuel
+  // Pre-fill form fields with current user profile data
   useEffect(() => {
     const fetchProfileData = async () => {
       if (!userId) return;
@@ -102,10 +132,12 @@ export default function EditProfileScreen() {
         const data = await getMyProfile();
 
         if (!data) {
+          // Profile not found
           console.log("Profil non trouvé.");
           return;
         }
 
+        // Select the correct profile type based on userType
         const profile = userType === 'candidate' ? data.candidateProfile : data.recruiterProfile;
 
         if (profile) {
@@ -137,10 +169,12 @@ export default function EditProfileScreen() {
             }
           }
         } else {
-            console.log(`Profil de type ${userType} non trouvé.`);
+          // Profile of this type not found
+          console.log(`Profil de type ${userType} non trouvé.`);
         }
 
       } catch (error) {
+        // Error fetching profile
         console.error("Erreur lors de la récupération du profil:", error);
       } finally {
         setIsLoading(false);
@@ -150,9 +184,9 @@ export default function EditProfileScreen() {
     fetchProfileData();
   }, [userId, userType]);
 
-
+  // Handle form submission and profile update
   const handleSubmit = async () => {
-    // Validation groupée de tous les champs obligatoires (sauf présentation)
+    // Validate all required fields (except presentation)
     const missingFields: string[] = [];
     if (!firstName.trim()) missingFields.push('prénom');
     if (!lastName.trim()) missingFields.push('nom');
@@ -163,12 +197,13 @@ export default function EditProfileScreen() {
     if (userType === 'recruiter' && !companyName.trim()) missingFields.push('raison sociale');
 
     if (missingFields.length > 0) {
+      // Alert for missing required fields
       alert('Merci de remplir les champs obligatoires :\n' + missingFields.join(', '));
       return;
     }
     setIsLoading(true);
 
-    // On mappe les champs du formulaire vers le DTO attendu par le backend
+    // Map form fields to the DTO expected by the backend
     const profileData: any = {
       firstName,
       lastName,
@@ -196,16 +231,17 @@ export default function EditProfileScreen() {
 
     try {
       await updateProfile(profileData, selectedPhotoUri || undefined);
-      await refreshUser(); // On rafraîchit les données utilisateur
+      await refreshUser(); // Refresh user data after update
 
-      // Naviguer vers l'écran de profil final
+      // Navigate to the final profile screen
       if (userType === 'candidate') {
         navigation.replace('CandidateProfile', { startEditing: false });
       } else {
-        // Pour le recruteur, après avoir complété son profil perso, on va vers son profil final
+        // For recruiter, after completing personal profile, go to final profile
         navigation.replace('RecruiterProfile', { startEditing: false });
       }
     } catch (error) {
+      // Error saving profile
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       console.error("Erreur lors de l'enregistrement du profil.", errorMessage);
       alert("Erreur lors de l'enregistrement du profil: " + errorMessage);
@@ -223,6 +259,7 @@ export default function EditProfileScreen() {
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={100}
       >
+        {/* Header with logo and profile type */}
         <View style={styles.header}>
           <MovaLogo />
           <Text style={styles.title}>Complétez votre profil</Text>
@@ -232,12 +269,12 @@ export default function EditProfileScreen() {
         </View>
 
         <View style={styles.formCard}>
-          {/* Image Picker */}
+          {/* Image Picker for avatar */}
           <TouchableOpacity style={styles.imagePicker} onPress={async () => {
-            // Demander les permissions d'abord
+            // Request permissions first
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
-              alert('Désolé, nous avons besoin de la permission pour accéder à vos photos !');
+              alert('Sorry, we need permission to access your photos!');
               return;
             }
             
@@ -249,8 +286,8 @@ export default function EditProfileScreen() {
             });
             if (!result.canceled && result.assets && result.assets.length > 0) {
               const uri = result.assets[0].uri;
-              setAvatarUrl(uri); // Affichage local
-              setSelectedPhotoUri(uri); // Stockage pour l'upload
+              setAvatarUrl(uri); // Local display
+              setSelectedPhotoUri(uri); // Store for upload
             }
           }}>
             <Image
@@ -262,7 +299,7 @@ export default function EditProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          {/* Raison Sociale (Recruteur seulement) */}
+          {/* Company Name (Recruiter only, read-only) */}
           {userType === 'recruiter' && (
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Raison Sociale</Text>
@@ -273,7 +310,7 @@ export default function EditProfileScreen() {
             </View>
           )}
 
-          {/* Prénom */}
+          {/* First Name input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Prénom</Text>
             <View style={styles.inputContainer}>
@@ -282,7 +319,7 @@ export default function EditProfileScreen() {
             </View>
           </View>
 
-          {/* Nom */}
+          {/* Last Name input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Nom</Text>
             <View style={styles.inputContainer}>
@@ -291,10 +328,10 @@ export default function EditProfileScreen() {
             </View>
           </View>
 
-          {/* Localisation */}
+          {/* Location input with Google Places Autocomplete */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Localisation</Text>
-            {/* Rendu conditionnel du composant GooglePlacesAutocomplete */}
+            {/* Conditional rendering of GooglePlacesAutocomplete component */}
             {GOOGLE_PLACES_API_KEY && typeof GOOGLE_PLACES_API_KEY === 'string' && GOOGLE_PLACES_API_KEY.length > 0 ? (
               <CustomPlacesAutocomplete
                 apiKey={GOOGLE_PLACES_API_KEY}
@@ -337,20 +374,20 @@ export default function EditProfileScreen() {
                 }}
               />
             ) : (
-              // Fallback UI si la clé API est manquante
+              // Fallback UI if API key is missing
               <View>
                 <View style={[styles.inputContainer, { backgroundColor: '#f0f0f0' }]}>
                   <Ionicons name="location-outline" size={20} color='#999' style={styles.inputIcon} />
                   <TextInput style={[styles.input, { color: '#999' }]} value="Configuration API manquante" editable={false} />
                 </View>
                 <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
-                  La clé API Google Places n'est pas configurée.
+                  Google Places API key is not configured.
                 </Text>
               </View>
             )}
           </View>
 
-          {/* Poste */}
+          {/* Job Title selection */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Poste</Text>
             <TouchableOpacity style={styles.inputContainer} onPress={() => setJobModalVisible(true)}>
@@ -360,7 +397,7 @@ export default function EditProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Expérience */}
+          {/* Experience selection */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Expérience</Text>
             <TouchableOpacity style={styles.inputContainer} onPress={() => setExperienceModalVisible(true)}>
@@ -370,7 +407,7 @@ export default function EditProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Contrat */}
+          {/* Contract Type selection */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Type de contrat</Text>
             <TouchableOpacity style={styles.inputContainer} onPress={() => setContractModalVisible(true)}>
@@ -380,7 +417,7 @@ export default function EditProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Présentation */}
+          {/* Presentation (cover letter) */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Présentation (max 250 caractères)</Text>
             <View style={[styles.inputContainer, { height: 140, alignItems: 'flex-start' }]}>
@@ -398,6 +435,7 @@ export default function EditProfileScreen() {
             </View>
           </View>
 
+          {/* Submit button */}
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={isLoading}>
             {isLoading ? (
               <ActivityIndicator color="#fff" />
@@ -406,7 +444,7 @@ export default function EditProfileScreen() {
             )}
           </TouchableOpacity>
 
-          {/* Modals */}
+          {/* Job Title Modal */}
           <Modal
             visible={jobModalVisible}
             transparent
@@ -434,7 +472,7 @@ export default function EditProfileScreen() {
             </TouchableOpacity>
           </Modal>
 
-          {/* Modal for Experience */}
+          {/* Experience Modal */}
           <Modal
             visible={experienceModalVisible}
             transparent
@@ -459,7 +497,7 @@ export default function EditProfileScreen() {
             </TouchableOpacity>
           </Modal>
 
-          {/* Modal for Contract Type */}
+          {/* Contract Type Modal */}
           <Modal
             visible={contractModalVisible}
             transparent
@@ -484,12 +522,14 @@ export default function EditProfileScreen() {
             </TouchableOpacity>
           </Modal>
         </View>
+        {/* Spacer at the bottom */}
         <View style={{ height: 40 }} /> 
       </KeyboardAwareScrollView>
     </View>
   );
 }
 
+// Styles for the EditProfileScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -531,7 +571,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 16,
-    elevation: 3, // Réduit de 8 à 3 pour éviter les conflits avec l'image picker
+    elevation: 3,
     borderWidth: 1,
     borderColor: '#e8e8e8',
   },
@@ -591,7 +631,7 @@ const styles = StyleSheet.create({
     height: 54,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 10, // Reduced margin
+    marginTop: 10,
   },
   submitButtonText: {
     color: '#fff',

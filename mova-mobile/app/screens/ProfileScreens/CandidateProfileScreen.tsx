@@ -13,22 +13,45 @@ import ProfileSection from '../../../components/ui/ProfileSection';
 
 const { width } = Dimensions.get('window');
 
+/**
+ * CandidateProfileScreen
+ *
+ * This screen displays the candidate's profile information.
+ *
+ * Main features:
+ * - Fetches candidate data from the backend when the screen is focused.
+ * - Shows the candidate's avatar, name, location, and edit button.
+ * - Displays job search details (desired job, experience, contract type).
+ * - Shows a presentation/cover letter section.
+ * - Allows navigation to the profile edit screen.
+ * - Displays a bottom tab bar for candidate navigation.
+ *
+ * Key logic:
+ * - Uses useFocusEffect to refresh candidate data on focus.
+ * - Maps backend profile data to UI state.
+ * - Handles navigation and UI state for editing.
+ */
+
 export default function CandidateProfileScreen() {
+  // Get navigation and route objects
   const route = useRoute<RouteProp<AuthStackParamList, 'CandidateProfile'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
+  // State for candidate profile data
   const [candidate, setCandidate] = useState({
     firstName: '',
     lastName: '',
     locationName: '',
-    avatarUrl: '', // Plus de placeholder
+    avatarUrl: '',
     job: '',
     experience: '',
     contractType: '',
     presentation: '',
   });
+  // State for user ID
   const [userId, setUserId] = useState<string | null>(null);
 
+  // Fetch candidate profile data when the screen is focused
   useFocusEffect(
     useCallback(() => {
       const fetchUser = async () => {
@@ -51,13 +74,13 @@ export default function CandidateProfileScreen() {
           }
       } catch (error) {
         console.error('Erreur chargement profil:', error);
-          // Optionnel: Gérer l'erreur, par ex. déconnexion si token invalide
       }
       };
       fetchUser();
     }, [])
   );
 
+  // Get the tab configuration for the candidate
   const tabs = getCandidateTabs(navigation, 0);
 
   return (
@@ -65,6 +88,7 @@ export default function CandidateProfileScreen() {
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
 
         {/* --- Profile Header --- */}
+        {/* Displays avatar, name, location, and edit button */}
         <View style={styles.header}>
           <View style={styles.headerBackground} />
           <Image source={candidate.avatarUrl ? { uri: candidate.avatarUrl } : require('../../../assets/images/icon.png')} style={styles.avatar} />
@@ -84,6 +108,7 @@ export default function CandidateProfileScreen() {
         </View>
 
         {/* --- Search Section --- */}
+        {/* Displays job search details: desired job, experience, contract type */}
         <ProfileSection title="Recherche" icon="briefcase" iconColor="#4930a3">
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Poste recherché:</Text>
@@ -100,18 +125,21 @@ export default function CandidateProfileScreen() {
         </ProfileSection>
 
         {/* --- About Section --- */}
+        {/* Displays candidate's presentation/cover letter */}
         <ProfileSection title="Présentation" icon="user" iconColor="#4930a3">
           <Text style={styles.sectionText}>{candidate.presentation || 'Aucune présentation pour le moment.'}</Text>
         </ProfileSection>
 
-        {/* Spacer at the bottom */}
+        {/* Spacer at the bottom for layout */}
         <View style={{ height: 140 }} />
       </ScrollView>
+      {/* Bottom tab bar navigation */}
       <BottomTabBar tabs={tabs} activeTabId="profile" />
     </View>
   );
 }
 
+// Styles for the candidate profile screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -147,11 +175,11 @@ const styles = StyleSheet.create({
     borderRadius: 70,
     borderWidth: 4,
     borderColor: Colors.light.backgroundCard,
-    marginTop: 30, // Ajusté pour centrer l'avatar plus grand
+    marginTop: 30,
   },
   editButton: {
     position: 'absolute',
-    top: 120, // Ajusté pour le nouvel avatar
+    top: 120,
     right: 20,
     backgroundColor: Colors.light.backgroundCard,
     padding: 8,

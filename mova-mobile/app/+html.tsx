@@ -1,9 +1,22 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 
-// This file is web-only and used to configure the root HTML for every
-// web page during static rendering.
-// The contents of this function only run in Node.js environments and
-// do not have access to the DOM or browser APIs.
+/**
+ * Root HTML Layout (+html.tsx)
+ *
+ * This file is used only for web builds with Expo Router.
+ *
+ * Main features:
+ * - Defines the root HTML structure for every web page (html, head, body).
+ * - Adds meta tags for charset, compatibility, and viewport.
+ * - Applies a scroll reset so ScrollView behaves like on native.
+ * - Injects global CSS to prevent background flicker in dark mode.
+ * - Allows adding global <head> elements (fonts, favicon, etc.).
+ *
+ * Key logic:
+ * - Only runs in Node.js/static rendering (never in the browser).
+ * - Not used on native mobile builds.
+ */
+
 export default function Root({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">

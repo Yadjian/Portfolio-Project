@@ -2,6 +2,22 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { login as apiLogin, getMyProfile } from '../services/api';
 
+/**
+ * AuthContext
+ *
+ * Provides authentication state and logic for the app.
+ *
+ * Main features:
+ * - Stores and manages authentication state (isAuthenticated, user, token).
+ * - Handles login, logout, and user refresh logic.
+ * - Persists JWT token securely using expo-secure-store.
+ * - Exposes a React context and hook for use throughout the app.
+ *
+ * Usage:
+ *   import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+ *   <AuthProvider>{...}</AuthProvider>
+ *   const { isAuthenticated, login, logout, user } = useAuth();
+ */
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -15,29 +31,29 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Refresh user profile from API
   const refreshUser = async () => {
     try {
       const userData = await getMyProfile();
       setUser(userData);
     } catch (error: any) {
       console.error("Erreur lors du rafraîchissement de l'utilisateur:", error);
-      // Si l'utilisateur n'existe plus (404) ou token invalide, on déconnecte
+      // If user not found or token invalid, logout
       if (error.message?.includes('Utilisateur non trouvé') || error.message?.includes('Unauthorized')) {
         console.log("🚪 Déconnexion automatique: utilisateur non trouvé ou token invalide");
         await logout();
-        setLoading(false); // Important: débloquer le chargement
+        setLoading(false);
       }
     }
   };
 
-  // Vérifier le token stocké au démarrage
+  // Check for stored token on app start
   useEffect(() => {
     const checkToken = async () => {
       try {
@@ -45,8 +61,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (storedToken) {
           setToken(storedToken);
           setIsAuthenticated(true);
-          await refreshUser(); // On utilise notre nouvelle fonction
-          setLoading(false); // Débloquer après le refresh
+          await refreshUser();
+          setLoading(false);
         } else {
           setLoading(false);
         }
@@ -60,7 +76,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkToken();
   }, []);
 
-  // Login JWT classique
+  // Login with email and password
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
@@ -69,7 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await SecureStore.setItemAsync('auth_token', response.accessToken);
         setToken(response.accessToken);
         setIsAuthenticated(true);
-        await refreshUser(); // On utilise aussi notre fonction ici
+        await refreshUser();
         return true;
       } else {
         setIsAuthenticated(false);
@@ -87,6 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Logout and clear token
   const logout = async () => {
     try {
       await SecureStore.deleteItemAsync('auth_token');
@@ -111,6 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
+// Custom hook to use authentication context
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {

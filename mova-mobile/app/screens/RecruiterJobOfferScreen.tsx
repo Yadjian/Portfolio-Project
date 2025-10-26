@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, Dimensions, ScrollView, TextInput, Modal, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, Dimensions, TextInput, Modal, Pressable } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Ionicons, Feather } from '@expo/vector-icons';
@@ -10,20 +10,41 @@ import { getMyJobOffers, createJobOffer, updateJobOffer, deleteJobOffer, getCont
 
 const { width } = Dimensions.get('window');
 
-// Le type pour une offre d'emploi, incluant l'état de l'UI
+/**
+ * RecruiterJobOfferScreen
+ *
+ * This screen allows recruiters to manage their job offers.
+ * 
+ * Main features:
+ * - Fetches and displays the list of job offers for the logged-in recruiter.
+ * - Allows recruiters to create, edit, and delete job offers.
+ * - Ensures that the recruiter's profile is complete before allowing new offers.
+ * - Uses a modal to select contract types.
+ * - Handles UI state for editing/creating offers (form vs. display mode).
+ * - Shows a bottom tab bar for recruiter navigation.
+ * 
+ * Key logic:
+ * - Fetches contract types and job offers from the backend.
+ * - Maps backend offers to UI state, including form state for editing.
+ * - Validates required fields before saving.
+ * - Handles optimistic UI updates and error handling.
+ * - Uses KeyboardAwareScrollView for better mobile UX.
+ */
+
+// Type for a job offer, including UI state
 type JobOfferUI = {
-  id?: string; // L'ID n'existe que pour les offres déjà créées
+  id?: string; // Only exists for already created offers
   title: string;
   description: string;
   contractType: string;
   workHours: string;
-  experienceLevel?: string; // Ajout du niveau d'expérience
-  locationName?: string; // Ajout du nom de la localisation pour l'UI
+  experienceLevel?: string;
+  locationName?: string;
   locationWKT: string;
   salaryMin: number | null;
   salaryMax: number | null;
-  // États pour l'UI
-  isNew?: boolean; // Marqueur pour une nouvelle offre non sauvegardée
+  // UI states
+  isNew?: boolean; // Marker for a new, unsaved offer
   showForm: boolean;
   loading?: boolean;
   error?: string;
@@ -31,7 +52,7 @@ type JobOfferUI = {
 
 export default function RecruiterJobOfferScreen() {
   const navigation = useNavigation();
-  const { user, refreshUser } = useAuth(); // On récupère l'utilisateur connecté et la fonction refresh
+  const { user, refreshUser } = useAuth();
   const [offers, setOffers] = useState<JobOfferUI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [contractModalVisible, setContractModalVisible] = useState(false);
@@ -40,14 +61,15 @@ export default function RecruiterJobOfferScreen() {
 
   // --- DATA FETCHING ---
 
-  // Rafraîchir le profil utilisateur au chargement de l'écran
+  // Refresh user profile on screen load
   useEffect(() => {
-    console.log('🔄 [RecruiterJobOffer] Rafraîchissement du profil...');
+    // Ensures recruiter profile is up-to-date before creating offers
     refreshUser();
   }, []);
 
-  // Fetch metadata like contract types once
+  // Fetch contract types once
   useEffect(() => {
+    // Loads available contract types for the modal
     const fetchMetaData = async () => {
       try {
         const contracts = await getContractTypes();
@@ -59,14 +81,14 @@ export default function RecruiterJobOfferScreen() {
     fetchMetaData();
   }, []);
 
+  // Fetch job offers when screen is focused
   const fetchOffers = useCallback(async (isActive = true) => {
     try {
       setIsLoading(true);
-      const fetchedOffers = await getMyJobOffers(); // API call
-
+      const fetchedOffers = await getMyJobOffers();
       if (isActive) {
         if (fetchedOffers) {
-          // On garde la localisation propre à chaque offre existante, comme pour les autres champs hérités du profil
+          // Map backend offers to UI offers
           const uiOffers: JobOfferUI[] = fetchedOffers.map((offer: any) => ({
             ...offer,
             salaryMin: offer.salaryMin,
@@ -92,32 +114,26 @@ export default function RecruiterJobOfferScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      let isActive = true; // Flag to prevent state updates if component is unmounted
+      let isActive = true;
       fetchOffers(isActive);
-
       return () => {
-        isActive = false; // Cleanup function
+        isActive = false;
       };
     }, [fetchOffers])
   );
 
   // --- UI STATE HELPERS ---
+  // Update a specific offer in the state
   const updateOfferState = (index: number, changes: Partial<JobOfferUI>) => {
     setOffers(currentOffers =>
       currentOffers.map((offer, i) => (i === index ? { ...offer, ...changes } : offer))
     );
   };
 
+  // Add a new offer card to the UI
   const addOfferCard = () => {
     const recruiterProfile = user?.recruiterProfile;
-
-    // Debug: afficher le profil dans la console
-    console.log('🔍 [DEBUG] Profil recruteur:', JSON.stringify(recruiterProfile, null, 2));
-    console.log('🔍 [DEBUG] searchedCategories:', recruiterProfile?.searchedCategories);
-    console.log('🔍 [DEBUG] desiredContractTypes:', recruiterProfile?.desiredContractTypes);
-    console.log('🔍 [DEBUG] desiredExperienceLevel:', recruiterProfile?.desiredExperienceLevel);
-
-    // On vérifie que le profil est complet avant de permettre la création
+    // Check if profile is complete before allowing creation
     if (!recruiterProfile || !recruiterProfile.searchedCategories?.length || !recruiterProfile.desiredContractTypes?.length || !recruiterProfile.desiredExperienceLevel) {
       Alert.alert(
         "Profil incomplet",
@@ -126,18 +142,17 @@ export default function RecruiterJobOfferScreen() {
       );
       return;
     }
-
-    // Ajoute une carte de formulaire vide en haut de la liste
+    // Add a blank form card at the top of the list
     const newOffer: JobOfferUI = {
       isNew: true,
       showForm: true,
-      title: recruiterProfile.searchedCategories[0]?.name || '', // Titre hérité du profil
+      title: recruiterProfile.searchedCategories[0]?.name || '',
       description: '',
-      contractType: recruiterProfile.desiredContractTypes[0] || '', // Contrat hérité du profil
-      experienceLevel: recruiterProfile.desiredExperienceLevel || '', // Expérience héritée du profil
+      contractType: recruiterProfile.desiredContractTypes[0] || '',
+      experienceLevel: recruiterProfile.desiredExperienceLevel || '',
       workHours: '',
-      locationName: recruiterProfile.locationName || '', // Nom de la localisation hérité du profil
-      locationWKT: recruiterProfile.locationWKT || 'POINT(2.3522 48.8566)', // Hérité du profil, avec un fallback
+      locationName: recruiterProfile.locationName || '',
+      locationWKT: recruiterProfile.locationWKT || 'POINT(2.3522 48.8566)',
       salaryMin: null,
       salaryMax: null,
     };
@@ -145,11 +160,12 @@ export default function RecruiterJobOfferScreen() {
   };
 
   // --- API ACTIONS ---
+  // Save a new or edited offer
   const handleSave = async (index: number) => {
     const offer = offers[index];
     updateOfferState(index, { loading: true, error: '' });
 
-    // Validation simple
+    // Simple validation
     if (!offer.title || !offer.description) {
       updateOfferState(index, { loading: false, error: 'Titre, description et contrat sont requis.' });
       return;
@@ -159,17 +175,15 @@ export default function RecruiterJobOfferScreen() {
       title: offer.title,
       description: offer.description,
       workHours: offer.workHours,
-      locationName: offer.locationName, // On envoie aussi le nom de la localisation
-      locationWKT: offer.locationWKT, // On utilise la localisation de l'offre (héritée du profil)
+      locationName: offer.locationName,
+      locationWKT: offer.locationWKT,
       salaryMin: offer.salaryMin ? parseInt(offer.salaryMin.toString(), 10) : undefined,
       salaryMax: offer.salaryMax ? parseInt(offer.salaryMax.toString(), 10) : undefined,
-      // contractType et experienceLevel sont hérités du profil côté backend, donc non envoyés
     };
     try {
       if (offer.isNew) {
+        // Create a new job offer
         const newOffer = await createJobOffer(payload);
-
-        // Remplace la carte "new" par la carte de l'offre sauvegardée
         updateOfferState(index, {
           ...newOffer,
           isNew: false,
@@ -177,9 +191,8 @@ export default function RecruiterJobOfferScreen() {
           loading: false,
         });
       } else {
+        // Update an existing job offer
         const updatedOffer = await updateJobOffer(offer.id!, payload);
-
-        // Met à jour l'offre existante et ferme le formulaire
         updateOfferState(index, {
           ...updatedOffer,
           showForm: false,
@@ -187,21 +200,20 @@ export default function RecruiterJobOfferScreen() {
         });
       }
       Alert.alert('Succès', `Offre ${offer.isNew ? 'créée' : 'mise à jour'} !`);
-      // Le rechargement complet n'est plus nécessaire, l'état est mis à jour localement.
     } catch (error: any) {
       console.error("Erreur sauvegarde offre:", error);
       updateOfferState(index, { loading: false, error: error.message || 'Une erreur est survenue.' });
     }
   };
 
+  // Delete an offer
   const handleDelete = async (index: number) => {
     const offer = offers[index];
     if (offer.isNew) {
-      // Si c'est une nouvelle carte non sauvegardée, on la retire juste de l'UI
+      // Remove unsaved offer from UI
       setOffers(current => current.filter((_, i) => i !== index));
       return;
     }
-
     Alert.alert(
       "Supprimer l'offre",
       "Voulez-vous vraiment supprimer cette offre ?",
@@ -213,7 +225,6 @@ export default function RecruiterJobOfferScreen() {
           onPress: async () => {
             try {
               await deleteJobOffer(offer.id!);
-              // Retire l'offre de la liste au lieu de tout recharger
               setOffers(current => current.filter((_, i) => i !== index));
               Alert.alert('Succès', 'Offre supprimée.');
             } catch (error: any) {
@@ -226,11 +237,13 @@ export default function RecruiterJobOfferScreen() {
   };
 
   // --- MODAL HELPERS ---
+  // Open contract type modal for editing
   const openContractModal = (index: number) => {
     setEditingOfferIndex(index);
     setContractModalVisible(true);
   };
 
+  // Select a contract type from modal
   const selectContractType = (type: string) => {
     if (editingOfferIndex !== null) {
       updateOfferState(editingOfferIndex, { contractType: type });
@@ -241,6 +254,7 @@ export default function RecruiterJobOfferScreen() {
 
   // --- RENDER ---
   if (isLoading) {
+    // Show loading indicator while fetching offers
     return <View style={styles.container}><ActivityIndicator size="large" color="#4930a3" /></View>;
   }
 
@@ -252,26 +266,29 @@ export default function RecruiterJobOfferScreen() {
         enableOnAndroid={true}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Header with title and subtitle */}
         <View style={styles.header}>
           <Text style={styles.title}>Mes Offres</Text>
           <Text style={styles.subtitle}>Gérez vos offres d'emploi ici.</Text>
         </View>
 
+        {/* Empty state if no offers */}
         {offers.length === 0 && (
           <View style={styles.emptyCard}>
             <Text style={styles.emptyCardText}>Aucune offre pour le moment.</Text>
           </View>
         )}
 
-        {/* Bouton pour ajouter une offre, toujours visible en haut */}
+        {/* Button to add a new offer */}
         <TouchableOpacity style={styles.addOfferButton} onPress={addOfferCard} activeOpacity={0.8}>
           <Ionicons name="add-circle-outline" size={24} color="#fff" />
           <Text style={styles.addOfferButtonText}>Ajouter une offre</Text>
         </TouchableOpacity>
 
+        {/* List of job offers */}
         {offers.map((offer, idx) => (
           <View key={offer.id || `new-${idx}`} style={styles.card}>
-            {/* Icône de suppression en haut à droite */}
+            {/* Delete icon for removing an offer */}
             <TouchableOpacity style={styles.trashIcon} onPress={() => handleDelete(idx)} activeOpacity={0.7}>
               <Ionicons name="trash-outline" size={22} color="#e74c3c" />
             </TouchableOpacity>
@@ -279,9 +296,10 @@ export default function RecruiterJobOfferScreen() {
             {offer.loading && <ActivityIndicator color="#6746a8" />}
 
             {offer.showForm ? (
-              // --- FORMULAIRE D'ÉDITION/CRÉATION ---
+              // --- EDIT/CREATE FORM ---
               <View style={styles.formContainer}>
-                 <View style={styles.inputGroup}>
+                {/* Job title (read-only, inherited from profile) */}
+                <View style={styles.inputGroup}>
                   <Text style={styles.label}>Poste</Text>
                   <View style={[styles.inputContainer, styles.readOnlyContainer]}>
                     <Ionicons name="briefcase-outline" size={20} color='#4930a3' style={styles.inputIcon} />
@@ -289,6 +307,7 @@ export default function RecruiterJobOfferScreen() {
                   </View>
                 </View>
 
+                {/* Location (read-only, inherited from profile) */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Localisation</Text>
                   <View style={[styles.inputContainer, styles.readOnlyContainer]}>
@@ -297,6 +316,7 @@ export default function RecruiterJobOfferScreen() {
                   </View>
                 </View>
 
+                {/* Contract type (read-only, inherited from profile) */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Type de contrat</Text>
                   <View style={[styles.inputContainer, styles.readOnlyContainer]}>
@@ -305,6 +325,7 @@ export default function RecruiterJobOfferScreen() {
                   </View>
                 </View>
 
+                {/* Experience level (read-only, inherited from profile) */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Expérience requise</Text>
                   <View style={[styles.inputContainer, styles.readOnlyContainer]}>
@@ -313,6 +334,7 @@ export default function RecruiterJobOfferScreen() {
                   </View>
                 </View>
 
+                {/* Work hours input */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Heures / semaine</Text>
                   <View style={styles.inputContainer}>
@@ -321,6 +343,7 @@ export default function RecruiterJobOfferScreen() {
                   </View>
                 </View>
 
+                {/* Salary min/max inputs */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Salaire (Brut Mensuel)</Text>
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -335,6 +358,7 @@ export default function RecruiterJobOfferScreen() {
                   </View>
                 </View>
 
+                {/* Description input */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>Description</Text>
                   <View style={[styles.inputContainer, { height: 180, alignItems: 'flex-start' }]}>
@@ -351,6 +375,7 @@ export default function RecruiterJobOfferScreen() {
                   </View>
                 </View>
 
+                {/* Form action buttons */}
                 <View style={styles.formButtonRow}>
                   <TouchableOpacity onPress={() => handleSave(idx)} activeOpacity={0.8} style={[styles.submitButton, { flex: 1 }]} disabled={offer.loading}>
                     <Text style={styles.submitButtonText}>Valider</Text>
@@ -362,7 +387,7 @@ export default function RecruiterJobOfferScreen() {
                 {offer.error ? <Text style={{ color: 'red', marginTop: 8 }}>{offer.error}</Text> : null}
               </View>
             ) : (
-              // --- AFFICHAGE DE L'OFFRE ---
+              // --- OFFER DISPLAY ---
               <>
                 <View style={styles.offerDetailsContainer}>
                   <Text style={styles.detailTitle}>{offer.title}</Text>
@@ -381,7 +406,7 @@ export default function RecruiterJobOfferScreen() {
                   {offer.description ? <Text style={[styles.detailText, {marginTop: 12}]}>{offer.description}</Text> : null}
                 </View>
 
-                {/* Icône d'édition en bas à droite */}
+                {/* Edit icon for switching to edit mode */}
                 <TouchableOpacity style={styles.editIcon} onPress={() => updateOfferState(idx, { showForm: true })} activeOpacity={0.7}>
                   <Feather name="edit-2" size={20} color="#4930a3" />
                 </TouchableOpacity>
@@ -393,7 +418,7 @@ export default function RecruiterJobOfferScreen() {
         <View style={{ height: 100 }} />
       </KeyboardAwareScrollView>
 
-      {/* Modal pour le type de contrat */}
+      {/* Modal for contract type selection */}
       <Modal
         visible={contractModalVisible}
         transparent
@@ -411,6 +436,7 @@ export default function RecruiterJobOfferScreen() {
         </TouchableOpacity>
       </Modal>
 
+      {/* Bottom tab bar for recruiter navigation */}
       <BottomTabBar tabs={getRecruiterTabs(navigation)} activeTabId="offre" />
     </View>
   );

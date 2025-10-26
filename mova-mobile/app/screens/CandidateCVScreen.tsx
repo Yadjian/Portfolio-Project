@@ -9,19 +9,38 @@ import { uploadResume, deleteResume, getMyProfile } from '../../services/api';
 
 const { width, height } = Dimensions.get('window');
 
+/**
+ * CandidateCVScreen
+ *
+ * This screen allows candidates to upload, view, and delete their resume (CV).
+ *
+ * Main features:
+ * - Fetches the current CV from the backend every time the screen is focused.
+ * - Allows the user to upload a new CV (PDF) using the device's file picker.
+ * - Allows the user to delete their existing CV.
+ * - Displays the current CV file name and a link to view it if uploaded.
+ * - Handles loading and error states for all actions.
+ * - Shows a bottom tab bar for candidate navigation.
+ *
+ * Key logic:
+ * - Uses useFocusEffect to refresh the CV on screen focus.
+ * - Uses expo-document-picker for file selection.
+ * - Calls backend API to upload or delete the CV.
+ * - Handles UI state for loading, errors, and file info.
+ */
+
 export default function CandidateCVScreen({ navigation }: any) {
   const [cvUrl, setCvUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Charger le CV à chaque fois que la page est focus (revient au premier plan)
+  // Load the CV every time the page is focused (comes to the foreground)
   useFocusEffect(
     useCallback(() => {
       const loadExistingCV = async () => {
         try {
           const profile = await getMyProfile();
-          
-          // Le resumeUrl est dans candidateProfile, pas à la racine
+          // The resumeUrl is in candidateProfile, not at the root
           const resumeUrl = profile?.candidateProfile?.resumeUrl || profile?.resumeUrl;
           if (resumeUrl) {
             setCvUrl(resumeUrl);
@@ -29,6 +48,7 @@ export default function CandidateCVScreen({ navigation }: any) {
             setCvUrl(null);
           }
         } catch (e) {
+          // Error loading CV
           console.error('Erreur chargement CV:', e);
         }
       };
@@ -36,6 +56,7 @@ export default function CandidateCVScreen({ navigation }: any) {
     }, [])
   );
 
+  // Handle uploading a new CV
   const handleUpload = async () => {
     setError('');
     const result = await DocumentPicker.getDocumentAsync({ type: 'application/pdf' });
@@ -48,7 +69,6 @@ export default function CandidateCVScreen({ navigation }: any) {
           name: asset.name,
           type: asset.mimeType ?? 'application/pdf',
         });
-        
         if (data?.resumeUrl) {
           setCvUrl(data.resumeUrl);
           Alert.alert('Succès', data.message || 'CV importé avec succès !');
@@ -61,6 +81,7 @@ export default function CandidateCVScreen({ navigation }: any) {
     }
   };
 
+  // Handle deleting the current CV
   const handleDelete = async () => {
     Alert.alert(
       "Supprimer le CV",
@@ -90,6 +111,7 @@ export default function CandidateCVScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        {/* Header section with title and subtitle */}
         <View style={styles.header}>          
           <Text style={styles.title}>Mon CV</Text>
           <Text style={styles.subtitle}>Importez ou mettez à jour votre CV.</Text>
@@ -100,6 +122,7 @@ export default function CandidateCVScreen({ navigation }: any) {
             <ActivityIndicator color="#6746a8" />
           ) : (
             <>
+              {/* If a CV is uploaded, show info and actions */}
               {cvUrl ? (
                 <View style={styles.cvInfoContainer}>
                   <Ionicons name="document-attach-outline" size={24} color="#4930a3" />
@@ -114,25 +137,30 @@ export default function CandidateCVScreen({ navigation }: any) {
                   </TouchableOpacity>
                 </View>
               ) : (
+                // If no CV is uploaded, show placeholder
                 <View style={styles.noCvContainer}>
                   <Ionicons name="cloud-offline-outline" size={40} color="#999" />
                   <Text style={styles.noCvText}>Aucun CV importé pour le moment.</Text>
                 </View>
               )}
 
+              {/* Button to upload or update CV */}
               <TouchableOpacity style={styles.submitButton} onPress={handleUpload}>
                 <Text style={styles.submitButtonText}>{cvUrl ? 'Mettre à jour le CV' : 'Importer mon CV'}</Text>
               </TouchableOpacity>
             </>
           )}
+          {/* Display error message if any */}
           {error ? <Text style={{ color: 'red', marginTop: 16 }}>{error}</Text> : null}
         </View>
       </ScrollView>
+      {/* Bottom tab bar for candidate navigation */}
       <BottomTabBar tabs={getCandidateTabs(navigation)} activeTabId="cv" />
     </View>
   );
 }
 
+// Styles for the CandidateCVScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

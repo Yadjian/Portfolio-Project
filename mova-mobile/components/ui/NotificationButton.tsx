@@ -3,6 +3,26 @@ import { TouchableOpacity, View, Text, StyleSheet, useWindowDimensions } from 'r
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
+/**
+ * NotificationButton
+ *
+ * A reusable notification bell button with a badge for unread notifications.
+ *
+ * Main features:
+ * - Renders a bell icon with a gradient background.
+ * - Displays a badge with the notification count if > 0.
+ * - Dynamically sizes icon, badge, and container based on screen width.
+ * - Calls the onPress callback when pressed.
+ *
+ * Props:
+ * - notificationCount: number — number of unread notifications.
+ * - onPress: () => void — function to call when the button is pressed.
+ *
+ * Key logic:
+ * - Responsive sizing for icon, badge, and container.
+ * - Shows "99+" if notificationCount > 99.
+ */
+
 interface NotificationButtonProps {
   notificationCount: number;
   onPress: () => void;
@@ -11,12 +31,12 @@ interface NotificationButtonProps {
 export default function NotificationButton({ notificationCount, onPress }: NotificationButtonProps) {
   const { width, height } = useWindowDimensions();
   
-  // Tailles dynamiques basées sur les dimensions de l'écran - ÉQUILIBRÉES
-  const iconSize = Math.max(20, width * 0.055); // Taille équilibrée
-  const containerSize = Math.max(28, width * 0.075); // Conteneur équilibré
-  const badgeSize = Math.max(16, width * 0.04); // Badge normal
-  const fontSize = Math.max(9, width * 0.025); // Police normale
-  const padding = Math.max(6, width * 0.02); // Padding normal
+  // Dynamic sizes based on screen width
+  const iconSize = Math.max(20, width * 0.055);
+  const containerSize = Math.max(28, width * 0.075);
+  const badgeSize = Math.max(16, width * 0.04);
+  const fontSize = Math.max(9, width * 0.025);
+  const padding = Math.max(6, width * 0.02);
 
   const dynamicStyles = {
     container: {

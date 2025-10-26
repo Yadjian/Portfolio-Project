@@ -2,6 +2,30 @@ import React from 'react';
 import { TextInput, StyleSheet, useWindowDimensions, TextInputProps, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
+/**
+ * GenericInputBar (TextInput.tsx)
+ *
+ * A reusable, stylized text input component with gradient border and optional right icon.
+ *
+ * Main features:
+ * - Renders a TextInput with a horizontal gradient border.
+ * - Supports single-line and multiline input.
+ * - Accepts a rightIcon prop to display an icon/button inside the input.
+ * - Responsive sizing based on screen dimensions.
+ * - Allows custom styles via the style prop.
+ *
+ * Props:
+ * - All standard TextInputProps.
+ * - style?: object — custom style for the input.
+ * - rightIcon?: React.ReactNode — optional icon/button on the right.
+ * - multiline?: boolean — enables multiline input.
+ *
+ * Key logic:
+ * - Uses expo-linear-gradient for the border.
+ * - Centers the input horizontally.
+ * - Ensures custom style overrides defaults.
+ */
+
 interface GenericInputBarProps extends TextInputProps {
   style?: object;
   rightIcon?: React.ReactNode;
@@ -10,7 +34,7 @@ interface GenericInputBarProps extends TextInputProps {
 
 export default function GenericInputBar({ style, rightIcon, multiline, ...props }: GenericInputBarProps) {
   const { width, height } = useWindowDimensions();
-  const inputWidth = width * 0.8; // marge latérale automatique
+  const inputWidth = width * 0.8; // automatic horizontal margin
   const inputHeight = multiline ? height * 0.13 : height * 0.06;
   const borderRadius = inputHeight * 0.22;
   const paddingHorizontal = width * 0.04;
@@ -27,7 +51,7 @@ export default function GenericInputBar({ style, rightIcon, multiline, ...props 
         borderRadius: borderRadius,
         marginVertical: marginVertical,
         padding: borderWidth,
-        alignSelf: 'center', // <-- centre le champ, marge à gauche et à droite
+        alignSelf: 'center', // center the field, margin left and right
       }}
     >
       <View style={{
@@ -50,7 +74,7 @@ export default function GenericInputBar({ style, rightIcon, multiline, ...props 
               textAlignVertical: multiline ? 'top' : 'center',
             },
             styles.input,
-            style, // <-- place 'style' en dernier pour qu'il écrase les valeurs par défaut
+            style, // custom style overrides defaults
           ]}
           multiline={multiline}
           {...props}

@@ -1,5 +1,19 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+/**
+ * types.ts
+ *
+ * Centralizes TypeScript types and navigation parameter lists for the app.
+ *
+ * Main features:
+ * - Exports the backend API URL getter.
+ * - Defines user types and navigation stack parameter types.
+ * - Provides screen prop types for type-safe navigation.
+ *
+ * Usage:
+ *   import { AuthStackParamList, UserType, LoginScreenProps } from '@/lib/types';
+ */
+
 // Fonction pour obtenir l'URL du backend
 export const getApiUrl = () => {
   return 'https://tubular-verna-telegraphically.ngrok-free.dev'; // ← Mettez ici votre URL ngrok

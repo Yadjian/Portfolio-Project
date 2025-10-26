@@ -1,3 +1,18 @@
+/**
+ * Colors.ts
+ *
+ * Centralized color palette for the app, supporting both light and dark themes.
+ *
+ * Main features:
+ * - Defines all main colors for light and dark mode.
+ * - Used by Themed.tsx and throughout the app for consistent styling.
+ * - Makes it easy to update or customize the color scheme for dark mode later.
+ *
+ * Usage:
+ *   import Colors from '@/constants/Colors';
+ *   Colors.light.text, Colors.dark.background, etc.
+ */
+
 const primary = '#0A66C2'; // Professional Blue (like LinkedIn)
 const accent = '#34D399'; // A modern green for accents and success
 const error = '#EF4444'; // A standard red for errors
@@ -20,11 +35,11 @@ export default {
     border: '#E5E7EB', // Lighter grey for borders
   },
   dark: {
-    // For now, I'll create a dark theme that's a bit more modern than the default black.
+    // Modern dark theme colors
     text: '#FFFFFF',
     textSecondary: mediumGrey,
-    background: '#111827', // A very dark blue/grey
-    backgroundCard: '#1F2937', // A slightly lighter dark blue/grey
+    background: '#111827', // Very dark blue/grey
+    backgroundCard: '#1F2937', // Slightly lighter dark blue/grey
     tint: '#FFFFFF',
     tabIconDefault: mediumGrey,
     tabIconSelected: '#FFFFFF',

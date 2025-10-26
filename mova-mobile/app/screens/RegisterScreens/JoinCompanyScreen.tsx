@@ -9,10 +9,29 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { height, width } = Dimensions.get('window');
 
+/**
+ * JoinCompanyScreen
+ *
+ * This screen allows a recruiter to join an existing company using its SIRET number.
+ *
+ * Main features:
+ * - Displays a form for entering the SIRET number of the company.
+ * - Handles form state and input validation.
+ * - Calls the backend to join the company with the provided SIRET.
+ * - Navigates to the RecruiterProfile screen (in edit mode) upon success.
+ * - Shows the app logo and a styled join button.
+ *
+ * Key logic:
+ * - Uses React state for the SIRET input.
+ * - Handles form submission and error logging.
+ * - Uses LinearGradient for a visually appealing button.
+ */
+
 export default function JoinCompanyScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const [siret, setSiret] = useState('');
 
+  // Handle form submission and company joining
   const handleSubmit = async () => {
     try {
       await joinCompany({ siret });
@@ -24,10 +43,12 @@ export default function JoinCompanyScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Logo at the top */}
       <View style={styles.logoContainer}>
         <MovaLogo />
       </View>
       <View style={styles.content}>
+        {/* Title and SIRET input */}
         <Text style={styles.title}>Indiquez le Numéro SIRET</Text>
         <TextInput
           style={styles.input}
@@ -36,6 +57,7 @@ export default function JoinCompanyScreen() {
           onChangeText={setSiret}
           keyboardType="numeric"
         />
+        {/* Join button with gradient background */}
         <LinearGradient
           colors={['#6746a8', '#6b25f9', '#07b9ff']}
           style={styles.button}
@@ -55,6 +77,7 @@ export default function JoinCompanyScreen() {
   );
 }
 
+// Styles for the JoinCompanyScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

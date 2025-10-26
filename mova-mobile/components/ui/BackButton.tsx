@@ -1,7 +1,24 @@
 import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
-import { Platform } from 'react-native';
+import { Pressable, StyleSheet, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+/**
+ * BackButton
+ *
+ * A reusable back button component for navigation headers.
+ *
+ * Main features:
+ * - Renders a left arrow icon (Ionicons).
+ * - Calls the onPress callback when pressed.
+ * - Uses android ripple effect and iOS margin adjustment.
+ *
+ * Props:
+ * - onPress: () => void — function to call when the button is pressed.
+ *
+ * Key logic:
+ * - Platform-specific margin for iOS.
+ * - Transparent background for seamless header integration.
+ */
 
 interface BackButtonProps {
   onPress: () => void;

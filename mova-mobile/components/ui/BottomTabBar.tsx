@@ -3,6 +3,28 @@ import { View, TouchableOpacity, Text, StyleSheet, useWindowDimensions } from 'r
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+/**
+ * BottomTabBar
+ *
+ * A custom bottom tab bar component for navigation.
+ *
+ * Main features:
+ * - Renders a row of tab items with icons and labels.
+ * - Highlights the active tab with a colored background and icon.
+ * - Supports notification badges on tabs.
+ * - Responsive sizing based on screen dimensions.
+ * - Uses Ionicons for tab icons.
+ *
+ * Props:
+ * - tabs: TabItem[] — array of tab definitions (id, label, onPress, icons, badge)
+ * - activeTabId: string — id of the currently active tab
+ *
+ * Key logic:
+ * - Dynamically computes sizes for icons and containers.
+ * - Switches icon and color based on active state.
+ * - Shows a badge if provided.
+ */
+
 interface TabItem {
   id: string;
   label: string;

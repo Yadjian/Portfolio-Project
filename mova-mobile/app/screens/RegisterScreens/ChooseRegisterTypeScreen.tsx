@@ -5,15 +5,32 @@ import MovaLogo from '@/components/ui/MovaLogo';
 
 const { height, width } = Dimensions.get('window');
 
+/**
+ * ChooseRegisterTypeScreen
+ *
+ * This screen allows the user to select their registration type (candidate or recruiter).
+ *
+ * Main features:
+ * - Presents two cards: one for candidates, one for recruiters.
+ * - Navigates to the account creation screen with the selected user type.
+ * - Shows the app logo, title, and subtitle.
+ *
+ * Key logic:
+ * - Uses navigation to pass the userType param to the CreateAccount screen.
+ * - Uses Pressable for interactive cards with visual feedback.
+ */
+
 export default function ChooseRegisterTypeScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
+      {/* Header with logo and title */}
       <View style={styles.header}>
         <MovaLogo />
         <Text style={styles.title}>Rejoignez-nous</Text>
         <Text style={styles.subtitle}>Choisissez votre profil pour commencer l'aventure Mova.</Text>
       </View>
 
+      {/* Card for candidate registration */}
       <Pressable
         style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
         onPress={() => navigation.navigate('CreateAccount', { userType: 'candidate' })}
@@ -28,6 +45,7 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
         <Feather name="chevron-right" size={24} color="#C7C7CC" />
       </Pressable>
 
+      {/* Card for recruiter registration */}
       <Pressable
         style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
         onPress={() => navigation.navigate('CreateAccount', { userType: 'recruiter' })}
@@ -45,13 +63,14 @@ export default function ChooseRegisterTypeScreen({ navigation }: any) {
   );
 }
 
+// Styles for the ChooseRegisterTypeScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff', // Fond blanc pour la cohérence du parcours d'inscription
-    justifyContent: 'flex-start', // Aligner en haut pour un meilleur contrôle
+    backgroundColor: '#fff',
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    paddingTop: height * 0.1, // Marge en haut pour centrer verticalement
+    paddingTop: height * 0.1,
     paddingHorizontal: width * 0.05,
   },
   header: {

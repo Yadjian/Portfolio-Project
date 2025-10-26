@@ -1,7 +1,37 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import Colors from '../../constants/Colors'; // Using the new color palette
+import Colors from '../../constants/Colors';
+
+/**
+ * SwipeCard
+ *
+ * A card component for swipe interfaces (e.g., Tinder-like).
+ *
+ * Main features:
+ * - Displays user or job info depending on userType (candidate or recruiter).
+ * - Shows avatar, name/company, location, job, experience, contract type, and presentation.
+ * - Uses InfoTag subcomponent for tags with icons.
+ * - Responsive design using useWindowDimensions.
+ *
+ * Props:
+ * - userType: 'candidate' | 'recruiter'
+ * - avatarUrl: string
+ * - firstName?: string
+ * - lastName?: string
+ * - companyName?: string
+ * - location?: string
+ * - job?: string
+ * - jobSeeking?: string
+ * - experience?: string
+ * - experienceRequired?: string
+ * - presentation?: string
+ * - contractType?: string
+ *
+ * Key logic:
+ * - Adapts displayed fields based on userType.
+ * - Fallbacks for missing data.
+ */
 
 interface SwipeCardProps {
   userType: 'candidate' | 'recruiter';

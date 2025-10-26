@@ -4,6 +4,27 @@ import MovaLogo from '../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { login, getMyProfile } from '../../services/api';
 
+/**
+ * LoginScreen
+ *
+ * This screen allows users to log in to their account.
+ * 
+ * Main features:
+ * - Handles form state for email and password.
+ * - Allows toggling password visibility.
+ * - Validates required fields before submitting.
+ * - Calls the backend to authenticate the user.
+ * - Fetches the user's profile after login to determine their type (candidate or recruiter).
+ * - Redirects to the appropriate profile screen after successful login.
+ * - Handles loading and error states.
+ * - Provides navigation to registration and password reset.
+ * 
+ * Key logic:
+ * - Uses React state for form and loading.
+ * - Listens for keyboard events to adjust UI.
+ * - Uses Alert for error messages.
+ */
+
 export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -11,6 +32,7 @@ export default function LoginScreen({ navigation }: any) {
   const [loading, setLoading] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
 
+  // Listen for keyboard show/hide events to adjust UI if needed
   React.useEffect(() => {
     const showSubscription = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
@@ -25,6 +47,7 @@ export default function LoginScreen({ navigation }: any) {
     };
   }, []);
 
+  // Handle login form submission
   const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
@@ -34,20 +57,20 @@ export default function LoginScreen({ navigation }: any) {
     setLoading(true);
 
     try {
-      // 1. Connexion et stockage des tokens via le service API
+      // 1. Login and store tokens via API service
       await login(email, password);
 
-      // 2. Récupération du profil pour la redirection
+      // 2. Fetch profile for redirection
       const profileData = await getMyProfile();
 
-      // 3. Navigation en fonction du type de profil
+      // 3. Navigate based on profile type
       if (profileData.candidateProfile) {
         navigation.replace('CandidateProfile', { userType: 'candidate' });
       } else if (profileData.recruiterProfile) {
         navigation.replace('RecruiterProfile', { userType: 'recruiter' });
       } else {
-        // Ce cas peut arriver si l'utilisateur a un compte mais n'a pas encore finalisé son profil.
-        // Pour l'instant, on le traite comme une erreur.
+        // This can happen if the user has an account but hasn't completed their profile yet.
+        // For now, treat as an error.
         throw new Error("Profil utilisateur introuvable ou type non reconnu.");
       }
     } catch (error) {
@@ -69,6 +92,7 @@ export default function LoginScreen({ navigation }: any) {
         scrollEnabled={keyboardVisible}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Header with logo and title */}
         <View style={styles.header}>
           <MovaLogo />
           <Text style={styles.title}>Connexion</Text>
@@ -77,7 +101,9 @@ export default function LoginScreen({ navigation }: any) {
           </Text>
         </View>
 
+        {/* Login form card */}
         <View style={styles.formCard}>
+          {/* Email input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputContainer}>
@@ -94,6 +120,7 @@ export default function LoginScreen({ navigation }: any) {
             </View>
           </View>
 
+          {/* Password input */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Mot de passe</Text>
             <View style={styles.inputContainer}>
@@ -106,6 +133,7 @@ export default function LoginScreen({ navigation }: any) {
                 value={password}
                 onChangeText={setPassword}
               />
+              {/* Toggle password visibility */}
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons 
                   name={showPassword ? "eye-outline" : "eye-off-outline"} 
@@ -116,6 +144,7 @@ export default function LoginScreen({ navigation }: any) {
             </View>
           </View>
 
+          {/* Submit button */}
           <TouchableOpacity style={styles.submitButton} onPress={handleLogin} disabled={loading}>
             {loading ? (
               <ActivityIndicator color="#fff" />
@@ -124,6 +153,7 @@ export default function LoginScreen({ navigation }: any) {
             )}
           </TouchableOpacity>
 
+          {/* Footer links for registration and password reset */}
           <View style={styles.footer}>
             <TouchableOpacity onPress={() => navigation.navigate('ChooseRegisterType')}>
               <Text style={styles.footerLink}>Créer un compte</Text>
@@ -138,6 +168,7 @@ export default function LoginScreen({ navigation }: any) {
   );
 }
 
+// Styles for the LoginScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

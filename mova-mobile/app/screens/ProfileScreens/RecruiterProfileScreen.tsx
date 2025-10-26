@@ -4,20 +4,39 @@ import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/nativ
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Feather } from '@expo/vector-icons';
-
 import type { AuthStackParamList } from '../../../lib/types';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import { getMyProfile } from '../../../services/api';
 import { getRecruiterTabs } from '@/constants/tabsConfig';
 import Colors from '../../../constants/Colors';
-import ProfileSection from '../../../components/ui/ProfileSection'; // Correction de l'import
+import ProfileSection from '../../../components/ui/ProfileSection';
 
 const { width } = Dimensions.get('window');
+
+/**
+ * RecruiterProfileScreen
+ *
+ * This screen displays the recruiter's profile information.
+ *
+ * Main features:
+ * - Fetches recruiter data from the backend when the screen is focused.
+ * - Shows the recruiter's company, name, location, and avatar.
+ * - Displays job offer details (title, experience, contract type).
+ * - Shows a presentation/description section.
+ * - Allows navigation to the profile edit screen.
+ * - Displays a bottom tab bar for recruiter navigation.
+ *
+ * Key logic:
+ * - Uses useFocusEffect to refresh recruiter data on focus.
+ * - Parses the searchDescription to extract job title and presentation.
+ * - Handles navigation and UI state for editing.
+ */
 
 export default function RecruiterProfileScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'RecruiterProfile'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
 
+  // State for recruiter profile information
   const [profile, setProfile] = useState({
     companyName: '',
     firstName: '',
@@ -26,13 +45,16 @@ export default function RecruiterProfileScreen() {
     avatarUrl: '',
     presentation: '',
   });
+  // State for job offer details
   const [jobOffer, setJobOffer] = useState({
     title: '',
     experience: '',
     contractType: '',
   });
+  // State for user ID
   const [userId, setUserId] = useState<string | null>(null);
 
+  // Fetch recruiter profile data when the screen is focused
   useFocusEffect(
     useCallback(() => {
       const fetchRecruiterData = async () => {
@@ -41,7 +63,7 @@ export default function RecruiterProfileScreen() {
           if (profileData && profileData.recruiterProfile) {
             const userProfile = profileData.recruiterProfile;
 
-            // Get Company Name
+            // Get Company Name from memberships
             const companyName =
               userProfile.memberships && userProfile.memberships.length > 0
                 ? userProfile.memberships[0].company.name
@@ -76,6 +98,7 @@ export default function RecruiterProfileScreen() {
             setUserId(profileData.id);
           }
         } catch (error) {
+          // Error loading recruiter profile
           console.error("Erreur lors du chargement du profil recruteur:", error);
         }
       };
@@ -83,14 +106,14 @@ export default function RecruiterProfileScreen() {
     }, [])
   );
 
-  const notificationCount = 0; // Example count
+  const notificationCount = 0; // Example notification count
   const tabs = getRecruiterTabs(navigation, notificationCount);
 
   return (
     <View style={styles.container}>
       <ScrollView style={styles.scrollContainer} showsVerticalScrollIndicator={false}>
 
-        {/* --- Profile Header --- */}
+        {/* Profile Header */}
         <View style={styles.header}>
           <View style={styles.headerBackground} />
           <Image source={profile.avatarUrl ? { uri: profile.avatarUrl } : require('../../../assets/images/icon.png')} style={styles.avatar} />
@@ -109,7 +132,7 @@ export default function RecruiterProfileScreen() {
           </View>
         </View>
         
-        {/* --- Job Details Section --- */}
+        {/* Job Details Section */}
         <ProfileSection title="Recherche" icon="briefcase" iconColor="#4930a3">
           <View style={styles.detailItem}>
             <Text style={styles.detailLabel}>Poste disponible:</Text>
@@ -125,7 +148,7 @@ export default function RecruiterProfileScreen() {
           </View>
         </ProfileSection>
 
-        {/* --- Presentation Section --- */}
+        {/* Presentation Section */}
         <ProfileSection title="Présentation" icon="user" iconColor="#4930a3">
           <Text style={styles.sectionText}>{profile.presentation}</Text>
         </ProfileSection>
@@ -133,12 +156,13 @@ export default function RecruiterProfileScreen() {
         {/* Spacer at the bottom */}
         <View style={{ height: 100 }} />
       </ScrollView>
+      {/* Bottom tab bar for recruiter navigation */}
       <BottomTabBar tabs={tabs} activeTabId="profile" />
     </View>
   );
 }
 
-// Using the same styles as CandidateProfileScreen for consistency
+// Styles for RecruiterProfileScreen (same as CandidateProfileScreen for consistency)
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -165,11 +189,11 @@ const styles = StyleSheet.create({
     borderRadius: 70,
     borderWidth: 4,
     borderColor: Colors.light.backgroundCard,
-    marginTop: 30, // Ajusté pour centrer l'avatar plus grand
+    marginTop: 30,
   },
   editButton: {
     position: 'absolute',
-    top: 120, // Ajusté pour le nouvel avatar
+    top: 120,
     right: 20,
     backgroundColor: Colors.light.backgroundCard,
     padding: 8,
@@ -206,7 +230,6 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     lineHeight: 22,
   },
-  // Detail Section Styles
   detailItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
