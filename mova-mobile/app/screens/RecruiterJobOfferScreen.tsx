@@ -6,6 +6,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getRecruiterTabs } from '../../constants/tabsConfig';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { getMyJobOffers, createJobOffer, updateJobOffer, deleteJobOffer, getContractTypes } from '../../services/api';
 
 const { width } = Dimensions.get('window');
@@ -53,6 +54,7 @@ type JobOfferUI = {
 export default function RecruiterJobOfferScreen() {
   const navigation = useNavigation();
   const { user, refreshUser } = useAuth();
+  const { matchBadgeCount, profileBadgeCount, refreshMatchBadge } = useNotifications();
   const [offers, setOffers] = useState<JobOfferUI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [contractModalVisible, setContractModalVisible] = useState(false);
@@ -116,10 +118,12 @@ export default function RecruiterJobOfferScreen() {
     useCallback(() => {
       let isActive = true;
       fetchOffers(isActive);
+      // Rafraîchir les badges
+      refreshMatchBadge();
       return () => {
         isActive = false;
       };
-    }, [fetchOffers])
+    }, [fetchOffers, refreshMatchBadge])
   );
 
   // --- UI STATE HELPERS ---
@@ -437,7 +441,15 @@ export default function RecruiterJobOfferScreen() {
       </Modal>
 
       {/* Bottom tab bar for recruiter navigation */}
-      <BottomTabBar tabs={getRecruiterTabs(navigation)} activeTabId="offre" />
+      <BottomTabBar 
+        tabs={getRecruiterTabs(navigation, profileBadgeCount).map(tab => {
+          if (tab.id === 'matches') {
+            return { ...tab, badge: matchBadgeCount };
+          }
+          return tab;
+        })} 
+        activeTabId="offre" 
+      />
     </View>
   );
 }

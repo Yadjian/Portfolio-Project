@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import * as SecureStore from 'expo-secure-store';
 import Colors from '../../constants/Colors';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '../../constants/tabsConfig';
 import { getMatches } from '../../services/api';
+import { updateMatchCount } from '@/lib/notificationStorage';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 /**
  * HistoricalScreen
@@ -36,6 +39,7 @@ type Match = {
   meta: string;
   matchDate: string;
   avatarUrl: string;
+  isNew?: boolean; // Nouveau : indique si le match n'a pas encore été consulté
 };
 
 // --- Helpers & UI Components ---
@@ -47,11 +51,16 @@ const formatDate = (dateString: string) => {
 
 // Card component for each match in the list
 const MatchCard = ({ item, onPress }: { item: Match; onPress: () => void }) => {
-  const { title, subtitle, meta, matchDate, avatarUrl } = item;
+  const { title, subtitle, meta, matchDate, avatarUrl, isNew } = item;
 
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
-      <View style={styles.card}>
+      <View style={[styles.card, isNew && styles.newMatchCard]}>
+        {isNew && (
+          <View style={styles.newBadge}>
+            <Text style={styles.newBadgeText}>NOUVEAU</Text>
+          </View>
+        )}
         <Image source={{ uri: avatarUrl }} style={styles.avatar} resizeMode="contain" />
         <View style={styles.cardContent}>
           <Text style={styles.titleCard}>{title}</Text>
@@ -70,6 +79,7 @@ const MatchCard = ({ item, onPress }: { item: Match; onPress: () => void }) => {
 const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastSeenCount, setLastSeenCount] = useState(0);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -78,18 +88,27 @@ const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
           setLoading(true);
           const data = await getMatches();
           console.log('Matches data:', data);
+          
+          // Récupérer le dernier compteur vu
+          const lastCountStr = await SecureStore.getItemAsync('last_match_count');
+          const lastCount = lastCountStr ? parseInt(lastCountStr, 10) : 0;
+          setLastSeenCount(lastCount);
 
           // Map backend data to Match type for the component
-          const normalizedMatches: Match[] = data.map((match: any) => ({
+          const normalizedMatches: Match[] = data.map((match: any, index: number) => ({
             id: match.matchId,
             title: `${match.profile.firstName} ${match.profile.lastName}`,
             subtitle: match.profile.searchedJobTitle || 'Poste non spécifié',
             meta: '',
             matchDate: match.matchedAt,
             avatarUrl: `https://ui-avatars.com/api/?name=${match.profile.firstName}+${match.profile.lastName}&size=200&background=4930a3&color=fff`,
+            isNew: index >= lastCount, // Les matchs au-delà du dernier count sont nouveaux
           }));
 
           setMatches(normalizedMatches);
+          
+          // Marquer les matchs comme vus maintenant que l'utilisateur est sur l'écran
+          await updateMatchCount(normalizedMatches.length);
         } catch (error) {
           // Error fetching matches for candidate
           console.error('Erreur lors de la récupération des matchs:', error);
@@ -140,6 +159,7 @@ const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
 const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(true);
+  const [lastSeenCount, setLastSeenCount] = useState(0);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -148,18 +168,27 @@ const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
           setLoading(true);
           const data = await getMatches();
           console.log('Matches data:', data);
+          
+          // Récupérer le dernier compteur vu
+          const lastCountStr = await SecureStore.getItemAsync('last_match_count');
+          const lastCount = lastCountStr ? parseInt(lastCountStr, 10) : 0;
+          setLastSeenCount(lastCount);
 
           // Map backend data to Match type for the component
-          const normalizedMatches: Match[] = data.map((match: any) => ({
+          const normalizedMatches: Match[] = data.map((match: any, index: number) => ({
             id: match.matchId,
             title: `${match.profile.firstName} ${match.profile.lastName}`,
             subtitle: match.profile.desiredJobTitle || 'Poste non spécifié',
             meta: match.profile.experienceLevel || '',
             matchDate: match.matchedAt,
             avatarUrl: match.profile.photoUrl || `https://ui-avatars.com/api/?name=${match.profile.firstName}+${match.profile.lastName}&size=200&background=4930a3&color=fff`,
+            isNew: index >= lastCount, // Les matchs au-delà du dernier count sont nouveaux
           }));
 
           setMatches(normalizedMatches);
+          
+          // Marquer les matchs comme vus maintenant que l'utilisateur est sur l'écran
+          await updateMatchCount(normalizedMatches.length);
         } catch (error) {
           // Error fetching matches for recruiter
           console.error('Erreur lors de la récupération des matchs:', error);
@@ -211,15 +240,39 @@ export default function HistoricalScreen({ route }: { route: any }) {
   const navigation = useNavigation();
   const userType = route.params?.userType ?? 'candidate';
   const isRecruiter = userType === 'recruiter';
+  
+  // Get notification context
+  const { profileBadgeCount, setMatchBadgeCount, refreshMatchBadge } = useNotifications();
+
+  // Rafraîchir le badge au focus de l'écran
+  useFocusEffect(
+    React.useCallback(() => {
+      // On est sur l'écran des matchs, donc le badge des matchs passe à 0
+      setMatchBadgeCount(0);
+      // Mais on rafraîchit quand même pour la prochaine fois
+      refreshMatchBadge();
+    }, [setMatchBadgeCount, refreshMatchBadge])
+  );
 
   // Get the correct tab configuration for the user type
-  const tabs = isRecruiter ? getRecruiterTabs(navigation) : getCandidateTabs(navigation);
+  const tabs = isRecruiter ? getRecruiterTabs(navigation, profileBadgeCount) : getCandidateTabs(navigation, profileBadgeCount);
+  
+  // Update tabs to show 0 badge on matches tab (we're on this screen)
+  const updatedTabs = tabs.map(tab =>
+    tab.id === 'matches'
+      ? { ...tab, badge: 0 } // Current screen, so no badge
+      : tab
+  );
 
   return (
     <View style={styles.container}>
-      {isRecruiter ? <RecruiterHistoryView navigation={navigation} /> : <CandidateHistoryView navigation={navigation} />}
+      {isRecruiter ? (
+        <RecruiterHistoryView navigation={navigation} />
+      ) : (
+        <CandidateHistoryView navigation={navigation} />
+      )}
       {/* Bottom tab bar for navigation */}
-      <BottomTabBar tabs={tabs} activeTabId="matches" />
+      <BottomTabBar tabs={updatedTabs} activeTabId="matches" />
     </View>
   );
 }
@@ -283,6 +336,30 @@ const styles = StyleSheet.create({
     elevation: 5,
     borderWidth: 1,
     borderColor: '#f0f0f0',
+    position: 'relative',
+  },
+  newMatchCard: {
+    backgroundColor: '#f0f4ff',
+    borderColor: '#4930a3',
+    borderWidth: 2,
+    shadowColor: '#4930a3',
+    shadowOpacity: 0.25,
+  },
+  newBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    backgroundColor: '#ff3b30',
+    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    zIndex: 10,
+  },
+  newBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+    letterSpacing: 0.5,
   },
   avatar: {
     width: 60,

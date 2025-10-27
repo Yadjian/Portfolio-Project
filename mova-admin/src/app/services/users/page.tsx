@@ -174,11 +174,6 @@ export default function UsersServices() {
     return experience ? experience.label : experienceValue;
   };
 
-  const getJobCategoryName = (categoryId: string) => {
-    const category = jobCategories.find(c => c.id === categoryId);
-    return category ? category.name : categoryId;
-  };
-
   // Fetch users from API on mount
   useEffect(() => {
     const fetchUsers = async () => {
@@ -705,7 +700,7 @@ export default function UsersServices() {
                           <span style={detailStyles.value}>{foundUser.candidateProfile.desiredJobTitle || 'Non défini'}</span>
                         </div>
                         <div style={detailStyles.row}>
-                          <span style={detailStyles.label}>⭐ Niveau d'expérience</span>
+                          <span style={detailStyles.label}>⭐ Expérience</span>
                           <span style={detailStyles.value}>
                             {foundUser.candidateProfile.experienceLevel 
                               ? getExperienceLevelLabel(foundUser.candidateProfile.experienceLevel)

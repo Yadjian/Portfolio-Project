@@ -133,23 +133,49 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
             style={dynamicStyles.navItem} 
             onPress={tab.onPress}
           >
-            <View style={dynamicStyles.navIconContainer}>
-              {isActive ? (
-                <View
-                  style={[dynamicStyles.activeIconGradient, { backgroundColor: '#4930a3' }]}
-                >
+            <View style={{ position: 'relative' }}>
+              <View style={dynamicStyles.navIconContainer}>
+                {isActive ? (
+                  <View
+                    style={[dynamicStyles.activeIconGradient, { backgroundColor: '#4930a3' }]}
+                  >
+                    <Ionicons 
+                      name={iconNameActive} 
+                      size={iconSize} 
+                      color="#FFFFFF" 
+                    />
+                  </View>
+                ) : (
                   <Ionicons 
-                    name={iconNameActive} 
+                    name={iconName} 
                     size={iconSize} 
-                    color="#FFFFFF" 
+                    color="#8E8E93" 
                   />
+                )}
+              </View>
+              {typeof tab.badge === 'number' && tab.badge > 0 && (
+                <View style={{
+                  position: 'absolute',
+                  top: -2,
+                  right: -2,
+                  backgroundColor: '#ff3b30',
+                  borderRadius: 10,
+                  paddingHorizontal: 5,
+                  minWidth: 18,
+                  height: 18,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderWidth: 2,
+                  borderColor: '#fff',
+                  zIndex: 10,
+                }}>
+                  <Text style={{
+                    color: '#fff',
+                    fontSize: 11,
+                    fontWeight: 'bold',
+                    textAlign: 'center',
+                  }}>{tab.badge}</Text>
                 </View>
-              ) : (
-                <Ionicons 
-                  name={iconName} 
-                  size={iconSize} 
-                  color="#8E8E93" 
-                />
               )}
             </View>
             <Text style={[
@@ -158,28 +184,6 @@ export default function BottomTabBar({ tabs, activeTabId }: BottomTabBarProps) {
             ]}>
               {tab.label}
             </Text>
-            {typeof tab.badge === 'number' && tab.badge > 0 && (
-              <View style={{
-                position: 'absolute',
-                top: -4,
-                right: -8,
-                backgroundColor: 'red',
-                borderRadius: 10,
-                paddingHorizontal: 5,
-                minWidth: 18,
-                height: 18,
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 1,
-              }}>
-                <Text style={{
-                  color: '#fff',
-                  fontSize: 12,
-                  fontWeight: 'bold',
-                  textAlign: 'center',
-                }}>{tab.badge}</Text>
-              </View>
-            )}
           </TouchableOpacity>
         );
       })}

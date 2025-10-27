@@ -4,6 +4,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useFocusEffect } from '@react-navigation/native';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getCandidateTabs } from '../../constants/tabsConfig';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { Ionicons } from '@expo/vector-icons';
 import { uploadResume, deleteResume, getMyProfile } from '../../services/api';
 
@@ -30,6 +31,7 @@ const { width, height } = Dimensions.get('window');
  */
 
 export default function CandidateCVScreen({ navigation }: any) {
+  const { matchBadgeCount, profileBadgeCount, refreshMatchBadge } = useNotifications();
   const [cvUrl, setCvUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -47,6 +49,9 @@ export default function CandidateCVScreen({ navigation }: any) {
           } else {
             setCvUrl(null);
           }
+          
+          // Rafraîchir les badges
+          await refreshMatchBadge();
         } catch (e) {
           // Error loading CV
           console.error('Erreur chargement CV:', e);
@@ -155,7 +160,15 @@ export default function CandidateCVScreen({ navigation }: any) {
         </View>
       </ScrollView>
       {/* Bottom tab bar for candidate navigation */}
-      <BottomTabBar tabs={getCandidateTabs(navigation)} activeTabId="cv" />
+      <BottomTabBar 
+        tabs={getCandidateTabs(navigation, profileBadgeCount).map(tab => {
+          if (tab.id === 'matches') {
+            return { ...tab, badge: matchBadgeCount };
+          }
+          return tab;
+        })} 
+        activeTabId="cv" 
+      />
     </View>
   );
 }

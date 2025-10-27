@@ -8,6 +8,8 @@ import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
 import { UserType } from '@/lib/types';
 import { getProfilesToSwipe, sendSwipeAction, undoPreviousSwipe } from '../../services/api';
 import Colors from '@/constants/Colors';
+import { markAllProfilesAsViewed } from '@/lib/notificationStorage';
+import { useNotifications } from '@/contexts/NotificationContext';
 
 const { width } = Dimensions.get('window');
 
@@ -65,6 +67,9 @@ const ActionButton = ({ onPress, small, color, icon, style }: {
 export default function SwipeNotificationScreen({ route, navigation }: any) {
   // userType: 'candidate' or 'recruiter'
   const userType: UserType = route?.params?.userType ?? 'candidate';
+  
+  // Get notification context
+  const { matchBadgeCount, profileBadgeCount, setProfileBadgeCount, refreshMatchBadge, refreshProfileBadge } = useNotifications();
 
   // profiles: stack of profiles to swipe
   const [profiles, setProfiles] = useState<any[]>([]);
@@ -72,6 +77,8 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const [lastSwipedProfile, setLastSwipedProfile] = useState<any | null>(null);
   // isAnimating: prevents multiple swipes at once
   const [isAnimating, setIsAnimating] = useState(false);
+  // notificationCount: number of profiles available to swipe
+  const [notificationCount, setNotificationCount] = useState(0);
   // animatingProfile: profile currently being animated out
   const [animatingProfile, setAnimatingProfile] = useState<any | null>(null);
   // position: animated value for swipe gesture
@@ -97,31 +104,8 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         // Fetch profiles from backend
         const data = await getProfilesToSwipe(userType, latitude, longitude);
 
-        // Add a mock recruiter profile for demo/testing
-        const mockRecruiter = {
-          id: 'mock-1',
-          firstName: 'Sophie',
-          lastName: 'Martin',
-          avatarUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
-          locationName: 'Paris, France',
-          searchDescription: 'Serveur / Serveuse\n\nRestaurant Le Gourmet recherche serveurs dynamiques pour sa terrasse avec vue sur la Seine. Rejoignez notre équipe dans un cadre d\'exception. Expérience souhaitée, formation assurée. Nous offrons un environnement stimulant au cœur de Paris.',
-          companyName: 'Le Gourmet Paris',
-          desiredExperienceLevel: 'INTERMEDIAIRE',
-          desiredContractTypes: ['CDI'],
-        };
-
-        // Map mock profile to UI format
-        const mappedMockProfile = {
-          ...mockRecruiter,
-          location: mockRecruiter.locationName,
-          jobSeeking: 'Serveur / Serveuse',
-          experienceRequired: mockRecruiter.desiredExperienceLevel,
-          presentation: 'Restaurant Le Gourmet recherche serveurs dynamiques pour sa terrasse avec vue sur la Seine. Rejoignez notre équipe dans un cadre d\'exception. Expérience souhaitée, formation assurée. Nous offrons un environnement stimulant au cœur de Paris.',
-          contractType: mockRecruiter.desiredContractTypes.join(', '),
-        };
-
-        // Add the mock profile to the stack
-        const allProfiles = [mappedMockProfile];
+        // Initialiser le tableau de profils
+        const allProfiles: any[] = [];
 
         // Map backend profiles to UI format
         if (data && data.length > 0) {
@@ -163,27 +147,18 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
           allProfiles.push(...mappedProfiles);
         }
 
-        // Add a temporary profile if needed for demo
-        if (userType === 'candidate' && allProfiles.length === 0) {
-          const tempProfile = {
-            id: 'temp-recruiter-1',
-            firstName: 'Marie',
-            lastName: 'Dupont',
-            avatarUrl: 'https://randomuser.me/api/portraits/women/32.jpg',
-            location: 'Cannes, France',
-            jobSeeking: 'Serveur / Serveuse',
-            experienceRequired: 'INTERMEDIAIRE',
-            presentation: 'Le Restaurant Le Gourmet recherche un serveur dynamique ! Rejoignez notre équipe dans un cadre prestigieux. Expérience souhaitée, excellente présentation et sens du service requis.',
-            companyName: 'Restaurant Le Gourmet',
-            contractType: 'CDI',
-          } as any;
-          allProfiles.push(tempProfile);
-        }
-
         setProfiles(allProfiles.length > 0 ? allProfiles : []);
+        setNotificationCount(allProfiles.length);
+        
+        // Mettre à jour le badge des profils dans le contexte
+        await refreshProfileBadge(allProfiles.length);
+        
+        // Rafraîchir le badge des matchs
+        await refreshMatchBadge();
       } catch (error) {
         console.error("Erreur lors de la récupération des profils à swiper:", error);
         setProfiles([]);
+        setNotificationCount(0);
       }
     };
 
@@ -191,12 +166,16 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   }, []);
 
   // Tab bar configuration
-  const baseTabs = userType === 'recruiter' ? getRecruiterTabs(navigation, 0) : getCandidateTabs(navigation, 0);
-  const tabs = baseTabs.map(tab =>
-    tab.id === 'notifications'
-      ? { ...tab, onPress: () => {} }
-      : tab
-  );
+  const baseTabs = userType === 'recruiter' ? getRecruiterTabs(navigation, profileBadgeCount) : getCandidateTabs(navigation, profileBadgeCount);
+  const tabs = baseTabs.map(tab => {
+    if (tab.id === 'notifications') {
+      return { ...tab, onPress: () => {} }; // Désactiver le clic sur l'onglet actif
+    }
+    if (tab.id === 'matches') {
+      return { ...tab, badge: matchBadgeCount }; // Badge des matchs
+    }
+    return tab;
+  });
 
   // Reset card position if not swiped enough
   const resetPosition = useCallback(() => {
@@ -243,7 +222,13 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         useNativeDriver: false,
       }).start(() => {
         setLastSwipedProfile(currentProfile);
-        setProfiles(prevProfiles => prevProfiles.slice(1));
+        setProfiles(prevProfiles => {
+          const newProfiles = prevProfiles.slice(1);
+          setNotificationCount(newProfiles.length);
+          // Mettre à jour le badge après chaque swipe
+          refreshProfileBadge(newProfiles.length);
+          return newProfiles;
+        });
         position.setValue({ x: 0, y: 0 });
         setIsAnimating(false);
         setAnimatingProfile(null);
@@ -298,7 +283,11 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
       const response = await undoPreviousSwipe();
       if (response && response.success) {
         position.setValue({ x: 0, y: 0 });
-        setProfiles(prevProfiles => [lastSwipedProfile, ...prevProfiles]);
+        setProfiles(prevProfiles => {
+          const newProfiles = [lastSwipedProfile, ...prevProfiles];
+          setNotificationCount(newProfiles.length);
+          return newProfiles;
+        });
         setLastSwipedProfile(null);
       }
     } catch (error) {

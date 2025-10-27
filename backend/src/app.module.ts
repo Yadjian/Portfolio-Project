@@ -16,9 +16,18 @@ import { MatchesModule } from './matches/matches.module';
 import { FileStorageModule } from './file-storage/file-storage.module';
 import { AdminModule } from './admin/admin.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { BullModule } from '@nestjs/bullmq';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
+    // Configuration globale de BullMQ avec Redis
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'redis',
+        port: parseInt(process.env.REDIS_PORT) || 6379,
+      },
+    }),
     AuthModule, 
     PrismaModule, 
     ProfileModule, 
@@ -30,6 +39,7 @@ import { MulterModule } from '@nestjs/platform-express';
     MatchesModule, 
     FileStorageModule, 
     AdminModule,
+    NotificationsModule,
     MulterModule.register({
       dest: './uploads', // Un dossier temporaire pour les uploads
     }),

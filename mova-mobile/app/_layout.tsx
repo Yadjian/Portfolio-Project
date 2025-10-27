@@ -6,6 +6,7 @@ import React, { useEffect } from 'react';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { NotificationProvider } from '../contexts/NotificationContext';
 import AuthStack from './navigation/AuthStack';
 import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
 import * as ExpoCrypto from 'expo-crypto';
@@ -86,7 +87,9 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <NotificationProvider>
+        <RootLayoutNav />
+      </NotificationProvider>
     </AuthProvider>
   );
 }

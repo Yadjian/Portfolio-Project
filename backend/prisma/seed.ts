@@ -98,6 +98,17 @@ async function main() {
   // Créer 6 recruteurs complets (MVP: 1 seul ContractType par profil)
   const testRecruiters = [
     {
+      email: 'marc.dubois@gmail.com',
+      password: testPassword,
+      firstName: 'Marc',
+      lastName: 'Dubois',
+      location: { lat: 43.4332, lon: 6.7378, name: 'Fréjus, France' },
+      searchDescription: 'Serveur / Serveuse\n\nNotre restaurant Le Gourmet, établissement gastronomique réputé à Fréjus, recherche un(e) serveur/serveuse dynamique et professionnel(le). Rejoignez notre équipe dans un cadre d\'exception face à la mer.',
+      companyName: 'Restaurant Le Gourmet',
+      desiredContractTypes: [ContractType.CDI],
+      desiredExperienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+    },
+    {
       email: 'kevin.sport@gmail.com',
       password: testPassword,
       firstName: 'Kévin',
@@ -174,6 +185,29 @@ async function main() {
       desiredContractTypes: [ContractType.CDI],
       desiredExperienceLevel: 'CONFIRME' as ExperienceLevel,
     },
+    // RECRUTEURS SUPPLÉMENTAIRES POUR LA DÉMO
+    {
+      email: 'recruteur.paul@gmail.com',
+      password: testPassword,
+      firstName: 'Paul',
+      lastName: 'Martin',
+      location: { lat: 43.4255, lon: 6.7321, name: 'Saint-Raphaël, France' },
+      searchDescription: 'Serveur / Serveuse\n\nRestaurant Le Panorama recherche serveur/serveuse expérimenté(e) pour rejoindre notre équipe. Cadre exceptionnel avec vue mer, clientèle locale et touristique. Nous valorisons le professionnalisme et la passion du service.',
+      companyName: 'Restaurant Le Gourmet',
+      desiredContractTypes: [ContractType.CDI],
+      desiredExperienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+    },
+    {
+      email: 'recruteur.claire@gmail.com',
+      password: testPassword,
+      firstName: 'Claire',
+      lastName: 'Lambert',
+      location: { lat: 43.4332, lon: 6.7378, name: 'Fréjus, France' },
+      searchDescription: 'Serveur / Serveuse\n\nBrasserie La Marine recherche serveur/serveuse dynamique pour la saison. Ambiance conviviale, équipe jeune et motivée. Horaires flexibles, deux jours de repos consécutifs. Formation assurée pour les débutants motivés.',
+      companyName: 'Restaurant Le Gourmet',
+      desiredContractTypes: [ContractType.CDI],
+      desiredExperienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+    },
   ];
 
   for (const recruiterData of testRecruiters) {
@@ -244,6 +278,20 @@ async function main() {
   // Créer 3 candidats de test avec profils complets (MVP: 1 seul ContractType par profil)
   const testCandidates = [
     {
+      email: 'sophie.martin@gmail.com',
+      password: testPassword,
+      firstName: 'Sophie',
+      lastName: 'Martin',
+      location: { lat: 43.4255, lon: 6.7321, name: 'Saint-Raphaël, France' },
+      desiredJobTitle: 'Serveur / Serveuse',
+      resumeUrl: 'https://example.com/cv-sophie.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/women/44.jpg',
+      coverLetterText: 'Souriante et dynamique, je recherche un poste de serveuse dans un établissement de qualité. Mon expérience de deux ans en restauration rapide m\'a permis de développer mon sens du service et ma capacité à travailler sous pression. Motivée et professionnelle, je souhaite évoluer dans un cadre plus prestigieux.',
+      desiredContractTypes: [ContractType.CDI],
+      experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+      searchRadiusKm: 20,
+    },
+    {
       email: 'candidat.thomas@mova.com',
       password: testPassword,
       firstName: 'Thomas',
@@ -255,6 +303,7 @@ async function main() {
       coverLetterText: 'Dynamique et motivé, je recherche un poste de serveur pour mettre mes compétences au service de votre établissement. Fort de plusieurs expériences en restauration, je sais gérer le stress et offrir un service impeccable. Souriant et professionnel, je souhaite rejoindre une équipe.',
       desiredContractTypes: [ContractType.CDI],
       experienceLevel: 'DEBUTANT' as ExperienceLevel,
+      searchRadiusKm: 20,
     },
     {
       email: 'candidat.emma@mova.com',
@@ -268,6 +317,7 @@ async function main() {
       coverLetterText: 'Passionnée par la mode et le contact client, je souhaite rejoindre une boutique dynamique. Mon expérience en vente de luxe m\'a permis de développer un excellent sens du conseil et de la relation client. Je suis polyglotte et très motivée pour contribuer à votre réussite.',
       desiredContractTypes: [ContractType.CDD],
       experienceLevel: 'CONFIRME' as ExperienceLevel,
+      searchRadiusKm: 20,
     },
     {
       email: 'candidat.julie@mova.com',
@@ -281,6 +331,7 @@ async function main() {
       coverLetterText: 'Souriante et organisée, je souhaite mettre mes compétences au service de votre établissement hôtelier. Ma maîtrise de trois langues et mon expérience en accueil me permettent de gérer efficacement les demandes de clients internationaux. Disponible immédiatement.',
       desiredContractTypes: [ContractType.ALTERNANCE],
       experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+      searchRadiusKm: 20,
     },
     {
       email: 'candidat.pierre@mova.com',
@@ -294,6 +345,7 @@ async function main() {
       coverLetterText: 'Passionné de gastronomie depuis toujours, je recherche un poste de cuisinier pour exprimer ma créativité. Formé dans plusieurs établissements étoilés, je maîtrise les techniques modernes et traditionnelles. Rigoureux et inventif, je suis prêt à rejoindre une brigade ambitieuse.',
       desiredContractTypes: [ContractType.CDI],
       experienceLevel: 'CONFIRME' as ExperienceLevel,
+      searchRadiusKm: 20,
     },
     {
       email: 'candidat.sarah@mova.com',
@@ -307,6 +359,7 @@ async function main() {
       coverLetterText: 'Créative et souriante, je cherche à rejoindre un bar dynamique où je pourrai mettre en valeur mes talents de mixologie. Mon expérience dans plusieurs établissements prestigieux m\'a permis de développer un répertoire unique de cocktails. Passionnée par l\'art du service.',
       desiredContractTypes: [ContractType.CDD],
       experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+      searchRadiusKm: 20,
     },
     {
       email: 'candidat.maxime@mova.com',
@@ -320,6 +373,7 @@ async function main() {
       coverLetterText: 'Discret et efficace, je souhaite mettre mon expertise au service d\'un établissement de luxe. Mon réseau étendu et ma connaissance approfondie de la région me permettent de répondre à toutes les demandes des clients. Polyglotte et disponible, je vise l\'excellence dans chaque mission.',
       desiredContractTypes: [ContractType.CDI],
       experienceLevel: 'CONFIRME' as ExperienceLevel,
+      searchRadiusKm: 20,
     },
     {
       email: 'candidat.lea@mova.com',
@@ -333,6 +387,64 @@ async function main() {
       coverLetterText: 'Minutieuse et consciencieuse, je recherche un poste dans l\'hôtellerie de luxe pour mettre mon souci du détail au service de votre établissement. Mon expérience dans plusieurs palaces m\'a appris l\'importance de l\'excellence. Discrète et rapide, je garantis un service irréprochable.',
       desiredContractTypes: [ContractType.CDD],
       experienceLevel: 'CONFIRME' as ExperienceLevel,
+      searchRadiusKm: 20,
+    },
+    // PROFILS SUPPLÉMENTAIRES POUR LA DÉMO
+    {
+      email: 'candidat.lucas@gmail.com',
+      password: testPassword,
+      firstName: 'Lucas',
+      lastName: 'Petit',
+      location: { lat: 43.4255, lon: 6.7321, name: 'Saint-Raphaël, France' },
+      desiredJobTitle: 'Serveur / Serveuse',
+      resumeUrl: 'https://example.com/cv-lucas.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/men/55.jpg',
+      coverLetterText: 'Énergique et passionné par la restauration, je souhaite rejoindre une équipe dynamique. Mon expérience de 3 ans en service me permet de gérer efficacement les rush. Souriant et professionnel, je mets un point d\'honneur à offrir une expérience client exceptionnelle.',
+      desiredContractTypes: [ContractType.CDI],
+      experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+      searchRadiusKm: 20,
+    },
+    {
+      email: 'candidat.marie@gmail.com',
+      password: testPassword,
+      firstName: 'Marie',
+      lastName: 'Dubois',
+      location: { lat: 43.4332, lon: 6.7378, name: 'Fréjus, France' },
+      desiredJobTitle: 'Serveur / Serveuse',
+      resumeUrl: 'https://example.com/cv-marie.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/women/68.jpg',
+      coverLetterText: 'Dynamique et organisée, je recherche un poste de serveuse dans un établissement de qualité. Ma polyvalence et mon sens du relationnel me permettent de m\'adapter rapidement à toutes les situations. Disponible immédiatement pour un CDI.',
+      desiredContractTypes: [ContractType.CDI],
+      experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+      searchRadiusKm: 20,
+    },
+    {
+      email: 'candidat.alex@gmail.com',
+      password: testPassword,
+      firstName: 'Alexandre',
+      lastName: 'Rousseau',
+      location: { lat: 43.4255, lon: 6.7321, name: 'Saint-Raphaël, France' },
+      desiredJobTitle: 'Serveur / Serveuse',
+      resumeUrl: 'https://example.com/cv-alex.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/men/75.jpg',
+      coverLetterText: 'Expérimenté et rigoureux, je cherche un poste dans un restaurant de qualité. Mes 5 ans d\'expérience en gastronomie m\'ont permis de développer une expertise solide. Je suis motivé pour rejoindre une équipe ambitieuse.',
+      desiredContractTypes: [ContractType.CDI],
+      experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+      searchRadiusKm: 20,
+    },
+    {
+      email: 'candidat.camille@gmail.com',
+      password: testPassword,
+      firstName: 'Camille',
+      lastName: 'Bernard',
+      location: { lat: 43.4389, lon: 6.7389, name: 'Fréjus, France' },
+      desiredJobTitle: 'Serveur / Serveuse',
+      resumeUrl: 'https://example.com/cv-camille.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/women/90.jpg',
+      coverLetterText: 'Souriante et professionnelle, je souhaite mettre mes compétences au service d\'un établissement de standing. Mon sens du détail et ma capacité à anticiper les besoins des clients sont mes atouts majeurs.',
+      desiredContractTypes: [ContractType.CDI],
+      experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+      searchRadiusKm: 20,
     },
   ];
 
@@ -355,7 +467,7 @@ async function main() {
           lastName: candidateData.lastName,
           locationWKT: locationWKT,
           locationName: candidateData.location.name,
-          searchRadiusKm: 50,
+          searchRadiusKm: candidateData.searchRadiusKm || 20,
           desiredJobTitle: candidateData.desiredJobTitle,
           resumeUrl: candidateData.resumeUrl,
           photoUrl: candidateData.photoUrl,
@@ -393,6 +505,17 @@ async function main() {
   console.log('\n💼 Création des offres d\'emploi...');
 
   const jobOffers = [
+    {
+      recruiterEmail: 'marc.dubois@gmail.com',
+      title: 'Serveur / Serveuse',
+      description: 'Notre restaurant Le Gourmet, établissement gastronomique réputé à Fréjus, recherche un(e) serveur/serveuse dynamique et professionnel(le). Vous évoluerez dans un cadre d\'exception face à la mer, au service d\'une clientèle exigeante. Expérience en gastronomie souhaitée.',
+      contractType: ContractType.CDI,
+      experienceLevel: 'INTERMEDIAIRE' as ExperienceLevel,
+      workHours: '35',
+      salaryMin: 2000,
+      salaryMax: 2400,
+      location: { lat: 43.4332, lon: 6.7378, name: 'Fréjus, France' },
+    },
     {
       recruiterEmail: 'kevin.sport@gmail.com',
       title: 'Chauffeur / Chauffeuse',
