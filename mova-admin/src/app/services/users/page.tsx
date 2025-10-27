@@ -108,60 +108,83 @@ export default function UsersServices() {
     <div style={{
       width: '100vw',
       minHeight: '100vh',
-      background: '#f8f9ff',
+      background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      padding: '40px 0'
+      padding: '60px 20px'
     }}>
       <div style={{
-        maxWidth: 800,
-        width: '100%',
-        background: '#fff',
+        background: 'var(--card-background)',
         borderRadius: 24,
-        boxShadow: '0 2px 16px rgba(0,0,0,0.07)',
-        padding: '32px 24px',
+        boxShadow: '0 8px 32px rgba(73, 48, 163, 0.12)',
+        padding: '48px 32px',
+        minWidth: 400,
+        maxWidth: 900,
+        marginTop: 24,
         marginBottom: 24,
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center'
+        alignItems: 'center',
+        border: '1px solid var(--border)'
       }}>
-        <div style={{ fontSize: 28, fontWeight: 700, color: '#6746a8', marginBottom: 32, textAlign: 'center' }}>
-          Services Utilisateurs
+        {/* AJOUT DU TITRE ET DU BOUTON */}
+        <div style={{ fontSize: 36, fontWeight: 700, color: 'var(--primary)', marginBottom: 24, textAlign: 'center' }}>
+          Portail Admin
         </div>
-        <div style={{ display: 'flex', flexWrap: 'nowrap', gap: 16, justifyContent: 'center', marginBottom: 12, overflowX: 'auto' }}>
+        <button
+          style={{ 
+            marginTop: 0, 
+            marginBottom: 32,
+            background: 'var(--background)', 
+            color: 'var(--primary)', 
+            border: '2px solid var(--border)', 
+            borderRadius: 12, 
+            padding: '12px 28px', 
+            fontWeight: 600, 
+            cursor: 'pointer',
+            fontSize: 15,
+            transition: 'all 0.2s'
+          }}
+          onClick={() => window.location.href = '/homepage'}
+        >
+          ← Retour au menu principal
+        </button>
+        {/* FIN AJOUT */}
+
+        <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--primary)', marginBottom: 32, textAlign: 'center' }}>
+          👥 Services Utilisateurs
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, justifyContent: 'center', marginBottom: 32 }}>
           <button
             style={{
               ...styles.button,
-              background: selectedService === 'create' ? '#6746a8' : '#07b9ff',
-              color: '#fff',
-              boxShadow: selectedService === 'create' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
+              background: selectedService === 'create' ? 'var(--primary)' : 'var(--secondary)',
+              boxShadow: selectedService === 'create' ? '0 4px 12px rgba(73, 48, 163, 0.3)' : '0 4px 12px rgba(7, 185, 255, 0.3)',
             }}
             onClick={() => toggleService('create')}
           >
-            Créer un utilisateur
+            ➕ Créer un utilisateur
           </button>
           <button
             style={{
               ...styles.button,
-              background: selectedService === 'list' ? '#6746a8' : '#07b9ff',
-              color: '#fff',
-              boxShadow: selectedService === 'list' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
+              background: selectedService === 'list' ? 'var(--primary)' : 'var(--secondary)',
+              boxShadow: selectedService === 'list' ? '0 4px 12px rgba(73, 48, 163, 0.3)' : '0 4px 12px rgba(7, 185, 255, 0.3)',
             }}
             onClick={() => toggleService('list')}
           >
-            Afficher les utilisateurs
+            📋 Afficher les utilisateurs
           </button>
           <button
             style={{
               ...styles.button,
-              background: selectedService === 'findUser' ? '#6746a8' : '#07b9ff',
-              color: '#fff',
-              boxShadow: selectedService === 'findUser' ? '0 2px 8px rgba(103,70,168,0.15)' : styles.button.boxShadow,
+              background: selectedService === 'findUser' ? 'var(--primary)' : 'var(--secondary)',
+              boxShadow: selectedService === 'findUser' ? '0 4px 12px rgba(73, 48, 163, 0.3)' : '0 4px 12px rgba(7, 185, 255, 0.3)',
             }}
             onClick={() => toggleService('findUser')}
           >
-            Identifier un utilisateur
+            🔍 Identifier un utilisateur
           </button>
         </div>
 
@@ -554,72 +577,81 @@ export default function UsersServices() {
 const styles = {
   section: {
     width: '100%',
-    background: '#f3f4fa',
+    background: 'var(--background)',
     borderRadius: 16,
-    padding: 24,
-    marginBottom: 32,
-    boxShadow: '0 2px 8px rgba(0,0,0,0.07)',
+    padding: 32,
+    marginBottom: 24,
+    boxShadow: '0 4px 16px rgba(73, 48, 163, 0.08)',
+    border: '1px solid var(--border)',
   },
   button: {
-    width: 220,
-    height: 44,
-    borderRadius: 18,
-    background: '#07b9ff',
+    width: 240,
+    height: 52,
+    borderRadius: 12,
+    background: 'var(--secondary)',
     color: '#fff',
-    fontWeight: 700,
+    fontWeight: 600,
     fontSize: 16,
     border: 'none',
-    marginBottom: 0,
     cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.10)',
-    transition: 'background 0.2s',
+    transition: 'all 0.2s',
   },
   smallButton: {
-    width: 120,
-    height: 36,
+    width: 140,
+    height: 44,
     borderRadius: 12,
-    background: '#6746a8',
+    background: 'var(--primary)',
     color: '#fff',
     fontWeight: 600,
     fontSize: 15,
     border: 'none',
-    marginBottom: 0,
     cursor: 'pointer',
-    boxShadow: '0 2px 8px rgba(103,70,168,0.10)',
-    transition: 'background 0.2s',
+    boxShadow: '0 4px 12px rgba(73, 48, 163, 0.3)',
+    transition: 'all 0.2s',
   },
   backButton: {
     marginTop: 24,
-    background: '#eaeaea',
-    color: '#6746a8',
-    border: 'none',
-    borderRadius: 18,
-    padding: '10px 32px',
+    background: 'var(--background)',
+    color: 'var(--primary)',
+    border: '2px solid var(--border)',
+    borderRadius: 12,
+    padding: '12px 32px',
     fontWeight: 600,
     cursor: 'pointer',
+    fontSize: 15,
+    transition: 'all 0.2s',
   },
   input: {
-    width: 220,
-    padding: '10px',
-    borderRadius: 10,
-    border: '1px solid #d1d5db',
-    marginBottom: 14,
+    width: '100%',
+    maxWidth: 300,
+    padding: 14,
+    borderRadius: 12,
+    border: '2px solid var(--border)',
+    marginBottom: 16,
     fontSize: 15,
+    boxSizing: 'border-box' as const,
+    background: 'var(--card-background)',
   },
   select: {
-    width: 220,
-    padding: '10px',
-    borderRadius: 10,
-    border: '1px solid #d1d5db',
-    marginBottom: 14,
+    width: '100%',
+    maxWidth: 300,
+    padding: 14,
+    borderRadius: 12,
+    border: '2px solid var(--border)',
+    marginBottom: 16,
     fontSize: 15,
-    background: '#fff',
+    background: 'var(--card-background)',
+    boxSizing: 'border-box' as const,
   },
   error: {
-    color: '#e53935',
-    marginBottom: 14,
+    color: 'var(--error)',
+    marginBottom: 16,
     fontWeight: 600,
     textAlign: 'center' as const,
+    padding: 12,
+    background: 'rgba(239, 68, 68, 0.1)',
+    borderRadius: 8,
+    fontSize: 14,
   },
   userList: {
     width: '100%',
@@ -629,38 +661,41 @@ const styles = {
     listStyle: 'none',
   },
   userItem: {
-    background: '#fff',
-    borderRadius: 10,
-    padding: '8px 14px',
-    marginBottom: 8,
+    background: 'var(--card-background)',
+    borderRadius: 12,
+    padding: '12px 16px',
+    marginBottom: 10,
     fontSize: 15,
     color: '#333',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
+    boxShadow: '0 2px 8px rgba(73, 48, 163, 0.06)',
+    border: '1px solid var(--border)',
   },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: 700,
-    color: '#6746a8',
-    marginBottom: 18,
+    color: 'var(--primary)',
+    marginBottom: 24,
     textAlign: 'center' as const,
   },
 };
 
 const tableStyles = {
   th: {
-    padding: '10px 8px',
+    padding: '14px 18px',
     textAlign: 'left' as const,
     fontWeight: 700,
-    color: '#6746a8',
-    fontSize: 16,
-    borderBottom: '2px solid #d1d5db',
+    color: 'var(--primary)',
+    fontSize: 15,
+    borderBottom: '2px solid var(--border)',
+    background: 'var(--background)',
   },
   td: {
-    padding: '8px 8px',
+    padding: '14px 18px',
     fontSize: 15,
-    borderBottom: '1px solid #f3f4fa',
+    borderBottom: '1px solid var(--background)',
+    color: '#333',
   },
 };
