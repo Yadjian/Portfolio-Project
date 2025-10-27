@@ -1,6 +1,6 @@
 // Fichier: backend/src/profile/profile.controller.ts
 
-import { Controller, Get, Put, Delete, UseGuards, Req, Body, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { Controller, Get, Put, Post, Delete, UseGuards, Req, Body, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { ProfileService } from './profile.service';
@@ -96,11 +96,19 @@ export class ProfileController {
     return this.profileService.updateResume(user.sub, file);
   }
 
-  // === ENDPOINT POUR SUPPRIMER LE CV ===
+    // === ENDPOINT POUR SUPPRIMER LE CV ===
   @Delete('resume')
   @UseGuards(AuthGuard('jwt'))
   deleteResume(@Req() req: Request) {
     const user = req.user as { sub: string };
     return this.profileService.deleteResume(user.sub);
+  }
+
+  // === NOTIFICATION ===
+  @Post('push-token')
+  @UseGuards(AuthGuard('jwt'))
+  updatePushToken(@Req() req: Request, @Body('token') token: string) {
+    const userId = req.user.sub;
+    return this.profileService.updatePushToken(userId, token);
   }
 }
