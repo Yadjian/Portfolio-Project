@@ -15,11 +15,41 @@ import { SwipesModule } from './swipes/swipes.module';
 import { MatchesModule } from './matches/matches.module';
 import { FileStorageModule } from './file-storage/file-storage.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { BullModule } from '@nestjs/bullmq';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
-  imports: [AuthModule, PrismaModule, ProfileModule, SwipesModule, JobOfferModule, CompaniesModule, MetaModule, DiscoveryModule, MatchesModule, FileStorageModule, MulterModule.register({
-      dest: './uploads', // Un dossier temporaire pour les uploads
-    }),],
+  imports: [
+    // ✅ 1. BULL CONFIGURATION EN PREMIER
+    BullModule.forRoot({
+      connection: {
+        host: 'redis',
+        port: 6379,
+      },
+    }),
+
+    // ✅ 2. MODULES DE BASE
+    AuthModule,
+    PrismaModule,
+    
+    // ✅ 3. MODULES MÉTIER
+    ProfileModule,
+    SwipesModule,
+    JobOfferModule,
+    CompaniesModule,
+    MetaModule,
+    DiscoveryModule,
+    MatchesModule,
+    FileStorageModule,
+    
+    // ✅ 4. NOTIFICATIONS MODULE (APRÈS BullModule.forRoot)
+    NotificationsModule,
+    
+    // ✅ 5. MODULES TECHNIQUES
+    MulterModule.register({
+      dest: './uploads',
+    }),
+  ],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })

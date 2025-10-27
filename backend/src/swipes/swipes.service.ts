@@ -1,12 +1,22 @@
 // src/swipes/swipes.service.ts
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq'; // <-- COMMENTE
+import { Queue } from 'bullmq';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSwipeDto } from './dto/create-swipe.dto';
-import { SwipeDirection } from '@prisma/client';
+import {
+  SWIPE_NOTIFICATION_QUEUE,
+  MATCH_NOTIFICATION_QUEUE,
+} from 'src/notifications/notifications.module';
 
 @Injectable()
 export class SwipesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+
+    @InjectQueue(SWIPE_NOTIFICATION_QUEUE) private swipeQueue: Queue,
+    @InjectQueue(MATCH_NOTIFICATION_QUEUE) private matchQueue: Queue,
+  ) {}
 
   /**
    * Gère un swipe (création ou mise à jour) et vérifie les matchs.
@@ -58,8 +68,8 @@ export class SwipesService {
       where: {
         // L'index unique de notre schéma
         candidateId_recruiterId: {
-          candidateId: candidateId,
-          recruiterId: recruiterId,
+          candidateId,
+          recruiterId,
         },
       },
       // 4. METTRE À JOUR (s'il existe)
@@ -68,8 +78,8 @@ export class SwipesService {
       },
       // 5. CRÉER (s'il n'existe pas)
       create: {
-        candidateId: candidateId,
-        recruiterId: recruiterId,
+        candidateId,
+        recruiterId,
         [swiperDirectionField]: direction, // Définit le premier swipe
       },
     });
@@ -80,25 +90,54 @@ export class SwipesService {
       where: { id: swipe.id },
     });
 
-    // Un match se produit SI les DEUX ont swipé 'RIGHT'
-    if (
-      updatedSwipe.candidateDirection === 'RIGHT' &&
-      updatedSwipe.recruiterDirection === 'RIGHT'
-    ) {
-      // C'est un MATCH !
-      await this.prisma.swipe.update({
-        where: { id: updatedSwipe.id },
-        data: {
-          isMatch: true,
-          matchedAt: new Date(),
-        },
-      });
+    // === Logique d'ajout de Job ===
 
-      // (Ici, on ajoutera l'émission de la notification B5.2)
-      return { match: true, matchedAt: updatedSwipe.matchedAt };
+    // 1. Si un CANDIDAT vient de swiper RIGHT (et que ce n'est pas déjà un match)
+    if (
+      swiperDirectionField === 'candidateDirection' &&
+      direction === 'RIGHT' &&
+      updatedSwipe.recruiterDirection !== 'RIGHT' // Pas encore de match
+    ) {
+      await this.swipeQueue.add('candidate-swipe-right', {
+      candidateId: candidateId,
+      recruiterId: recruiterId,
+      swipeId: updatedSwipe.id,
+      }); // <-- COMMENTE
+      console.log(`Job ajouté à ${SWIPE_NOTIFICATION_QUEUE}: candidate-swipe-right`); // <-- COMMENTE
     }
 
-    // Pas de match (ou l'un a swipé 'LEFT')
+    // 2. Si un MATCH vient de se produire
+    if (
+      updatedSwipe.candidateDirection === 'RIGHT' &&
+      updatedSwipe.recruiterDirection === 'RIGHT' &&
+      !updatedSwipe.isMatch // S'assure qu'on ne le fait qu'une fois
+    ) {
+      // Marquer comme match (ta logique existante)
+      const matchData = await this.prisma.swipe.update({
+        where: { id: updatedSwipe.id },
+        data: { isMatch: true, matchedAt: new Date() },
+      });
+
+      await this.matchQueue.add('new-match-candidate', {
+      candidateId: candidateId,
+      recruiterId: recruiterId,
+      matchId: matchData.id,
+      matchedAt: matchData.matchedAt,
+      }); // <-- COMMENTE
+      console.log(`Job ajouté à ${MATCH_NOTIFICATION_QUEUE}: new-match-candidate`); // <-- COMMENTE
+
+      await this.matchQueue.add('new-match-recruiter', {
+      candidateId: candidateId,
+      recruiterId: recruiterId,
+      matchId: matchData.id,
+      matchedAt: matchData.matchedAt,
+      }); // <-- COMMENTE
+      console.log(`Job ajouté à ${MATCH_NOTIFICATION_QUEUE}: new-match-recruiter`); // <-- COMMENTE
+
+      return { match: true, matchedAt: matchData.matchedAt };
+    }
+
+    // Si pas de match
     return { match: false };
   }
 
