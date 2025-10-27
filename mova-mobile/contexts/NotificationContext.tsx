@@ -19,6 +19,8 @@ interface NotificationContextType {
   setMatchBadgeCount: (count: number) => void;
   refreshMatchBadge: () => Promise<void>;
   refreshProfileBadge: (currentProfileCount?: number) => Promise<void>;
+  simulateProfileNotification: () => void;
+  simulateMatchNotification: () => void;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
@@ -27,6 +29,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const { isAuthenticated, user } = useAuth();
   const [profileBadgeCount, setProfileBadgeCount] = useState(0);
   const [matchBadgeCount, setMatchBadgeCount] = useState(0);
+
+  // 🔔 Simuler une notification de profil (cloche)
+  const simulateProfileNotification = useCallback(() => {
+    console.log('🔔 [NotificationContext] SIMULATION : Badge profil incrémenté de 3');
+    setProfileBadgeCount(prev => prev + 3);
+  }, []);
+
+  // ❤️ Simuler une notification de match (cœur)
+  const simulateMatchNotification = useCallback(() => {
+    console.log('❤️ [NotificationContext] SIMULATION : Badge match incrémenté de 1');
+    setMatchBadgeCount(prev => prev + 1);
+  }, []);
 
   // Rafraîchir le badge des matchs
   const refreshMatchBadge = useCallback(async () => {
@@ -112,12 +126,19 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       console.log('[NotificationContext] 🔔 Utilisateur connecté, chargement des badges...');
       refreshMatchBadge();
       refreshProfileBadge();
+      
+      // 🔔 SIMULATION : Ajouter des badges à la connexion
+      setTimeout(() => {
+        console.log('[NotificationContext] 🎭 Simulation des notifications à la connexion...');
+        simulateProfileNotification(); // Badge cloche +3
+        simulateMatchNotification();   // Badge cœur +1
+      }, 1000); // Petit délai pour que ce soit visible
     } else {
       console.log('[NotificationContext] 🚪 Utilisateur déconnecté, reset des badges');
       setProfileBadgeCount(0);
       setMatchBadgeCount(0);
     }
-  }, [isAuthenticated, user, refreshMatchBadge, refreshProfileBadge]);
+  }, [isAuthenticated, user, refreshMatchBadge, refreshProfileBadge, simulateProfileNotification, simulateMatchNotification]);
 
   return (
     <NotificationContext.Provider
@@ -128,6 +149,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         setMatchBadgeCount,
         refreshMatchBadge,
         refreshProfileBadge,
+        simulateProfileNotification,
+        simulateMatchNotification,
       }}
     >
       {children}

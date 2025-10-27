@@ -69,7 +69,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const userType: UserType = route?.params?.userType ?? 'candidate';
   
   // Get notification context
-  const { matchBadgeCount, profileBadgeCount, setProfileBadgeCount, refreshMatchBadge, refreshProfileBadge } = useNotifications();
+  const { matchBadgeCount, profileBadgeCount, setProfileBadgeCount, refreshMatchBadge, refreshProfileBadge, simulateMatchNotification } = useNotifications();
 
   // profiles: stack of profiles to swipe
   const [profiles, setProfiles] = useState<any[]>([]);
@@ -218,6 +218,10 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
           if (response && response.isMatch) {
             Alert.alert("C'est un Match !", "Vous pouvez maintenant discuter avec cette personne.");
           }
+          
+          // ❤️ SIMULATION : Après chaque swipe, incrémenter le badge match
+          console.log('❤️ [SwipeScreen] Simulation notification match après swipe...');
+          simulateMatchNotification();
         })
         .catch(error => {
           console.error("Erreur lors de l'envoi de l'action de swipe:", error);
