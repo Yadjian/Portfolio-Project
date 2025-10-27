@@ -260,4 +260,20 @@ export class ProfileService {
       message: 'CV supprimé avec succès.',
     };
   }
+
+  async updatePushToken(userId: string, token: string | null) { // Permet de nullifier si l'utilisateur se déconnecte
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { candidateProfile: true, recruiterProfile: true },
+    });
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé.');
+    }
+    if (user.candidateProfile) {
+        return this.prisma.candidateProfile.update({ where: { userId }, data: { pushToken: token } });
+    } else if (user.recruiterProfile) {
+        return this.prisma.recruiterProfile.update({ where: { userId }, data: { pushToken: token } });
+    }
+    throw new NotFoundException('Profil non trouvé.');
+  }
 }

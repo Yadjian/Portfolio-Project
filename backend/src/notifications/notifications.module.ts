@@ -1,6 +1,8 @@
 // src/notifications/notifications.module.ts
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
+import { PrismaModule } from '../prisma/prisma.module';
+import { FirebaseModule } from 'src/firebase/firebase.module';
 import { SwipeNotificationsProcessor, MatchNotificationsProcessor } from './notifications.processor'; // ✅ Import des 2 processors
 
 export const SWIPE_NOTIFICATION_QUEUE = 'swipe-notification';
@@ -13,7 +15,7 @@ const redisOptions = {
 };
 
 @Module({
-  imports: [
+  imports: [PrismaModule, FirebaseModule,
     BullModule.registerQueue({
       name: SWIPE_NOTIFICATION_QUEUE,
     }),

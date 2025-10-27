@@ -17,6 +17,7 @@ import { FileStorageModule } from './file-storage/file-storage.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { BullModule } from '@nestjs/bullmq';
 import { NotificationsModule } from './notifications/notifications.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -49,6 +50,8 @@ import { NotificationsModule } from './notifications/notifications.module';
     MulterModule.register({
       dest: './uploads',
     }),
+    
+    FirebaseModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
