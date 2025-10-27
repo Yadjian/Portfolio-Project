@@ -1,5 +1,3 @@
-import * as Notifications from 'expo-notifications';
-import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
@@ -15,28 +13,41 @@ import Constants from 'expo-constants';
  * 
  * Note: Les push notifications ne fonctionnent PAS dans Expo Go (SDK 53+).
  * Utilisez un development build pour tester les notifications.
+ * 
+ * IMPORTANT: Imports conditionnels pour éviter les erreurs dans Expo Go
  */
 
 // Vérifier si on est dans Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
 
-// Configure comment les notifications sont affichées (seulement si pas Expo Go)
+// Import conditionnel pour éviter l'erreur dans Expo Go
+let Notifications: any = null;
+let Device: any = null;
+
 if (!isExpoGo) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    Notifications = require('expo-notifications');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    Device = require('expo-device');
+    
+    // Configure comment les notifications sont affichées
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
-        shouldShowAlert: true,      // Afficher l'alerte
-        shouldPlaySound: true,      // Jouer un son
-        shouldSetBadge: true,       // Mettre à jour le badge de l'app
-        shouldShowBanner: true,     // Afficher la bannière (iOS)
-        shouldShowList: true,       // Afficher dans la liste de notifications
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
       }),
     });
+    
+    console.log('✅ [Notifications] Module expo-notifications chargé');
   } catch (error) {
-    console.warn('⚠️ [Notifications] Impossible de configurer le handler (normal dans Expo Go):', error);
+    console.warn('⚠️ [Notifications] Impossible de charger expo-notifications:', error);
   }
 } else {
-  console.warn('⚠️ [Notifications] Expo Go détecté - Les push notifications ne sont pas disponibles');
+  console.log('ℹ️ [Notifications] Expo Go détecté - Mode simulation sans notifications');
 }
 
 /**
@@ -46,10 +57,9 @@ if (!isExpoGo) {
  * @returns Le token Expo Push (string) ou undefined si échec
  */
 export async function registerForPushNotificationsAsync() {
-  // Si on est dans Expo Go, ne pas essayer d'obtenir un token
-  if (isExpoGo) {
-    console.warn('⚠️ [Notifications] Expo Go ne supporte pas les push notifications (SDK 53+)');
-    console.warn('💡 [Notifications] Utilisez un development build pour tester les notifications');
+  // Si on est dans Expo Go ou modules non chargés, retourner undefined
+  if (isExpoGo || !Notifications || !Device) {
+    console.log('ℹ️ [Notifications] Mode simulation - Pas de push token');
     return undefined;
   }
 

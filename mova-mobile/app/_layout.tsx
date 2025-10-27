@@ -10,8 +10,21 @@ import { NotificationProvider, useNotifications } from '../contexts/Notification
 import AuthStack from './navigation/AuthStack';
 import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
 import * as ExpoCrypto from 'expo-crypto';
-import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
+
+// Import conditionnel de expo-notifications pour éviter les erreurs dans Expo Go
+const isExpoGoApp = Constants.appOwnership === 'expo';
+let Notifications: any = null;
+
+if (!isExpoGoApp) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    Notifications = require('expo-notifications');
+    console.log('✅ [_layout] Module expo-notifications chargé');
+  } catch (error) {
+    console.warn('⚠️ [_layout] Impossible de charger expo-notifications:', error);
+  }
+}
 
 /**
  * RootLayout
@@ -101,22 +114,22 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, loading } = useAuth();
   const { refreshMatchBadge, refreshProfileBadge } = useNotifications();
-  const notificationListener = useRef<Notifications.Subscription | null>(null);
-  const responseListener = useRef<Notifications.Subscription | null>(null);
+  const notificationListener = useRef<any>(null);
+  const responseListener = useRef<any>(null);
 
   // Vérifier si on est dans Expo Go
   const isExpoGo = Constants.appOwnership === 'expo';
 
   // Setup notification listeners (seulement si pas dans Expo Go)
   useEffect(() => {
-    if (isExpoGo) {
-      console.warn('⚠️ [_layout] Expo Go détecté - Listeners de notifications désactivés');
+    if (isExpoGo || !Notifications) {
+      console.log('ℹ️ [_layout] Mode simulation - Listeners de notifications désactivés');
       return;
     }
 
     try {
       // Listener quand une notification arrive en foreground
-      notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+      notificationListener.current = Notifications.addNotificationReceivedListener((notification: any) => {
         console.log('🔔 [_layout] Notification reçue en foreground:', notification);
         const data = notification.request.content.data;
         
@@ -132,7 +145,7 @@ function RootLayoutNav() {
       });
 
       // Listener quand l'utilisateur clique sur une notification
-      responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+      responseListener.current = Notifications.addNotificationResponseReceivedListener((response: any) => {
         console.log('👆 [_layout] Notification cliquée:', response);
         const data = response.notification.request.content.data;
         

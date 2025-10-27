@@ -217,11 +217,11 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         .then(response => {
           if (response && response.isMatch) {
             Alert.alert("C'est un Match !", "Vous pouvez maintenant discuter avec cette personne.");
+            
+            // ❤️ SIMULATION : Incrémenter le badge match SEULEMENT en cas de match
+            console.log('❤️ [SwipeScreen] MATCH détecté ! Incrémentation du badge...');
+            simulateMatchNotification();
           }
-          
-          // ❤️ SIMULATION : Après chaque swipe, incrémenter le badge match
-          console.log('❤️ [SwipeScreen] Simulation notification match après swipe...');
-          simulateMatchNotification();
         })
         .catch(error => {
           console.error("Erreur lors de l'envoi de l'action de swipe:", error);
