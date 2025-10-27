@@ -237,4 +237,43 @@ export class ProfileService {
       resumeUrl: updatedProfile.resumeUrl,
     };
   }
+
+    async deleteResume(userId: string) {
+    // 1. Trouver le profil candidat
+    const profile = await this.prisma.candidateProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!profile) {
+      throw new NotFoundException('Profil candidat non trouvé.');
+    }
+
+    // 2. Supprimer l'URL du CV dans la BDD (on ne supprime pas le fichier R2 pour l'instant)
+    await this.prisma.candidateProfile.update({
+      where: { id: profile.id },
+      data: {
+        resumeUrl: null,
+      },
+    });
+
+    return {
+      message: 'CV supprimé avec succès.',
+    };
+  }
+
+  async updatePushToken(userId: string, token: string | null) { // Permet de nullifier si l'utilisateur se déconnecte
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { candidateProfile: true, recruiterProfile: true },
+    });
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé.');
+    }
+    if (user.candidateProfile) {
+        return this.prisma.candidateProfile.update({ where: { userId }, data: { pushToken: token } });
+    } else if (user.recruiterProfile) {
+        return this.prisma.recruiterProfile.update({ where: { userId }, data: { pushToken: token } });
+    }
+    throw new NotFoundException('Profil non trouvé.');
+  }
 }

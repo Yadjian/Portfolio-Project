@@ -82,6 +82,7 @@ model CandidateProfile {
   searchRadiusKm       Int?
   isActive             Boolean    @default(true)
   notificationsEnabled Boolean    @default(true)
+  pushToken String?  @unique // Le token de notification push Expo
 
   experienceLevel      ExperienceLevel? // <-- Niveau d'expérience (optionnel)
   interestedInCategories JobCategory[] @relation("CandidateInterestedCategories")
@@ -107,6 +108,7 @@ model RecruiterProfile {
   matchWindowStart  DateTime?
   matchesTodayCount Int       @default(0)
   dailyMatchLimit   Int       @default(100)
+  pushToken String?  @unique // Le token de notification push Expo
 
   // NOUVEAUX CHAMPS POUR LES CRITÈRES DE RECHERCHE
   locationWKT          String?          // La zone où le recruteur recherche
