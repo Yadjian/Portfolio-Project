@@ -82,6 +82,21 @@ export class JobOfferService {
           },
         },
         categories: true,
+        createdBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+            memberships: {
+              include: {
+                company: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     });
   }

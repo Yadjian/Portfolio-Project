@@ -5,6 +5,11 @@ import { MetaService } from './meta.service';
 export class MetaController {
   constructor(private readonly metaService: MetaService) {}
 
+  @Get('roles')
+  getRoles() {
+    return this.metaService.getRoles();
+  }
+
   @Get('contract-types')
   getContractTypes() {
     return this.metaService.getContractTypes();

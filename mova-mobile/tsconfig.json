@@ -1,0 +1,33 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
+}
+
+/**
+ * tsconfig.json
+ *
+ * TypeScript configuration file for the mova-mobile app.
+ *
+ * Main features:
+ * - Extends Expo's base TypeScript config for React Native compatibility.
+ * - Enables strict type checking for safer code.
+ * - Sets up path alias "@" for cleaner imports (e.g., import X from '@/components/X').
+ * - Includes all TypeScript files, Expo types, and the Expo env types for type checking.
+ *
+ * Usage:
+ * - Required for TypeScript support, autocompletion, and type safety in your project.
+ * - Do not remove or rename this file if you use TypeScript.
+ */

@@ -14,6 +14,7 @@ import { DiscoveryModule } from './discovery/discovery.module';
 import { SwipesModule } from './swipes/swipes.module';
 import { MatchesModule } from './matches/matches.module';
 import { FileStorageModule } from './file-storage/file-storage.module';
+import { AdminModule } from './admin/admin.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { BullModule } from '@nestjs/bullmq';
 import { NotificationsModule } from './notifications/notifications.module';
@@ -42,6 +43,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     DiscoveryModule,
     MatchesModule,
     FileStorageModule,
+    AdminModule,
     
     // ✅ 4. NOTIFICATIONS MODULE (APRÈS BullModule.forRoot)
     NotificationsModule,

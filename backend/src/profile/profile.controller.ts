@@ -55,6 +55,25 @@ export class ProfileController {
     return this.profileService.getJobCategories();
   }
 
+  // === ENDPOINT POUR L'UPLOAD DE PHOTO DE PROFIL ===
+  @Put('photo')
+  @UseGuards(AuthGuard('jwt'))
+  @UseInterceptors(FileInterceptor('photoFile'))
+  uploadProfilePhoto(
+    @Req() req: Request,
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }), // 2 Mo
+          new FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }), // JPG ou PNG
+        ],
+      }),
+    ) photoFile: Express.Multer.File,
+  ) {
+    const userId = req.user.sub;
+    return this.profileService.updateProfilePhoto(userId, photoFile);
+  }
+
   // === NOUVEL ENDPOINT POUR L'UPLOAD DE CV ===
   @Put('resume')
   @UseGuards(AuthGuard('jwt'))
@@ -77,7 +96,7 @@ export class ProfileController {
     return this.profileService.updateResume(user.sub, file);
   }
 
-    // === ENDPOINT POUR SUPPRIMER LE CV ===
+  // === ENDPOINT POUR SUPPRIMER LE CV ===
   @Delete('resume')
   @UseGuards(AuthGuard('jwt'))
   deleteResume(@Req() req: Request) {

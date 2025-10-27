@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "@ljharb/tsconfig": "^0.3.2"
+  },
+  "dependencies": {
+    "react-native-google-places-autocomplete": "^2.5.7"
+  }
+}
