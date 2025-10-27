@@ -24,6 +24,12 @@ export class AdminService {
             experienceLevel: true,
             desiredContractTypes: true,
             coverLetterText: true,
+            interestedInCategories: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
         recruiterProfile: {
@@ -34,6 +40,12 @@ export class AdminService {
             searchDescription: true,
             desiredContractTypes: true,
             desiredExperienceLevel: true,
+            searchedCategories: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
             memberships: {
               select: {
                 company: {
