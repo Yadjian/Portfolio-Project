@@ -2,14 +2,16 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
-import { NotificationProvider } from '../contexts/NotificationContext';
+import { NotificationProvider, useNotifications } from '../contexts/NotificationContext';
 import AuthStack from './navigation/AuthStack';
 import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
 import * as ExpoCrypto from 'expo-crypto';
+import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 
 /**
  * RootLayout
@@ -22,6 +24,7 @@ import * as ExpoCrypto from 'expo-crypto';
  * - Wraps the app in the AuthProvider for authentication context.
  * - Handles splash screen display until fonts are loaded.
  * - Chooses between dark and light theme based on user preference.
+ * - Listens for push notifications and updates badge counts.
  * - Renders the authentication stack (AuthStack) for both authenticated and unauthenticated users (can be customized).
  *
  * Key logic:
@@ -97,6 +100,64 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, loading } = useAuth();
+  const { refreshMatchBadge, refreshProfileBadge } = useNotifications();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
+
+  // Vérifier si on est dans Expo Go
+  const isExpoGo = Constants.appOwnership === 'expo';
+
+  // Setup notification listeners (seulement si pas dans Expo Go)
+  useEffect(() => {
+    if (isExpoGo) {
+      console.warn('⚠️ [_layout] Expo Go détecté - Listeners de notifications désactivés');
+      return;
+    }
+
+    try {
+      // Listener quand une notification arrive en foreground
+      notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
+        console.log('🔔 [_layout] Notification reçue en foreground:', notification);
+        const data = notification.request.content.data;
+        
+        // Rafraîchir les badges selon le type de notification
+        if (data?.type === 'new_match') {
+          console.log('❤️ [_layout] Nouveau match détecté, rafraîchissement du badge');
+          refreshMatchBadge();
+        } else if (data?.type === 'new_swipe') {
+          console.log('👍 [_layout] Nouveau swipe détecté, rafraîchissement du badge');
+          // On ne passe pas de currentProfileCount, la fonction ira le chercher
+          void refreshProfileBadge();
+        }
+      });
+
+      // Listener quand l'utilisateur clique sur une notification
+      responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+        console.log('👆 [_layout] Notification cliquée:', response);
+        const data = response.notification.request.content.data;
+        
+        // TODO: Navigation vers la bonne page selon le type
+        // Pour l'instant on rafraîchit juste les badges
+        if (data?.type === 'new_match') {
+          refreshMatchBadge();
+        } else if (data?.type === 'new_swipe') {
+          void refreshProfileBadge();
+        }
+      });
+    } catch (error) {
+      console.error('❌ [_layout] Erreur lors de la configuration des listeners:', error);
+    }
+
+    // Cleanup listeners on unmount
+    return () => {
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
+    };
+  }, [isExpoGo, refreshMatchBadge, refreshProfileBadge]);
 
   // Afficher un écran de chargement pendant la vérification de l'auth
   if (loading) {

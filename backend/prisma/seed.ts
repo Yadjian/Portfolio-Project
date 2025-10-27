@@ -221,20 +221,25 @@ async function main() {
         },
       });
 
-      const locationWKT = `POINT(${recruiterData.location.lon} ${recruiterData.location.lat})`;
-      
+      // Créer le profil sans locationWKT d'abord
       const recruiterProfile = await prisma.recruiterProfile.create({
         data: {
           userId: user.id,
           firstName: recruiterData.firstName,
           lastName: recruiterData.lastName,
-          locationWKT: locationWKT,
           locationName: recruiterData.location.name,
           searchDescription: recruiterData.searchDescription,
           desiredContractTypes: recruiterData.desiredContractTypes,
           desiredExperienceLevel: recruiterData.desiredExperienceLevel,
         },
       });
+
+      // Mettre à jour avec ST_GeomFromText pour avoir le bon format PostGIS
+      await prisma.$executeRaw`
+        UPDATE "RecruiterProfile" 
+        SET "locationWKT" = ST_GeomFromText(${`POINT(${recruiterData.location.lon} ${recruiterData.location.lat})`}, 4326)
+        WHERE id = ${recruiterProfile.id}
+      `;
 
       // Extraire la catégorie depuis searchDescription (format: "JobCategory\n\nDescription")
       const categoryName = recruiterData.searchDescription.split('\n\n')[0].trim();
@@ -458,14 +463,12 @@ async function main() {
         },
       });
 
-      const locationWKT = `POINT(${candidateData.location.lon} ${candidateData.location.lat})`;
-      
+      // Créer le profil sans locationWKT d'abord
       const candidateProfile = await prisma.candidateProfile.create({
         data: {
           userId: user.id,
           firstName: candidateData.firstName,
           lastName: candidateData.lastName,
-          locationWKT: locationWKT,
           locationName: candidateData.location.name,
           searchRadiusKm: candidateData.searchRadiusKm || 20,
           desiredJobTitle: candidateData.desiredJobTitle,
@@ -476,6 +479,13 @@ async function main() {
           experienceLevel: candidateData.experienceLevel,
         },
       });
+
+      // Mettre à jour avec ST_GeomFromText pour avoir le bon format PostGIS
+      await prisma.$executeRaw`
+        UPDATE "CandidateProfile" 
+        SET "locationWKT" = ST_GeomFromText(${`POINT(${candidateData.location.lon} ${candidateData.location.lat})`}, 4326)
+        WHERE id = ${candidateProfile.id}
+      `;
 
       // Associer la catégorie au candidat
       const category = await prisma.jobCategory.findFirst({
@@ -633,9 +643,8 @@ async function main() {
       continue;
     }
 
-    const locationWKT = `POINT(${offerData.location.lon} ${offerData.location.lat})`;
-
-    await prisma.jobOffer.create({
+    // Créer l'offre sans locationWKT d'abord
+    const jobOffer = await prisma.jobOffer.create({
       data: {
         createdById: recruiterProfile.id,
         companyId: companyId,
@@ -644,12 +653,18 @@ async function main() {
         contractType: offerData.contractType,
         experienceLevel: offerData.experienceLevel,
         workHours: offerData.workHours,
-        locationWKT: locationWKT,
         locationName: offerData.location.name,
         salaryMin: offerData.salaryMin,
         salaryMax: offerData.salaryMax,
       },
     });
+
+    // Mettre à jour avec ST_GeomFromText pour avoir le bon format PostGIS
+    await prisma.$executeRaw`
+      UPDATE "JobOffer" 
+      SET "locationWKT" = ST_GeomFromText(${`POINT(${offerData.location.lon} ${offerData.location.lat})`}, 4326)
+      WHERE id = ${jobOffer.id}
+    `;
 
     console.log(`✅ Offre créée: ${offerData.title} par ${offerData.recruiterEmail}`);
   }

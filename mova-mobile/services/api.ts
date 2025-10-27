@@ -261,6 +261,16 @@ export async function sendLocationToBackend(coords: { latitude: number; longitud
   console.log('Coordonnées envoyées :', coords);
 }
 
+// PUSH NOTIFICATIONS
+export async function updatePushToken(token: string) {
+  const response = await fetch(`${API_URL}/profile/push-token`, {
+    method: 'PUT',
+    headers: await getHeaders(true),
+    body: JSON.stringify({ token }),
+  });
+  return handleResponse(response);
+}
+
 export async function getGoogleGeolocation(latitude: number, longitude: number) {
   const response = await fetch(
     `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=YOUR_API_KEY`

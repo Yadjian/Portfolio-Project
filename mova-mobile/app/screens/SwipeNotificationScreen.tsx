@@ -89,20 +89,28 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   // Fetch profiles to swipe on mount
   useEffect(() => {
     const getLocationAndFetchProfiles = async () => {
+      console.log('🔄 [SwipeScreen] Démarrage de la récupération des profils...');
       // Request geolocation permission
       let { status } = await Location.requestForegroundPermissionsAsync();
+      console.log('📍 [SwipeScreen] Permission de localisation:', status);
       if (status !== 'granted') {
-        console.error('Permission to access location was denied');
+        console.error('❌ [SwipeScreen] Permission to access location was denied');
+        setProfiles([]);
+        setNotificationCount(0);
         return;
       }
 
       try {
         // Get current location
+        console.log('📡 [SwipeScreen] Récupération de la position GPS...');
         let location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
+        console.log('✅ [SwipeScreen] Position obtenue:', { latitude, longitude });
 
         // Fetch profiles from backend
+        console.log('🌐 [SwipeScreen] Appel API pour récupérer les profils...');
         const data = await getProfilesToSwipe(userType, latitude, longitude);
+        console.log('📦 [SwipeScreen] Profils reçus:', data?.length || 0);
 
         // Initialiser le tableau de profils
         const allProfiles: any[] = [];

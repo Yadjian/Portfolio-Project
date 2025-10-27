@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { getNewProfilesCount, getNewMatchesCount, updateProfileCount, updateMatchCount } from '@/lib/notificationStorage';
-import { getMatches, getProfilesToSwipe } from '@/services/api';
+import { getMatches, getProfilesToSwipe, getMyProfile } from '@/services/api';
 import * as Location from 'expo-location';
+import { useAuth } from './AuthContext';
 
 /**
  * NotificationContext
@@ -17,12 +18,13 @@ interface NotificationContextType {
   setProfileBadgeCount: (count: number) => void;
   setMatchBadgeCount: (count: number) => void;
   refreshMatchBadge: () => Promise<void>;
-  refreshProfileBadge: (currentProfileCount: number) => Promise<void>;
+  refreshProfileBadge: (currentProfileCount?: number) => Promise<void>;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);
 
 export function NotificationProvider({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuth();
   const [profileBadgeCount, setProfileBadgeCount] = useState(0);
   const [matchBadgeCount, setMatchBadgeCount] = useState(0);
 
@@ -30,6 +32,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const refreshMatchBadge = useCallback(async () => {
     try {
       const matches = await getMatches();
+      if (!matches) {
+        console.log('[NotificationContext] Pas de matches (utilisateur non connecté ou erreur)');
+        setMatchBadgeCount(0);
+        return;
+      }
       const currentMatchCount = matches.length;
       
       // Lire le dernier compteur stocké
@@ -47,7 +54,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       
       // Ne pas mettre à jour le compteur maintenant, on le fera quand l'utilisateur visite la page
     } catch (error) {
-      console.error('Erreur lors du rafraîchissement du badge des matchs:', error);
+      console.log('[NotificationContext] Erreur badge matchs (ignorée):', error);
+      setMatchBadgeCount(0);
     }
   }, []);
 
@@ -58,19 +66,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       
       // Si pas fourni, on récupère depuis le backend
       if (profileCount === undefined) {
-        try {
-          const { status } = await Location.requestForegroundPermissionsAsync();
-          if (status === 'granted') {
-            const location = await Location.getCurrentPositionAsync({});
-            const { latitude, longitude } = location.coords;
-            // Note: On ne connaît pas le userType ici, donc on pourrait avoir un problème
-            // Pour l'instant, on va juste estimer à 0 si on ne peut pas récupérer
-            console.log('[NotificationContext] ⚠️ Impossible de déterminer userType pour récupérer les profils');
-            profileCount = 0;
-          }
-        } catch (error) {
-          console.log('[NotificationContext] ⚠️ Erreur de géolocalisation:', error);
+        console.log('[NotificationContext] 🔄 Récupération des profils depuis le backend...');
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('[NotificationContext] ❌ Permission de géolocalisation refusée');
           profileCount = 0;
+        } else {
+          const location = await Location.getCurrentPositionAsync({});
+          const { latitude, longitude } = location.coords;
+          
+          // Déterminer le userType depuis le user du AuthContext
+          const profile = await getMyProfile();
+          const userType = profile?.candidateProfile ? 'candidate' : 'recruiter';
+          console.log('[NotificationContext] 👤 UserType détecté:', userType);
+          
+          const profiles = await getProfilesToSwipe(userType, latitude, longitude);
+          profileCount = profiles?.length || 0;
+          console.log('[NotificationContext] 📦 Profils récupérés:', profileCount);
         }
       }
       
@@ -89,14 +101,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       
       // Ne pas mettre à jour le compteur maintenant, on le fera quand l'utilisateur visite la page
     } catch (error) {
-      console.error('Erreur lors du rafraîchissement du badge des profils:', error);
+      console.log('[NotificationContext] Erreur badge profils (ignorée):', error);
+      setProfileBadgeCount(0);
     }
   }, []);
 
-  // Initialiser les badges au montage
+  // Initialiser les badges quand l'utilisateur se connecte
   useEffect(() => {
-    refreshMatchBadge();
-  }, [refreshMatchBadge]);
+    if (isAuthenticated && user) {
+      console.log('[NotificationContext] 🔔 Utilisateur connecté, chargement des badges...');
+      refreshMatchBadge();
+      refreshProfileBadge();
+    } else {
+      console.log('[NotificationContext] 🚪 Utilisateur déconnecté, reset des badges');
+      setProfileBadgeCount(0);
+      setMatchBadgeCount(0);
+    }
+  }, [isAuthenticated, user, refreshMatchBadge, refreshProfileBadge]);
 
   return (
     <NotificationContext.Provider

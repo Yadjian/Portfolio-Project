@@ -48,8 +48,8 @@ export class DiscoveryService {
       FROM "RecruiterProfile"
       WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
-        ST_GeomFromText("locationWKT", 4326)::geography,
-        ST_GeomFromText(${candidateProfile.locationWKT}, 4326)::geography,
+        "locationWKT"::geography,
+        ${candidateProfile.locationWKT}::geography,
         ${radiusInMeters}
       )
     `;
@@ -134,8 +134,8 @@ export class DiscoveryService {
       FROM "CandidateProfile"
       WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
-        ST_GeomFromText("locationWKT", 4326)::geography,
-        ST_GeomFromText(${recruiterProfile.locationWKT}, 4326)::geography,
+        "locationWKT"::geography,
+        ${recruiterProfile.locationWKT}::geography,
         ${radiusInMeters}
       )
     `;
