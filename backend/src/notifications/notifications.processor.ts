@@ -31,30 +31,35 @@ export class SwipeNotificationsProcessor extends WorkerHost {
   }
 
   async handleCandidateSwipe(job: Job<any>) {
-    console.log(`[${SWIPE_NOTIFICATION_QUEUE}] Processing job ${job.id} (candidate-swipe-right)`);
+    console.log(`[swipe-notification] Processing job ${job.id} (candidate-swipe-right)`);
     const { candidateId, recruiterId } = job.data;
 
-    // Trouve le recruteur et son token
-    const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
-      where: { id: recruiterId },
-      select: { pushToken: true, firstName: true } // On récupère aussi le nom pour personnaliser
-    });
-    // Trouve le nom du candidat
-     const candidateProfile = await this.prisma.candidateProfile.findUnique({
-        where: { id: candidateId },
-        select: { firstName: true }
-    });
+    try {
+      // Trouve le recruteur et son token
+      const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
+        where: { id: recruiterId },
+        select: { pushToken: true } // On a juste besoin du token
+      });
+      // Trouve le nom du candidat pour le message
+      const candidateProfile = await this.prisma.candidateProfile.findUnique({
+          where: { id: candidateId },
+          select: { firstName: true }
+      });
 
-
-    if (recruiterProfile?.pushToken && candidateProfile) {
-      await this.firebaseService.sendPushNotification(
-        recruiterProfile.pushToken,
-        'Nouveau Swipe !',
-        `${candidateProfile.firstName} est intéressé(e) ! Swiper maintenant ?`,
-        { type: 'new_swipe', candidateId: candidateId } // Données utiles pour le front
-      );
-    } else {
+      if (recruiterProfile?.pushToken && candidateProfile) {
+        // Envoie la notification via Firebase
+        await this.firebaseService.sendPushNotification(
+          recruiterProfile.pushToken,
+          'Nouveau Swipe ! 👍', // Titre
+          `${candidateProfile.firstName} est intéressé(e) par votre profil !`, // Corps
+          { type: 'new_swipe', candidateId: candidateId } // Données pour le front (optionnel)
+        );
+      } else {
         console.warn(`Recruiter ${recruiterId} has no push token or candidate ${candidateId} not found.`);
+      }
+    } catch (error) {
+      console.error(`Error processing job ${job.id} (candidate-swipe-right):`, error);
+      // Gérer l'erreur (ex: relancer le job plus tard ?)
     }
   }
 }
@@ -83,50 +88,60 @@ export class MatchNotificationsProcessor extends WorkerHost {
   }
 
   async handleMatchCandidate(job: Job<any>) {
-    console.log(`[${MATCH_NOTIFICATION_QUEUE}] Processing job ${job.id} (new-match-candidate)`);
+    console.log(`[match-notification] Processing job ${job.id} (new-match-candidate)`);
     const { candidateId, recruiterId } = job.data;
-    const candidateProfile = await this.prisma.candidateProfile.findUnique({
-        where: { id: candidateId },
-        select: { pushToken: true }
-    });
-     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
-        where: { id: recruiterId },
-        select: { firstName: true }
-    });
 
-    if (candidateProfile?.pushToken && recruiterProfile) {
-         await this.firebaseService.sendPushNotification(
-            candidateProfile.pushToken,
-            '🎉 Nouveau Match !',
-            `Vous avez matché avec ${recruiterProfile.firstName} ! Voir les offres.`,
-             { type: 'new_match', recruiterId: recruiterId }
-         );
-    } else {
-         console.warn(`Candidate ${candidateId} has no push token or recruiter ${recruiterId} not found.`);
+    try {
+        const candidateProfile = await this.prisma.candidateProfile.findUnique({
+            where: { id: candidateId },
+            select: { pushToken: true }
+        });
+        const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
+            where: { id: recruiterId },
+            select: { firstName: true } // Nom pour le message
+        });
+
+        if (candidateProfile?.pushToken && recruiterProfile) {
+            await this.firebaseService.sendPushNotification(
+                candidateProfile.pushToken,
+                '🎉 Nouveau Match !',
+                `Vous avez matché avec ${recruiterProfile.firstName} ! Consultez vos matchs.`,
+                { type: 'new_match', recruiterId: recruiterId } // Données pour le front
+            );
+        } else {
+            console.warn(`Candidate ${candidateId} has no push token or recruiter ${recruiterId} not found.`);
+        }
+    } catch (error) {
+        console.error(`Error processing job ${job.id} (new-match-candidate):`, error);
     }
   }
 
   async handleMatchRecruiter(job: Job<any>) {
-     console.log(`[${MATCH_NOTIFICATION_QUEUE}] Processing job ${job.id} (new-match-recruiter)`);
+     console.log(`[match-notification] Processing job ${job.id} (new-match-recruiter)`);
      const { candidateId, recruiterId } = job.data;
-     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
-        where: { id: recruiterId },
-        select: { pushToken: true }
-     });
-     const candidateProfile = await this.prisma.candidateProfile.findUnique({
-        where: { id: candidateId },
-        select: { firstName: true }
-     });
 
-     if (recruiterProfile?.pushToken && candidateProfile) {
-          await this.firebaseService.sendPushNotification(
-             recruiterProfile.pushToken,
-             '🎉 Nouveau Match !',
-             `Vous avez matché avec ${candidateProfile.firstName} ! Voir le profil.`,
-              { type: 'new_match', candidateId: candidateId }
-          );
-     } else {
-         console.warn(`Recruiter ${recruiterId} has no push token or candidate ${candidateId} not found.`);
+     try {
+         const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
+            where: { id: recruiterId },
+            select: { pushToken: true }
+         });
+         const candidateProfile = await this.prisma.candidateProfile.findUnique({
+            where: { id: candidateId },
+            select: { firstName: true } // Nom pour le message
+         });
+
+         if (recruiterProfile?.pushToken && candidateProfile) {
+              await this.firebaseService.sendPushNotification(
+                 recruiterProfile.pushToken,
+                 '🎉 Nouveau Match !',
+                 `Vous avez matché avec ${candidateProfile.firstName} ! Consultez vos matchs.`,
+                 { type: 'new_match', candidateId: candidateId } // Données pour le front
+              );
+         } else {
+             console.warn(`Recruiter ${recruiterId} has no push token or candidate ${candidateId} not found.`);
+         }
+     } catch (error) {
+         console.error(`Error processing job ${job.id} (new-match-recruiter):`, error);
      }
   }
 }
