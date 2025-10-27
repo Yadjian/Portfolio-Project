@@ -1,6 +1,6 @@
 // Fichier: backend/src/profile/profile.service.ts
 
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
@@ -275,5 +275,43 @@ export class ProfileService {
         return this.prisma.recruiterProfile.update({ where: { userId }, data: { pushToken: token } });
     }
     throw new NotFoundException('Profil non trouvé.');
+  }
+
+  async updateProfilePhoto(userId: string, photoFile: Express.Multer.File): Promise<any> {
+    // Trouver l'utilisateur et son type de profil
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        candidateProfile: { select: { id: true } },
+        recruiterProfile: { select: { id: true } },
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé');
+    }
+
+    // Upload de la photo
+    const photoUrl = await this.fileStorageService.uploadFile(
+      photoFile,
+      'profile-photos'
+    );
+
+    // Mise à jour selon le type de profil
+    if (user.candidateProfile) {
+      const updatedProfile = await this.prisma.candidateProfile.update({
+        where: { id: user.candidateProfile.id },
+        data: { photoUrl },
+      });
+      return { photoUrl: updatedProfile.photoUrl };
+    } else if (user.recruiterProfile) {
+      const updatedProfile = await this.prisma.recruiterProfile.update({
+        where: { id: user.recruiterProfile.id },
+        data: { photoUrl },
+      });
+      return { photoUrl: updatedProfile.photoUrl };
+    } else {
+      throw new ForbiddenException("L'utilisateur n'a pas de profil actif");
+    }
   }
 }
