@@ -14,14 +14,33 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
  *   import { AuthStackParamList, UserType, LoginScreenProps } from '@/lib/types';
  */
 
-// Fonction pour obtenir l'URL du backend
+/**
+ * Get the backend API URL
+ * 
+ * Returns the current ngrok URL for the backend API.
+ * Update this URL when the ngrok tunnel changes.
+ * 
+ * @returns Backend API base URL
+ */
 export const getApiUrl = () => {
-  return 'https://tubular-verna-telegraphically.ngrok-free.dev'; // ← Mettez ici votre URL ngrok
+  return 'https://tubular-verna-telegraphically.ngrok-free.dev'; // ngrok URL
 };
 
+/**
+ * User type definition
+ * 
+ * Represents the two types of users in the application:
+ * - candidate: Job seeker
+ * - recruiter: Employer/hiring manager
+ */
 export type UserType = 'candidate' | 'recruiter';
 
-// Définir les types des paramètres pour AuthStack
+/**
+ * Authentication Stack Parameter List
+ * 
+ * Defines all screens in the authentication navigation stack
+ * and their required/optional parameters for type-safe navigation.
+ */
 export type AuthStackParamList = {
   Home: undefined;
   Login: undefined;
@@ -41,7 +60,12 @@ export type AuthStackParamList = {
   MatchDetail: { matchId: string; userType: UserType };
 };
 
-// Définir les props pour chaque écran
+/**
+ * Screen Props Type Definitions
+ * 
+ * Pre-defined prop types for each screen in the AuthStack.
+ * These types provide type-safe access to navigation and route params.
+ */
 export type WelcomeScreenProps = NativeStackScreenProps<AuthStackParamList, 'Home'>;
 export type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 export type ChooseRegisterTypeScreenProps = NativeStackScreenProps<AuthStackParamList, 'ChooseRegisterType'>;

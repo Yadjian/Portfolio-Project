@@ -4,23 +4,23 @@ import Constants from 'expo-constants';
 /**
  * notifications.ts
  * 
- * Service pour gérer les push notifications Expo.
+ * Service to manage Expo push notifications.
  * 
- * Responsabilités :
- * - Demander les permissions de notifications
- * - Obtenir le token Expo Push pour envoyer des notifications
- * - Configurer le comportement des notifications (son, badge, alerte)
+ * Responsibilities:
+ * - Request notification permissions
+ * - Obtain Expo Push token for sending notifications
+ * - Configure notification behavior (sound, badge, alert)
  * 
- * Note: Les push notifications ne fonctionnent PAS dans Expo Go (SDK 53+).
- * Utilisez un development build pour tester les notifications.
+ * Note: Push notifications do NOT work in Expo Go (SDK 53+).
+ * Use a development build to test notifications.
  * 
- * IMPORTANT: Imports conditionnels pour éviter les erreurs dans Expo Go
+ * IMPORTANT: Conditional imports to avoid errors in Expo Go
  */
 
-// Vérifier si on est dans Expo Go
+// Check if running in Expo Go
 const isExpoGo = Constants.appOwnership === 'expo';
 
-// Import conditionnel pour éviter l'erreur dans Expo Go
+// Conditional import to avoid errors in Expo Go
 let Notifications: any = null;
 let Device: any = null;
 
@@ -31,7 +31,7 @@ if (!isExpoGo) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     Device = require('expo-device');
     
-    // Configure comment les notifications sont affichées
+    // Configure how notifications are displayed when app is in foreground
     Notifications.setNotificationHandler({
       handleNotification: async () => ({
         shouldShowAlert: true,
@@ -42,66 +42,71 @@ if (!isExpoGo) {
       }),
     });
     
-    console.log('✅ [Notifications] Module expo-notifications chargé');
+    console.log('✅ [Notifications] expo-notifications module loaded');
   } catch (error) {
-    console.warn('⚠️ [Notifications] Impossible de charger expo-notifications:', error);
+    console.warn('⚠️ [Notifications] Unable to load expo-notifications:', error);
   }
 } else {
-  console.log('ℹ️ [Notifications] Expo Go détecté - Mode simulation sans notifications');
+  console.log('ℹ️ [Notifications] Expo Go detected - Simulation mode without notifications');
 }
 
 /**
- * Enregistre l'appareil pour recevoir des push notifications
- * et retourne le token Expo Push.
+ * Register device for push notifications
  * 
- * @returns Le token Expo Push (string) ou undefined si échec
+ * Handles the complete flow for enabling push notifications:
+ * 1. Creates Android notification channel if needed
+ * 2. Checks device compatibility (physical device required)
+ * 3. Requests notification permissions from user
+ * 4. Retrieves and returns the Expo Push token
+ * 
+ * @returns Expo Push token (string) or undefined if failed or unavailable
  */
 export async function registerForPushNotificationsAsync() {
-  // Si on est dans Expo Go ou modules non chargés, retourner undefined
+  // If running in Expo Go or modules not loaded, return undefined
   if (isExpoGo || !Notifications || !Device) {
-    console.log('ℹ️ [Notifications] Mode simulation - Pas de push token');
+    console.log('ℹ️ [Notifications] Simulation mode - No push token');
     return undefined;
   }
 
   let token: string | undefined;
 
-  // Configuration Android : créer un canal de notification
+  // Android configuration: Create notification channel
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF6347', // Couleur Mova
+      lightColor: '#FF6347', // Mova brand color
     });
   }
 
-  // Vérifier si c'est un appareil physique (émulateur ne supporte pas les push)
+  // Check if it's a physical device (emulators don't support push notifications)
   if (Device.isDevice) {
-    // Vérifier les permissions existantes
+    // Check existing permissions
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
     
-    // Si pas encore accordées, demander les permissions
+    // If not granted yet, request permissions
     if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
     
-    // Si permissions refusées, informer l'utilisateur
+    // If permissions denied, inform user
     if (finalStatus !== 'granted') {
-      console.warn('❌ Permission de notifications refusée');
+      console.warn('❌ Notification permission denied');
       return;
     }
     
-    // Obtenir le token Expo Push
+    // Obtain Expo Push token
     try {
       token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log('📱 Expo Push Token obtenu:', token);
+      console.log('📱 Expo Push Token obtained:', token);
     } catch (error) {
-      console.error('❌ Erreur lors de l\'obtention du push token:', error);
+      console.error('❌ Error obtaining push token:', error);
     }
   } else {
-    console.warn('⚠️ Les push notifications nécessitent un appareil physique');
+    console.warn('⚠️ Push notifications require a physical device');
   }
 
   return token;
