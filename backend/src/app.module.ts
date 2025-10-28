@@ -19,6 +19,8 @@ import { MulterModule } from '@nestjs/platform-express';
 import { BullModule } from '@nestjs/bullmq';
 import { NotificationsModule } from './notifications/notifications.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -54,8 +56,25 @@ import { FirebaseModule } from './firebase/firebase.module';
     }),
     
     FirebaseModule,
+    
+    // ✅ 6. THROTTLE MODULE
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000, // 1 minute
+        limit: 10,  // 10 requêtes par minute
+      },
+      {
+        name: 'auth',
+        ttl: 900000, // 15 minutes  
+        limit: 5,    // 5 tentatives de connexion par 15min
+      },
+    ]),
   ],
   controllers: [AppController, HealthController],
-  providers: [AppService],
+  providers: [AppService, {
+    provide: APP_GUARD,
+    useClass: ThrottlerGuard, // 🔒 Protection globale
+  }],
 })
 export class AppModule {}

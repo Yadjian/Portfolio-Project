@@ -1,6 +1,7 @@
 // src/auth/auth.controller.ts
 
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -13,6 +14,7 @@ export class AuthController {
 
   // Route d'inscription: /auth/signup
   @Post('signup')
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 🔒 3 inscriptions par minute
   @HttpCode(HttpStatus.CREATED)
   // On utilise notre nouveau DTO ici
   signup(@Body() dto: SignupDto): Promise<{ accessToken: string; refreshToken: string }> {
@@ -21,6 +23,7 @@ export class AuthController {
 
   // Route de connexion: /auth/login
   @Post('login')
+  @Throttle({ auth: { limit: 5, ttl: 900000 } }) // 🔒 5 tentatives par 15min
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: AuthDto): Promise<{ accessToken: string; refreshToken: string }> {
     return this.authService.login(dto);
