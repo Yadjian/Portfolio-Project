@@ -188,8 +188,11 @@ export class ProfileService {
     // 3. Gérer les catégories (si elles sont fournies)
     let categoriesData = {};
     if (dto.interestedInCategoryIds) {
+      // Utiliser le bon nom de champ selon le type de profil
+      const categoryField = user.candidateProfile ? 'interestedInCategories' : 'searchedCategories';
+      
       categoriesData = {
-        interestedInCategories: { // ou 'searchedCategories' pour le recruteur
+        [categoryField]: {
           set: dto.interestedInCategoryIds.map(id => ({ id: id })),
         },
       };

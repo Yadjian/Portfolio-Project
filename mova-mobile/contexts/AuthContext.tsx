@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
+import { AppState } from 'react-native';
 import { login as apiLogin, getMyProfile, updatePushToken } from '../services/api';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 
@@ -77,6 +78,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     checkToken();
   }, []);
+
+  // Re-check token when app comes back to foreground (fixes Expo Go refresh issue)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      if (nextAppState === 'active') {
+        console.log('📱 App redevenue active, re-vérification du token...');
+        const storedToken = await SecureStore.getItemAsync('auth_token');
+        if (storedToken && !user) {
+          console.log('🔄 Token trouvé mais user perdu, rechargement...');
+          setToken(storedToken);
+          setIsAuthenticated(true);
+          await refreshUser();
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [user]);
+
+  // Additional check: if authenticated but no user data, reload it (handles Fast Refresh while app is active)
+  useEffect(() => {
+    const recheckUser = async () => {
+      if (isAuthenticated && token && !user && !loading) {
+        console.log('🔄 Détection de Fast Refresh: token présent mais user manquant, rechargement...');
+        await refreshUser();
+      }
+    };
+    recheckUser();
+  }, [isAuthenticated, token, user, loading]);
 
   // Register for push notifications when authenticated
   useEffect(() => {

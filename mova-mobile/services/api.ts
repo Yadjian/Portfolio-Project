@@ -264,7 +264,7 @@ export async function sendLocationToBackend(coords: { latitude: number; longitud
 // PUSH NOTIFICATIONS
 export async function updatePushToken(token: string) {
   const response = await fetch(`${API_URL}/profile/push-token`, {
-    method: 'PUT',
+    method: 'POST',
     headers: await getHeaders(true),
     body: JSON.stringify({ token }),
   });
