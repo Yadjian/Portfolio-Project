@@ -11,6 +11,11 @@ export class JobOfferService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(createJobOfferDto: CreateJobOfferDto, userId: string) {
+    // 🔒 Validation sécurisée de l'utilisateur
+    if (!userId) {
+      throw new BadRequestException('Utilisateur requis pour créer une offre.');
+    }
+
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
       where: { userId },
       include: {
@@ -67,6 +72,9 @@ export class JobOfferService {
       },
     });
 
+    // 🔒 Log sécurisé de création
+    console.log(`✅ Job offer created: ${jobOffer.id} by user ${userId}`);
+    
     return jobOffer;
   }
 
@@ -127,6 +135,11 @@ export class JobOfferService {
   }
 
   async update(id: string, userId: string, updateJobOfferDto: UpdateJobOfferDto) {
+    // 🔒 Validation sécurisée des entrées
+    if (!id || !userId) {
+      throw new BadRequestException('ID offre et utilisateur requis.');
+    }
+
     const jobOffer = await this.prisma.jobOffer.findUnique({
       where: { id },
       include: {
@@ -140,9 +153,28 @@ export class JobOfferService {
       throw new NotFoundException('Offre d\'emploi introuvable.');
     }
 
-    if (jobOffer.createdBy.userId !== userId) {
-      throw new ForbiddenException('Vous ne pouvez modifier que vos propres offres.');
+    // 🛡️ SÉCURITÉ IDOR : Vérification du créateur OU membre d'entreprise
+    const isCreator = jobOffer.createdBy.userId === userId;
+    
+    // Si pas créateur, vérifier si membre de l'entreprise
+    let isMemberOfCompany = false;
+    if (!isCreator) {
+      const membership = await this.prisma.recruiterMembership.findFirst({
+        where: {
+          companyId: jobOffer.companyId,
+          recruiter: { userId: userId }
+        }
+      });
+      isMemberOfCompany = !!membership;
     }
+
+    if (!isCreator && !isMemberOfCompany) {
+      console.warn(`🚨 IDOR blocked: User ${userId} tried to update job offer ${id}`);
+      throw new ForbiddenException('Vous ne pouvez modifier que les offres de votre entreprise.');
+    }
+
+    // 🔒 Log autorisation
+    console.log(`✅ Job offer update authorized: ${id} by user ${userId} (creator: ${isCreator}, member: ${isMemberOfCompany})`);
 
     return this.prisma.jobOffer.update({
       where: { id },
@@ -160,10 +192,16 @@ export class JobOfferService {
   }
 
   async remove(id: string, userId: string) {
+    // 🔒 Validation sécurisée des entrées
+    if (!id || !userId) {
+      throw new BadRequestException('ID offre et utilisateur requis.');
+    }
+
     // 1. On cherche l'offre pour vérifier qu'elle existe et qui l'a créée
     const jobOffer = await this.prisma.jobOffer.findUnique({
       where: { id },
       select: {
+        companyId: true,
         createdBy: {
           select: {
             userId: true,
@@ -177,16 +215,39 @@ export class JobOfferService {
       throw new NotFoundException(`Offre d'emploi avec l'ID "${id}" introuvable.`);
     }
 
-    // 3. On vérifie que l'utilisateur qui demande la suppression est bien celui qui a créé l'offre
-    if (jobOffer.createdBy.userId !== userId) {
+    // 🛡️ SÉCURITÉ IDOR : Vérification créateur OU membre d'entreprise
+    const isCreator = jobOffer.createdBy.userId === userId;
+    
+    // Si pas créateur, vérifier si membre de l'entreprise
+    let isMemberOfCompany = false;
+    if (!isCreator) {
+      const membership = await this.prisma.recruiterMembership.findFirst({
+        where: {
+          companyId: jobOffer.companyId,
+          recruiter: { userId: userId }
+        }
+      });
+      isMemberOfCompany = !!membership;
+    }
+
+    if (!isCreator && !isMemberOfCompany) {
+      console.warn(`🚨 IDOR deletion blocked: User ${userId} tried to delete job offer ${id}`);
       throw new ForbiddenException('Vous n\'êtes pas autorisé à supprimer cette offre.');
     }
+
+    // 🔒 Log autorisation suppression
+    console.log(`✅ Job offer deletion authorized: ${id} by user ${userId} (creator: ${isCreator}, member: ${isMemberOfCompany})`);
 
     // 4. Si tout est bon, on supprime l'offre de la base de données
     await this.prisma.jobOffer.delete({ where: { id } });
   }
 
   async findAllByRecruiter(userId: string) {
+    // 🔒 Validation sécurisée de l'utilisateur
+    if (!userId) {
+      throw new BadRequestException('Utilisateur requis.');
+    }
+
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
       where: { userId },
     });

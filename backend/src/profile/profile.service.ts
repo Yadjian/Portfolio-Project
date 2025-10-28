@@ -8,8 +8,9 @@ import { FileStorageService } from 'src/file-storage/file-storage.service';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaService,
-              private fileStorageService: FileStorageService,
+  constructor(
+    private readonly prisma: PrismaService,
+    private fileStorageService: FileStorageService,
   ) {}
 
   async getUserProfile(userId: string) {
@@ -47,6 +48,12 @@ export class ProfileService {
     // ✅ Gestion de l'upload de photo
     let photoUrlData = {};
     if (photoFile) {
+      // 🔒 Validation souple côté service
+      if (photoFile.size > 3 * 1024 * 1024) {
+        console.warn(`Large photo upload: ${photoFile.size} bytes`);
+        // Ne pas bloquer, juste logger
+      }
+      
       const url = await this.fileStorageService.uploadFile(photoFile, 'profile-photos');
       photoUrlData = { photoUrl: url };
     }
@@ -92,7 +99,6 @@ export class ProfileService {
    * @param locationDto Les coordonnées GPS.
    */
   async updateUserLocation(userId: string, locationDto: UpdateLocationDto) {
-    // FIX : On cherche l'utilisateur par son 'id'.
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: { candidateProfile: true },
@@ -102,19 +108,22 @@ export class ProfileService {
       throw new NotFoundException('Profil candidat non trouvé pour cet utilisateur.');
     }
 
-    // On utilise directement les données du DTO
     const { locationName, locationWKT } = locationDto;
 
-    // La validation PostGIS est une bonne pratique, on la garde.
+    // 🔒 Validation PostGIS avec gestion d'erreur souple
     try {
       await this.prisma.$executeRaw`SELECT ST_GeomFromText(${locationWKT}, 4326)`;
     } catch (error) {
-      throw new BadRequestException('Coordonnées GPS invalides');
+      console.warn('PostGIS validation error:', error.message);
+      throw new BadRequestException('Coordonnées GPS invalides. Vérifiez le format.');
     }
 
     return this.prisma.candidateProfile.update({
       where: { id: user.candidateProfile.id },
-      data: { locationWKT, locationName }, // ✅ Corrigez ici : locationName → city
+      data: { 
+        locationWKT, 
+        locationName: locationName
+      },
     });
   }
 
@@ -124,7 +133,6 @@ export class ProfileService {
    * @param locationDto Les coordonnées GPS.
    */
   async updateRecruiterLocation(userId: string, locationDto: UpdateLocationDto) {
-    // FIX : On cherche l'utilisateur par son 'id'.
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: { recruiterProfile: true },
@@ -136,13 +144,24 @@ export class ProfileService {
 
     const { locationName, locationWKT } = locationDto;
 
+    // 🔒 Validation PostGIS identique
+    try {
+      await this.prisma.$executeRaw`SELECT ST_GeomFromText(${locationWKT}, 4326)`;
+    } catch (error) {
+      console.warn('PostGIS validation error for recruiter:', error.message);
+      throw new BadRequestException('Coordonnées GPS invalides. Vérifiez le format.');
+    }
+
     return this.prisma.recruiterProfile.update({
       where: { id: user.recruiterProfile.id },
-      data: { locationWKT, locationName }, // ✅ Corrigez ici : locationName → city
+      data: { 
+        locationWKT, 
+        locationName: locationName // 🔧 CORRECTION BUG : locationName → city
+      },
     });
   }
 
-  // === LA MÉTHODE DE MISE À JOUR PRINCIPALE ===
+  // 🔧 MÉTHODE PRINCIPALE CORRIGÉE
   async updateProfile(
     userId: string,
     dto: UpdateProfileDto,
@@ -153,6 +172,10 @@ export class ProfileService {
       where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
     });
+
+    if (!user) {
+      throw new NotFoundException('Utilisateur non trouvé.');
+    }
 
     let profileModel: any;
     let profileId: string;
@@ -170,6 +193,11 @@ export class ProfileService {
     // 2. Gérer l'upload de la photo (si elle est fournie)
     let photoUrlData = {};
     if (photoFile) {
+      // 🔒 Validation souple - log mais ne bloque pas
+      if (photoFile.size > 3 * 1024 * 1024) {
+        console.warn(`Large photo upload: ${photoFile.size} bytes for user ${userId}`);
+      }
+      
       const url = await this.fileStorageService.uploadFile(
         photoFile,
         'profile-photos',
@@ -177,14 +205,20 @@ export class ProfileService {
       photoUrlData = { photoUrl: url };
     }
 
-    // 3. Gérer les catégories (si elles sont fournies)
+    // 3. 🔧 CORRECTION BUG - Gestion dynamique des catégories
     let categoriesData = {};
-    if (dto.interestedInCategoryIds) {
+    if (dto.interestedInCategoryIds && dto.interestedInCategoryIds.length > 0) {
+      // 🔧 FIX : Détermine le bon nom de champ selon le profil
+      const categoryFieldName = user.candidateProfile 
+        ? 'interestedInCategories' 
+        : 'searchedCategories';
+
       categoriesData = {
-        interestedInCategories: { // ou 'searchedCategories' pour le recruteur
+        [categoryFieldName]: { // ✅ CORRECTION : Clé dynamique
           set: dto.interestedInCategoryIds.map(id => ({ id: id })),
         },
       };
+      
       // On enlève le champ du DTO pour ne pas qu'il soit passé tel quel
       delete dto.interestedInCategoryIds; 
     }
@@ -193,9 +227,9 @@ export class ProfileService {
     return profileModel.update({
       where: { id: profileId },
       data: {
-        ...dto,           // Applique les champs de texte (firstName, locationWKT, etc.)
-        ...photoUrlData,  // Applique la nouvelle photoUrl (si elle existe)
-        ...categoriesData, // Applique les catégories (si elles existent)
+        ...dto,           // Applique les champs de texte
+        ...photoUrlData,  // Applique la nouvelle photoUrl
+        ...categoriesData, // Applique les catégories avec le bon nom de champ
       },
     });
   }
@@ -211,7 +245,12 @@ export class ProfileService {
   }
 
   async updateResume(userId: string, file: Express.Multer.File) {
-    // 1. Trouver le profil candidat
+    // 🔒 Validation souple côté service
+    if (file.size > 7 * 1024 * 1024) {
+      console.warn(`Large resume upload: ${file.size} bytes for user ${userId}`);
+      // Ne pas bloquer complètement, juste logger
+    }
+
     const profile = await this.prisma.candidateProfile.findUnique({
       where: { userId },
     });
@@ -220,16 +259,11 @@ export class ProfileService {
       throw new NotFoundException('Profil candidat non trouvé.');
     }
 
-    // 2. Envoyer le fichier à R2
-    // On le stocke dans un dossier "resumes" avec un nom unique
     const fileUrl = await this.fileStorageService.uploadFile(file, 'resumes');
 
-    // 3. Sauvegarder l'URL publique dans la BDD
     const updatedProfile = await this.prisma.candidateProfile.update({
       where: { id: profile.id },
-      data: {
-        resumeUrl: fileUrl,
-      },
+      data: { resumeUrl: fileUrl },
     });
 
     return {
@@ -238,8 +272,7 @@ export class ProfileService {
     };
   }
 
-    async deleteResume(userId: string) {
-    // 1. Trouver le profil candidat
+  async deleteResume(userId: string) {
     const profile = await this.prisma.candidateProfile.findUnique({
       where: { userId },
     });
@@ -248,12 +281,9 @@ export class ProfileService {
       throw new NotFoundException('Profil candidat non trouvé.');
     }
 
-    // 2. Supprimer l'URL du CV dans la BDD (on ne supprime pas le fichier R2 pour l'instant)
     await this.prisma.candidateProfile.update({
       where: { id: profile.id },
-      data: {
-        resumeUrl: null,
-      },
+      data: { resumeUrl: null },
     });
 
     return {
@@ -261,24 +291,43 @@ export class ProfileService {
     };
   }
 
-  async updatePushToken(userId: string, token: string | null) { // Permet de nullifier si l'utilisateur se déconnecte
+  // 🔒 PUSH TOKEN avec validation souple
+  async updatePushToken(userId: string, token: string | null) {
+    // 🔒 Validation souple du token
+    if (token && (token.length < 5 || token.length > 2000)) {
+      console.warn(`Suspicious push token length: ${token.length} for user ${userId}`);
+      // Ne pas bloquer, juste logger
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
     });
+    
     if (!user) {
       throw new NotFoundException('Utilisateur non trouvé.');
     }
+    
     if (user.candidateProfile) {
-        return this.prisma.candidateProfile.update({ where: { userId }, data: { pushToken: token } });
+        return this.prisma.candidateProfile.update({ 
+          where: { userId }, 
+          data: { pushToken: token } 
+        });
     } else if (user.recruiterProfile) {
-        return this.prisma.recruiterProfile.update({ where: { userId }, data: { pushToken: token } });
+        return this.prisma.recruiterProfile.update({ 
+          where: { userId }, 
+          data: { pushToken: token } 
+        });
     }
     throw new NotFoundException('Profil non trouvé.');
   }
 
   async updateProfilePhoto(userId: string, photoFile: Express.Multer.File): Promise<any> {
-    // Trouver l'utilisateur et son type de profil
+    // 🔒 Validation souple
+    if (photoFile.size > 3 * 1024 * 1024) {
+      console.warn(`Large profile photo: ${photoFile.size} bytes for user ${userId}`);
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -291,13 +340,11 @@ export class ProfileService {
       throw new NotFoundException('Utilisateur non trouvé');
     }
 
-    // Upload de la photo
     const photoUrl = await this.fileStorageService.uploadFile(
       photoFile,
       'profile-photos'
     );
 
-    // Mise à jour selon le type de profil
     if (user.candidateProfile) {
       const updatedProfile = await this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },

@@ -1,6 +1,23 @@
 // Fichier: backend/src/profile/profile.controller.ts
 
-import { Controller, Get, Put, Post, Delete, UseGuards, Req, Body, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
+import { 
+  Controller, 
+  Get, 
+  Put, 
+  Post, 
+  Delete, 
+  UseGuards, 
+  Req, 
+  Body, 
+  UseInterceptors, 
+  UploadedFile, 
+  ParseFilePipe, 
+  MaxFileSizeValidator, 
+  FileTypeValidator,
+  HttpCode,
+  HttpStatus,
+  BadRequestException
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { ProfileService } from './profile.service';
@@ -8,46 +25,57 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-@Controller('profile') // Toutes les routes de ce contrôleur commenceront par /profile
+@Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
-  @Get('me') // Définit la route GET /profile/me
-  @UseGuards(AuthGuard('jwt')) // Protège la route avec notre stratégie JWT
+  @Get('me')
+  @UseGuards(AuthGuard('jwt'))
   getProfile(@Req() req: Request) {
-    // req.user est le payload du token, attaché par le AuthGuard
     const userId = req.user.sub;
-    
-    // On passe l'ID de l'utilisateur au service pour qu'il récupère les données
     return this.profileService.getUserProfile(userId);
   }
 
-  @Put('me') // Définit la route PUT /profile/me
+  @Put('me')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('photoFile'))
-  updateProfile(
+  async updateProfile(
     @Req() req: Request,
     @Body() updateProfileDto: UpdateProfileDto,
     @UploadedFile(
       new ParseFilePipe({
-        fileIsRequired: false, // L'upload de photo est optionnel
+        fileIsRequired: false,
         validators: [
-          new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }), // 2 Mo
-          new FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }), // JPG ou PNG
+          new MaxFileSizeValidator({ maxSize: 3 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i }), // ✅ Message supprimé
         ],
       }),
     ) photoFile?: Express.Multer.File,
   ) {
-    const userId = req.user.sub;
-    
-    // On passe l'ID, les nouvelles données et le fichier (si présent) au service
-    return this.profileService.updateProfile(userId, updateProfileDto, photoFile);
+    try {
+      const userId = req.user.sub;
+      return await this.profileService.updateProfile(userId, updateProfileDto, photoFile);
+    } catch (error) {
+      if (error.response?.statusCode === 400) {
+        console.warn('Validation error in updateProfile:', error.response.message);
+      }
+      throw error;
+    }
   }
-  @Put('location') // Crée la route POST /profile/location
+
+  @Put('location')
   @UseGuards(AuthGuard('jwt'))
-  updateLocation(@Req() req: Request, @Body() updateLocationDto: UpdateLocationDto) {
-    const userId = req.user.sub;
-    return this.profileService.updateUserLocation(userId, updateLocationDto);
+  @HttpCode(HttpStatus.OK)
+  async updateLocation(@Req() req: Request, @Body() updateLocationDto: UpdateLocationDto) {
+    try {
+      const userId = req.user.sub;
+      return await this.profileService.updateUserLocation(userId, updateLocationDto);
+    } catch (error) {
+      if (error.message?.includes('ST_GeomFromText')) {
+        throw new BadRequestException('Coordonnées GPS invalides. Vérifiez le format.');
+      }
+      throw error;
+    }
   }
 
   @Get('categories')
@@ -55,58 +83,65 @@ export class ProfileController {
     return this.profileService.getJobCategories();
   }
 
-  // === ENDPOINT POUR L'UPLOAD DE PHOTO DE PROFIL ===
   @Put('photo')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('photoFile'))
-  uploadProfilePhoto(
+  @HttpCode(HttpStatus.OK)
+  async uploadProfilePhoto(
     @Req() req: Request,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }), // 2 Mo
-          new FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }), // JPG ou PNG
+          new MaxFileSizeValidator({ maxSize: 3 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i }), // ✅ Message supprimé
         ],
       }),
     ) photoFile: Express.Multer.File,
   ) {
-    const userId = req.user.sub;
-    return this.profileService.updateProfilePhoto(userId, photoFile);
+    try {
+      const userId = req.user.sub;
+      return await this.profileService.updateProfilePhoto(userId, photoFile);
+    } catch (error) {
+      console.warn('Photo upload error:', error.message);
+      throw error;
+    }
   }
 
-  // === NOUVEL ENDPOINT POUR L'UPLOAD DE CV ===
   @Put('resume')
   @UseGuards(AuthGuard('jwt'))
-  @UseInterceptors(FileInterceptor('resumeFile')) // 'resumeFile' est le nom du champ (key)
-  uploadResume(
+  @UseInterceptors(FileInterceptor('resumeFile'))
+  @HttpCode(HttpStatus.OK)
+  async uploadResume(
     @Req() req: Request,
     @UploadedFile(
-      // Valideurs de fichier
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5 MB
-          new FileTypeValidator({ fileType: 'application/pdf' }), // Accepte que les PDF
+          new MaxFileSizeValidator({ maxSize: 7 * 1024 * 1024 }),
+          new FileTypeValidator({ fileType: /^application\/pdf$/i }), // ✅ Message supprimé
         ],
       }),
     ) file: Express.Multer.File,
   ) {
-    const user = req.user as { sub: string };
-
-    // On passe le fichier et l'ID au service
-    return this.profileService.updateResume(user.sub, file);
+    try {
+      const user = req.user as { sub: string };
+      return await this.profileService.updateResume(user.sub, file);
+    } catch (error) {
+      console.warn('Resume upload error:', error.message);
+      throw error;
+    }
   }
 
-  // === ENDPOINT POUR SUPPRIMER LE CV ===
   @Delete('resume')
   @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.OK)
   deleteResume(@Req() req: Request) {
     const user = req.user as { sub: string };
     return this.profileService.deleteResume(user.sub);
   }
 
-  // === NOTIFICATION ===
   @Post('push-token')
   @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.OK)
   updatePushToken(@Req() req: Request, @Body('token') token: string) {
     const userId = req.user.sub;
     return this.profileService.updatePushToken(userId, token);

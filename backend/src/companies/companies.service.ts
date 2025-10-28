@@ -1,6 +1,6 @@
 // Fichier: backend/src/companies/companies.service.ts
 
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 // Assurez-vous que le nom du DTO correspond à ce que vous avez créé
 import { CreateCompanyOnboardingDto } from './dto/create-company-onboarding.dto';
@@ -16,6 +16,15 @@ export class CompaniesService {
    * @param userId L'ID de l'utilisateur (recruteur) qui effectue l'action
    */
   async createCompanyForRecruiter(dto: CreateCompanyOnboardingDto, userId: string) {
+    // 🔒 Validation sécurisée des entrées
+    if (!userId) {
+      throw new BadRequestException('Utilisateur requis pour créer une entreprise.');
+    }
+
+    if (!dto.companyName?.trim() || !dto.siret?.trim()) {
+      throw new BadRequestException('Nom d\'entreprise et SIRET requis.');
+    }
+
     // 1. Trouver le profil du recruteur qui fait la demande
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
       where: { userId },
@@ -60,6 +69,10 @@ export class CompaniesService {
           internalRole: 'Admin', // Rôle par défaut
         },
       });
+
+      // 🔒 Log sécurisé de création d'entreprise
+      console.log(`✅ Company created: ${company.id} (${company.name}) by user ${userId}`);
+      console.log(`✅ Membership created: ${membership.id} for recruiter ${recruiterProfile.id}`);
 
       // On retourne l'entreprise et l'adhésion créées
       return { company, membership };
