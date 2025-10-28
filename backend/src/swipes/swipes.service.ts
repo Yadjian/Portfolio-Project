@@ -1,5 +1,5 @@
 // src/swipes/swipes.service.ts
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq'; // <-- COMMENTE
 import { Queue } from 'bullmq';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -22,7 +22,21 @@ export class SwipesService {
    * Gère un swipe (création ou mise à jour) et vérifie les matchs.
    */
   async handleSwipe(userId: string, dto: CreateSwipeDto) {
+    // 🔒 Validation sécurisée des entrées
+    if (!userId) {
+      throw new BadRequestException('Utilisateur requis pour swiper.');
+    }
+    
+    if (!dto?.profileId?.trim() || !dto?.direction) {
+      throw new BadRequestException('ID de profil et direction requis.');
+    }
+
     const { profileId: swipedProfileId, direction } = dto;
+
+    // 🛡️ SÉCURITÉ : Empêcher l'auto-swipe
+    if (swipedProfileId === userId) {
+      throw new ForbiddenException('Vous ne pouvez pas swiper sur votre propre profil.');
+    }
 
     // 1. Identifier qui est le swiper (Candidat ou Recruteur)
     const swiperUser = await this.prisma.user.findUnique({
@@ -49,12 +63,34 @@ export class SwipesService {
       recruiterId = swipedProfileId; // L'ID reçu est celui d'un recruteur
       swiperDirectionField = 'candidateDirection';
       otherDirectionField = 'recruiterDirection';
+
+      // 🛡️ SÉCURITÉ : Vérifier que le profil swipé est bien un recruteur
+      const targetRecruiter = await this.prisma.recruiterProfile.findUnique({
+        where: { id: swipedProfileId },
+        select: { id: true }
+      });
+      if (!targetRecruiter) {
+        console.warn(`🚨 SWIPE SECURITY: Candidate ${userId} tried to swipe on invalid recruiter ${swipedProfileId}`);
+        throw new NotFoundException('Profil recruteur introuvable.');
+      }
+
     } else if (swiperUser.recruiterProfile) {
       // C'est un RECRUTEUR qui swipe
       candidateId = swipedProfileId; // L'ID reçu est celui d'un candidat
       recruiterId = swiperUser.recruiterProfile.id;
       swiperDirectionField = 'recruiterDirection';
       otherDirectionField = 'candidateDirection';
+
+      // 🛡️ SÉCURITÉ : Vérifier que le profil swipé est bien un candidat
+      const targetCandidate = await this.prisma.candidateProfile.findUnique({
+        where: { id: swipedProfileId },
+        select: { id: true }
+      });
+      if (!targetCandidate) {
+        console.warn(`🚨 SWIPE SECURITY: Recruiter ${userId} tried to swipe on invalid candidate ${swipedProfileId}`);
+        throw new NotFoundException('Profil candidat introuvable.');
+      }
+
     } else {
       throw new ForbiddenException("L'utilisateur n'a pas de profil actif.");
     }
@@ -137,6 +173,9 @@ export class SwipesService {
       return { match: true, matchedAt: matchData.matchedAt };
     }
 
+    // 🔒 Log de sécurité pour audit
+    console.log(`✅ Swipe authorized: ${direction} by user ${userId} on profile ${swipedProfileId}`);
+
     // Si pas de match
     return { match: false };
   }
@@ -145,6 +184,11 @@ export class SwipesService {
    * Annule le dernier swipe de l'utilisateur
    */
   async undoLastSwipe(userId: string) {
+    // 🔒 Validation sécurisée des entrées
+    if (!userId) {
+      throw new BadRequestException('Utilisateur requis pour annuler un swipe.');
+    }
+
     // 1. Trouver le profil de l'utilisateur
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -204,6 +248,9 @@ export class SwipesService {
         matchedAt: null,
       },
     });
+
+    // 🔒 Log de sécurité pour audit
+    console.log(`✅ Swipe undo authorized: ${lastSwipe.id} by user ${userId}`);
 
     return { success: true };
   }

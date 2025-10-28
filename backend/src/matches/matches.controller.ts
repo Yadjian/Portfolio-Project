@@ -1,5 +1,5 @@
 // src/matches/matches.controller.ts
-import { Controller, Get, UseGuards, Req, Param} from '@nestjs/common';
+import { Controller, Get, UseGuards, Req, Param, ParseUUIDPipe} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { MatchesService } from './matches.service';
@@ -17,7 +17,7 @@ export class MatchesController {
 
   @Get(':id') // Ex: /matches/uuid-du-swipe
   @UseGuards(AuthGuard('jwt'))
-  getMatchDetails(@Req() req: Request, @Param('id') swipeId: string) {
+  getMatchDetails(@Req() req: Request, @Param('id', ParseUUIDPipe) swipeId: string) {
     const user = req.user as { sub: string };
     return this.matchesService.getMatchDetails(user.sub, swipeId);
   }

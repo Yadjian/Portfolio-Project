@@ -1,5 +1,5 @@
 // src/matches/matches.service.ts
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -7,6 +7,11 @@ export class MatchesService {
   constructor(private prisma: PrismaService) {}
 
   async findAllMatches(userId: string) {
+    // 🔒 Validation sécurisée des entrées
+    if (!userId) {
+      throw new BadRequestException('Utilisateur requis pour voir les matches.');
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -14,6 +19,11 @@ export class MatchesService {
         recruiterProfile: { select: { id: true } },
       },
     });
+
+    // 🛡️ SÉCURITÉ : Vérifier que l'utilisateur existe
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable.');
+    }
 
     let whereClause;
 
@@ -69,6 +79,9 @@ export class MatchesService {
       },
     });
 
+    // 🔒 Log de sécurité pour audit
+    console.log(`✅ Matches list accessed by user ${userId}: ${matches.length} matches found`);
+
     // On formate la réponse pour le front
     return matches.map(match => {
       if (user.candidateProfile) {
@@ -99,6 +112,11 @@ export class MatchesService {
     });
   }
   async getMatchDetails(userId: string, swipeId: string) {
+    // 🔒 Validation sécurisée des entrées
+    if (!userId || !swipeId) {
+      throw new BadRequestException('Utilisateur et ID de match requis.');
+    }
+
     // 1. Trouver le match
     const swipe = await this.prisma.swipe.findUnique({
       where: { id: swipeId },
@@ -121,13 +139,17 @@ export class MatchesService {
     const isUserRecruiter = swipe.recruiter.userId === userId;
 
     if (!isUserCandidate && !isUserRecruiter) {
+      console.warn(`🚨 MATCH IDOR BLOCKED: User ${userId} tried to access match ${swipeId} without authorization`);
       throw new ForbiddenException('Accès non autorisé à ce match.');
     }
+
+    // 🔒 Log de sécurité pour audit
+    console.log(`✅ Match details accessed: ${swipeId} by user ${userId} (candidate: ${isUserCandidate}, recruiter: ${isUserRecruiter})`);
 
     // 4. Renvoyer le "contenu" en fonction du rôle
     if (isUserCandidate) {
       // Le CANDIDAT obtient les offres du recruteur
-      return this.prisma.jobOffer.findMany({
+      const jobOffers = await this.prisma.jobOffer.findMany({
         where: {
           createdById: swipe.recruiterId,
           isActive: true,
@@ -137,12 +159,16 @@ export class MatchesService {
           categories: true,
         },
       });
+
+      // 🔒 Log pour audit
+      console.log(`✅ Candidate ${userId} accessed ${jobOffers.length} job offers from match ${swipeId}`);
+      return jobOffers;
     }
 
     if (isUserRecruiter) {
       // Le RECRUTEUR obtient le profil complet du candidat
       // C'est ici qu'on renvoie le `resumeUrl` (le lien du CV)
-      return this.prisma.candidateProfile.findUnique({
+      const candidateProfile = await this.prisma.candidateProfile.findUnique({
         where: {
           id: swipe.candidateId,
         },
@@ -150,6 +176,10 @@ export class MatchesService {
           interestedInCategories: true,
         },
       });
+
+      // 🔒 Log pour audit
+      console.log(`✅ Recruiter ${userId} accessed candidate profile from match ${swipeId}`);
+      return candidateProfile;
     }
   }
 }
