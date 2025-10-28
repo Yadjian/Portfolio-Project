@@ -3,6 +3,11 @@
 import React, { useEffect, useReducer, useState } from 'react';
 import MovaLogo from '../../components/MovaLogo';
 
+/* JobOffersServices (client)
+   - Admin interface to list, create, find, edit and delete job offers.
+   - Uses fetch to talk with backend API endpoints under /api.
+   - Stores transient UI state in a local reducer. */
+ 
 // Job category interface for dropdown options
 interface JobCategory {
   id: string;
@@ -34,11 +39,11 @@ interface JobOffer {
 
 // Component state managed by reducer
 type State = {
-  offers: JobOffer[];
-  error: string | null;
-  selectedService: 'list' | 'create' | 'findOffer' | 'editOffer' | null;
-  foundOffer: JobOffer | null;
-  form: {
+  offers: JobOffer[]; // cached list of offers
+  error: string | null; // user-facing error message
+  selectedService: 'list' | 'create' | 'findOffer' | 'editOffer' | null; // current view
+  foundOffer: JobOffer | null; // result for "find by ID"
+  form: { // form model used for create/edit
     id?: string;
     title: string;
     description: string;
@@ -62,7 +67,7 @@ type Action =
   | { type: 'UPDATE_FORM'; payload: { field: keyof State['form']; value: string } }
   | { type: 'RESET' };
 
-// Initial state for the reducer
+// Initial state for the reducer (used when resetting or initializing)
 const initialState: State = {
   offers: [],
   error: null,
@@ -82,6 +87,8 @@ const initialState: State = {
 };
 
 // State reducer function handling all state transitions
+// - Keeps reducer pure: returns new state objects based on actions.
+// - START_EDIT populates the form from an existing offer for editing.
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'SET_OFFERS':
@@ -89,11 +96,14 @@ function reducer(state: State, action: Action): State {
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'TOGGLE_SERVICE':
+      // Toggle view. When switching services reset to initialState but keep offers.
       const newService = state.selectedService === action.payload ? null : action.payload;
       return { ...initialState, offers: state.offers, selectedService: newService };
     case 'SET_FOUND_OFFER':
+      // If no offer found, set an error message.
       return { ...state, foundOffer: action.payload, error: action.payload ? null : 'Offre introuvable' };
     case 'START_EDIT':
+      // Prepare form with selected offer data and switch to edit view.
       return {
         ...state,
         selectedService: 'editOffer',
@@ -112,8 +122,10 @@ function reducer(state: State, action: Action): State {
         },
       };
     case 'UPDATE_FORM':
+      // Update a single form field (value comes as string from inputs).
       return { ...state, form: { ...state.form, [action.payload.field]: action.payload.value } };
     case 'RESET':
+      // Reset UI state but preserve offers and show list view.
       return { ...initialState, offers: state.offers, selectedService: 'list' };
     default:
       return state;
@@ -132,7 +144,7 @@ export default function JobOffersServices() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
+        const token = localStorage.getItem('accessToken'); // read auth token
         const res = await fetch('/api/meta/job-categories', {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -196,7 +208,8 @@ export default function JobOffersServices() {
         if (!res.ok) throw new Error('Erreur de chargement');
         const data = await res.json();
         
-        // Map createdBy field to recruiter to match interface
+        // Map createdBy field to recruiter to match local JobOffer interface
+        // (backend returns createdBy; this normalizes shape)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mappedData = data.map((offer: any) => ({
           ...offer,
@@ -215,7 +228,7 @@ export default function JobOffersServices() {
     fetchOffers();
   }, []);
 
-  // Helper function to refresh offers list after mutations
+  // Helper function to refresh offers list after mutations (create/update/delete)
   const refetchOffers = () => {
     const token = localStorage.getItem('accessToken');
     fetch('/api/joboffers', {
@@ -437,8 +450,8 @@ export default function JobOffersServices() {
                     const errorData = await res.json();
                     throw new Error(errorData.message || 'Erreur lors de la création');
                   }
-                  refetchOffers();
-                  dispatch({ type: 'RESET' });
+                  refetchOffers(); // refresh list after create
+                  dispatch({ type: 'RESET' }); // go back to list
                 } catch (err) {
                   dispatch({
                     type: 'SET_ERROR',
@@ -555,6 +568,7 @@ export default function JobOffersServices() {
               onSubmit={e => {
                 e.preventDefault();
                 const id = e.currentTarget.offerId.value;
+                // Search in cached offers array (no network call)
                 const found = offers.find(o => o.id === id);
                 dispatch({ type: 'SET_FOUND_OFFER', payload: found || null });
               }}
@@ -703,8 +717,8 @@ export default function JobOffersServices() {
                             },
                           });
                           if (!res.ok) throw new Error('Erreur lors de la suppression');
-                          refetchOffers();
-                          dispatch({ type: 'TOGGLE_SERVICE', payload: null });
+                          refetchOffers(); // refresh after delete
+                          dispatch({ type: 'TOGGLE_SERVICE', payload: null }); // close detail view
                         } catch (err) {
                           const message = err instanceof Error ? err.message : 'Erreur lors de la suppression';
                           dispatch({ type: 'SET_ERROR', payload: message });
@@ -735,8 +749,8 @@ export default function JobOffersServices() {
                     body: JSON.stringify(form),
                   });
                   if (!res.ok) throw new Error("Erreur lors de la mise à jour");
-                  refetchOffers();
-                  dispatch({ type: 'RESET' });
+                  refetchOffers(); // refresh list after update
+                  dispatch({ type: 'RESET' }); // back to list view
                 } catch (err) {
                   const message = err instanceof Error ? err.message : 'Erreur lors de la mise à jour';
                   dispatch({ type: 'SET_ERROR', payload: message });

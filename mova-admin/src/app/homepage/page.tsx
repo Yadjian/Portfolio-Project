@@ -17,12 +17,14 @@ export default function HomePage() {
   };
 
   return (
+    // Page background and outer layout
     <div style={{
       width: '100%',
       minHeight: '100vh',
       background: 'linear-gradient(135deg, #f8f9ff 0%, #e8e9ff 100%)',
       padding: '40px 20px'
     }}>
+      {/* Centered card container for the dashboard */}
       <div style={{
         maxWidth: 1200,
         margin: '0 auto',
@@ -42,6 +44,7 @@ export default function HomePage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
             {/* Brand/logo component */}
+            {/* MovaLogo renders the circular brand mark; size prop controls dimensions */}
             <MovaLogo size={60} />
             <div>
               {/* Title and subtitle */}
@@ -54,6 +57,7 @@ export default function HomePage() {
             </div>
           </div>
           {/* Logout button (clears tokens and redirects to login) */}
+          {/* Inline hover handlers update background color for visual feedback */}
           <button
             style={{ 
               background: '#e53935', 
@@ -69,6 +73,7 @@ export default function HomePage() {
             onMouseOver={(e) => e.currentTarget.style.background = '#c62828'}
             onMouseOut={(e) => e.currentTarget.style.background = '#e53935'}
             onClick={handleLogout}
+            aria-label="Logout"
           >
             Déconnexion
           </button>
@@ -87,7 +92,7 @@ export default function HomePage() {
             Services disponibles
           </div>
 
-          {/* Services list */}
+          {/* Services list - action cards that navigate to management sections */}
           <div style={{ 
             display: 'flex',
             flexDirection: 'row',
@@ -96,7 +101,7 @@ export default function HomePage() {
             justifyContent: 'center',
             flexWrap: 'wrap'
           }}>
-            {/* Users card */}
+            {/* Users card - navigates to users management */}
             <div
               style={{
                 background: '#f8f9ff',
@@ -125,12 +130,14 @@ export default function HomePage() {
               }}
               // navigate to users management page
               onClick={() => router.push('/services/users')}
+              role="button"
+              aria-label="Manage users"
             >
               <div style={{ fontSize: 48 }}>👥</div>
               <div>Utilisateurs</div>
             </div>
 
-            {/* Job offers card */}
+            {/* Job offers card - navigates to job offers management */}
             <div
               style={{
                 background: '#f8f9ff',
@@ -159,13 +166,15 @@ export default function HomePage() {
               }}
               // navigate to job offers management page
               onClick={() => router.push('/services/joboffers')}
+              role="button"
+              aria-label="Manage job offers"
             >
               <div style={{ fontSize: 48 }}>💼</div>
               <div>Offres d&apos;emploi</div>
             </div>
           </div>
 
-          {/* Upcoming features section */}
+          {/* Upcoming features section - non-interactive placeholders */}
           <div style={{ 
             fontSize: 14, 
             fontWeight: 700, 
@@ -185,7 +194,7 @@ export default function HomePage() {
             justifyContent: 'center',
             flexWrap: 'wrap'
           }}>
-            {/* Placeholder card for CVs feature */}
+            {/* Placeholder card for CVs feature - visually disabled */}
             <div
               style={{
                 background: '#f5f5f5',
@@ -202,6 +211,7 @@ export default function HomePage() {
                 minWidth: 200,
                 maxWidth: 250
               }}
+              aria-hidden="true"
             >
               <div style={{ fontSize: 48 }}>📄</div>
               <div style={{ color: '#999' }}>CVs</div>
@@ -224,6 +234,7 @@ export default function HomePage() {
                 minWidth: 200,
                 maxWidth: 250
               }}
+              aria-hidden="true"
             >
               <div style={{ fontSize: 48 }}>🤝</div>
               <div style={{ color: '#999' }}>Matchs</div>
@@ -246,6 +257,7 @@ export default function HomePage() {
                 minWidth: 200,
                 maxWidth: 250
               }}
+              aria-hidden="true"
             >
               <div style={{ fontSize: 48 }}>👆</div>
               <div style={{ color: '#999' }}>Swipes</div>
