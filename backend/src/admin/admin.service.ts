@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 export class AdminService {
   constructor(private prisma: PrismaService) {}
 
+  // Retrieve all users with their profiles and roles
   async getAllUsers() {
     const users = await this.prisma.user.findMany({
       select: {
@@ -61,7 +62,7 @@ export class AdminService {
       },
     });
 
-    // Ajouter le rôle basé sur les profils
+    // Add a role property based on the user's profile
     return users.map(user => ({
       ...user,
       role: user.candidateProfile 
@@ -72,6 +73,7 @@ export class AdminService {
     }));
   }
 
+  // Retrieve a single user by ID, including their profiles and role
   async getUserById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
@@ -94,7 +96,7 @@ export class AdminService {
     });
 
     if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé');
+      throw new NotFoundException('User not found');
     }
 
     return {
@@ -107,9 +109,12 @@ export class AdminService {
     };
   }
 
+  // Create a new user and their profile based on the role
   async createUser(dto: CreateUserDto) {
+    // Hash the password before saving
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+    // Create the user in the database
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
@@ -117,7 +122,7 @@ export class AdminService {
       },
     });
 
-    // Créer le profil selon le rôle
+    // Create the appropriate profile if candidate or recruiter data is provided
     if (dto.role === 'candidate' && dto.candidateData) {
       await this.prisma.candidateProfile.create({
         data: {
@@ -134,20 +139,23 @@ export class AdminService {
       });
     }
 
+    // Return the newly created user with profile and role
     return this.getUserById(user.id);
   }
 
+  // Update user information and their profile if provided
   async updateUser(id: string, dto: UpdateUserDto) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé');
+      throw new NotFoundException('User not found');
     }
 
-    // Mettre à jour l'email ou le mot de passe si fourni
+    // Prepare update data for user fields
     const updateData: any = {};
     if (dto.email) updateData.email = dto.email;
     if (dto.password) updateData.password = await bcrypt.hash(dto.password, 10);
 
+    // Update user fields if any are provided
     if (Object.keys(updateData).length > 0) {
       await this.prisma.user.update({
         where: { id },
@@ -155,7 +163,7 @@ export class AdminService {
       });
     }
 
-    // Mettre à jour le profil selon le rôle
+    // Update candidate profile if candidateData is provided
     if (dto.candidateData) {
       const existing = await this.prisma.candidateProfile.findUnique({ where: { userId: id } });
       if (existing) {
@@ -166,6 +174,7 @@ export class AdminService {
       }
     }
 
+    // Update recruiter profile if recruiterData is provided
     if (dto.recruiterData) {
       const existing = await this.prisma.recruiterProfile.findUnique({ where: { userId: id } });
       if (existing) {
@@ -176,18 +185,20 @@ export class AdminService {
       }
     }
 
+    // Return the updated user with profile and role
     return this.getUserById(id);
   }
 
+  // Delete a user and their associated profiles
   async deleteUser(id: string) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé');
+      throw new NotFoundException('User not found');
     }
 
-    // Supprimer les profils associés (cascade devrait le faire automatiquement)
+    // Delete the user (cascade should remove profiles automatically)
     await this.prisma.user.delete({ where: { id } });
 
-    return { message: 'Utilisateur supprimé' };
+    return { message: 'User deleted' };
   }
 }

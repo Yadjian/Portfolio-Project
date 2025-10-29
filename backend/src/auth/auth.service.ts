@@ -1,11 +1,13 @@
 // src/auth/auth.service.ts
 
+// This service handles authentication logic: signup, login, logout, and token management.
+
 import { Injectable, UnauthorizedException, ForbiddenException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { SignupDto, UserRole } from './dto/signup.dto';
-import { AuthDto } from './dto/auth.dto'; // Nous créerons ce fichier DTO juste après
+import { AuthDto } from './dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -14,25 +16,26 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-// --- INSCRIPTION (NOUVELLE VERSION) ---
+  // --- SIGNUP (REGISTER NEW USER) ---
   async signup(dto: SignupDto): Promise<{ accessToken: string; refreshToken:string }> {
     const { email, password, role } = dto;
 
-    // 1. Vérifier si un utilisateur avec cet email existe déjà
+    // 1. Check if a user with this email already exists
     const existingUser = await this.prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
 
-    // 2. Si l'utilisateur existe, lever une erreur claire (HTTP 409 Conflict)
+    // 2. If user exists, throw a conflict error
     if (existingUser) {
-      throw new ConflictException('Un utilisateur avec cet email existe déjà.');
+      throw new ConflictException('A user with this email already exists.');
     }
 
+    // 3. Hash the password before saving
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // On utilise une transaction pour s'assurer que le User ET le Profil sont créés
+    // 4. Use a transaction to create both User and Profile atomically
     const newUser = await this.prisma.$transaction(async (tx) => {
-      // 3. Créer l'utilisateur
+      // Create the user
       const user = await tx.user.create({
         data: {
           email: email.toLowerCase(),
@@ -40,7 +43,7 @@ export class AuthService {
         },
       });
 
-      // 4. Créer le profil associé en fonction du rôle
+      // Create the associated profile based on the role
       if (role === UserRole.CANDIDATE) {
         await tx.candidateProfile.create({
           data: {
@@ -62,41 +65,42 @@ export class AuthService {
       return user;
     });
 
-    // Générer et retourner les tokens
+    // 5. Generate and return access and refresh tokens
     const tokens = await this.getTokens(newUser.id, newUser.email);
     await this.updateRefreshTokenHash(newUser.id, tokens.refreshToken);
     return tokens;
   }
 
-  // --- CONNEXION ---
+  // --- LOGIN (AUTHENTICATE USER) ---
   async login(dto: AuthDto): Promise<{ accessToken: string; refreshToken: string }> {
     const { email, password } = dto;
 
+    // 1. Find user by email
     const user = await this.prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
 
+    // 2. If user not found, throw unauthorized error
     if (!user) {
-      throw new UnauthorizedException('Identifiants incorrects.');
+      throw new UnauthorizedException('Invalid credentials.');
     }
 
+    // 3. Compare provided password with stored hash
     const isPasswordMatching = await bcrypt.compare(password, user.password);
 
-    // V FIX: La condition était inversée. On ajoute '!'
     if (!isPasswordMatching) { 
-      throw new UnauthorizedException('Identifiants incorrects.');
+      throw new UnauthorizedException('Invalid credentials.');
     }
 
-    // Générer et retourner les tokens
+    // 4. Generate and return tokens
     const tokens = await this.getTokens(user.id, user.email);
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
     return tokens;
   }
   
-  // --- DÉCONNEXION ---
-  // V FIX: On ajoute le type de retour pour la fonction async
+  // --- LOGOUT (REMOVE REFRESH TOKEN) ---
   async logout(userId: string): Promise<void> { 
-    // Supprime le hash du refresh token de l'utilisateur
+    // Remove the user's refresh token hash from the database
     await this.prisma.user.updateMany({
       where: {
         id: userId,
@@ -110,28 +114,27 @@ export class AuthService {
     });
   }
 
-
-  // --- HELPERS (fonctions utilitaires) ---
-
+  // --- REFRESH TOKENS (ISSUE NEW TOKENS USING REFRESH TOKEN) ---
   async refreshTokens(userId: string, refreshToken: string) {
-  // 1. Trouver l'utilisateur et son token haché actuel
-  const user = await this.prisma.user.findUnique({ where: { id: userId } });
-  if (!user || !user.hashedRefreshToken) throw new ForbiddenException('Access Denied');
+    // 1. Find the user and their current hashed refresh token
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.hashedRefreshToken) throw new ForbiddenException('Access Denied');
 
-  // 2. Vérifier que le refresh token fourni correspond à celui en base de données
-  const tokensMatch = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
-  if (!tokensMatch) throw new ForbiddenException('Access Denied');
+    // 2. Compare provided refresh token with stored hash
+    const tokensMatch = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+    if (!tokensMatch) throw new ForbiddenException('Access Denied');
 
-  // 3. Si tout est bon, on utilise votre "Usine à Tokens"
-  const newTokens = await this.getTokens(user.id, user.email);
+    // 3. Generate new tokens
+    const newTokens = await this.getTokens(user.id, user.email);
 
-  // 4. On utilise votre "Coffre-fort" pour stocker le nouveau token
-  await this.updateRefreshTokenHash(user.id, newTokens.refreshToken);
+    // 4. Update the stored refresh token hash
+    await this.updateRefreshTokenHash(user.id, newTokens.refreshToken);
 
-  // 5. On renvoie les nouveaux tokens
-  return newTokens;
-}
+    // 5. Return the new tokens
+    return newTokens;
+  }
 
+  // --- HELPER: Update the user's refresh token hash in the database ---
   private async updateRefreshTokenHash(userId: string, refreshToken: string) {
     const hash = await bcrypt.hash(refreshToken, 10);
     await this.prisma.user.update({
@@ -140,20 +143,22 @@ export class AuthService {
     });
   }
 
+  // --- HELPER: Generate access and refresh JWT tokens ---
   private async getTokens(userId: string, email: string) {
     const payload = {
       sub: userId,
       email,
     };
 
+    // Generate both tokens in parallel
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: '15m', // Courte durée de vie
+        expiresIn: '15m', // Short lifetime for access token
       }),
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: '7d', // Longue durée de vie
+        expiresIn: '7d', // Longer lifetime for refresh token
       }),
     ]);
 
