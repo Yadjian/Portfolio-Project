@@ -1,4 +1,4 @@
-// Fichier: backend/src/app.module.ts
+// This is the root module of the NestJS application. It imports and configures all feature modules and global services.
 
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -21,13 +21,14 @@ import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
   imports: [
-    // Configuration globale de BullMQ avec Redis
+    // Global BullMQ configuration for Redis-based queues (used for notifications, etc.)
     BullModule.forRoot({
       connection: {
         host: process.env.REDIS_HOST || 'redis',
         port: parseInt(process.env.REDIS_PORT) || 6379,
       },
     }),
+    // Import all feature modules for authentication, profiles, job offers, etc.
     AuthModule, 
     PrismaModule, 
     ProfileModule, 
@@ -40,11 +41,14 @@ import { NotificationsModule } from './notifications/notifications.module';
     FileStorageModule, 
     AdminModule,
     NotificationsModule,
+    // MulterModule is used for handling file uploads (temporary upload folder)
     MulterModule.register({
-      dest: './uploads', // Un dossier temporaire pour les uploads
+      dest: './uploads', // Temporary folder for uploads
     }),
   ],
+  // Register global controllers (main app and health check)
   controllers: [AppController, HealthController],
+  // Register global providers (main app service)
   providers: [AppService],
 })
 export class AppModule {}

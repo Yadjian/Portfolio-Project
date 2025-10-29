@@ -1,4 +1,6 @@
 // src/matches/matches.service.ts
+// This service contains business logic for retrieving and displaying user matches (candidate-recruiter matches).
+
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -6,7 +8,13 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class MatchesService {
   constructor(private prisma: PrismaService) {}
 
+  /**
+   * Retrieves all matches for the authenticated user.
+   * The response is formatted for the frontend and includes the profile of the matched user.
+   * @param userId The ID of the authenticated user
+   */
   async findAllMatches(userId: string) {
+    // Find the user and determine their role (candidate or recruiter)
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -17,7 +25,7 @@ export class MatchesService {
 
     let whereClause;
 
-    // On construit la requête en fonction du rôle
+    // Build the query based on the user's role
     if (user.candidateProfile) {
       whereClause = {
         candidateId: user.candidateProfile.id,
@@ -29,13 +37,14 @@ export class MatchesService {
         isMatch: true,
       };
     } else {
-      throw new NotFoundException('Profil non trouvé.');
+      throw new NotFoundException('Profile not found.');
     }
 
+    // Retrieve all matches for the user, including the matched profile's details
     const matches = await this.prisma.swipe.findMany({
       where: whereClause,
       include: {
-        // Inclure le profil de l'AUTRE personne pour l'affichage
+        // Include the profile of the OTHER person for display
         candidate: {
           select: { 
             id: true, 
@@ -69,10 +78,10 @@ export class MatchesService {
       },
     });
 
-    // On formate la réponse pour le front
+    // Format the response for the frontend
     return matches.map(match => {
       if (user.candidateProfile) {
-        // Candidat voit les recruteurs
+        // Candidate sees recruiters
         const recruiter = match.recruiter;
         return {
           matchId: match.id,
@@ -85,7 +94,7 @@ export class MatchesService {
           },
         };
       } else {
-        // Recruteur voit les candidats
+        // Recruiter sees candidates
         const candidate = match.candidate;
         return {
           matchId: match.id,
@@ -98,8 +107,17 @@ export class MatchesService {
       }
     });
   }
+
+  /**
+   * Retrieves details for a specific match (by swipe ID) for the authenticated user.
+   * The returned data depends on the user's role:
+   * - Candidate: receives the recruiter's job offers.
+   * - Recruiter: receives the candidate's full profile.
+   * @param userId The ID of the authenticated user
+   * @param swipeId The ID of the swipe (match)
+   */
   async getMatchDetails(userId: string, swipeId: string) {
-    // 1. Trouver le match
+    // 1. Find the match (swipe)
     const swipe = await this.prisma.swipe.findUnique({
       where: { id: swipeId },
       include: {
@@ -108,25 +126,25 @@ export class MatchesService {
       },
     });
 
-    // 2. Vérifications de sécurité
+    // 2. Security checks
     if (!swipe) {
-      throw new NotFoundException('Match non trouvé.');
+      throw new NotFoundException('Match not found.');
     }
     if (!swipe.isMatch) {
-      throw new ForbiddenException("Ce n'est pas encore un match.");
+      throw new ForbiddenException("This is not yet a match.");
     }
 
-    // 3. Identifier l'utilisateur
+    // 3. Identify the user's role in the match
     const isUserCandidate = swipe.candidate.userId === userId;
     const isUserRecruiter = swipe.recruiter.userId === userId;
 
     if (!isUserCandidate && !isUserRecruiter) {
-      throw new ForbiddenException('Accès non autorisé à ce match.');
+      throw new ForbiddenException('Unauthorized access to this match.');
     }
 
-    // 4. Renvoyer le "contenu" en fonction du rôle
+    // 4. Return content based on the user's role
     if (isUserCandidate) {
-      // Le CANDIDAT obtient les offres du recruteur
+      // Candidate gets the recruiter's job offers
       return this.prisma.jobOffer.findMany({
         where: {
           createdById: swipe.recruiterId,
@@ -140,8 +158,7 @@ export class MatchesService {
     }
 
     if (isUserRecruiter) {
-      // Le RECRUTEUR obtient le profil complet du candidat
-      // C'est ici qu'on renvoie le `resumeUrl` (le lien du CV)
+      // Recruiter gets the candidate's full profile (including resume URL)
       return this.prisma.candidateProfile.findUnique({
         where: {
           id: swipe.candidateId,

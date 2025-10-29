@@ -1,28 +1,31 @@
-// src/auth/jwt.strategy.ts
+// This file defines the JWT authentication strategy for validating access tokens.
 
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 
-// Le payload du token que NOUS créons
+// The payload structure of the JWT we generate
 type JwtPayload = {
-  sub: string;
-  email: string;
+  sub: string;   // User ID
+  email: string; // User email
 };
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') { // 'jwt' est le nom par défaut
+// JwtStrategy configures Passport to use JWTs for authentication.
+// The 'jwt' string is the default strategy name.
+export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor() {
     super({
+      // Extract JWT from the Authorization header as a Bearer token
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      ignoreExpiration: false,
-      secretOrKey: process.env.JWT_ACCESS_SECRET, // <-- On utilise notre secret !
+      ignoreExpiration: false, // Reject expired tokens
+      secretOrKey: process.env.JWT_ACCESS_SECRET, // Secret key for verifying token signature
     });
   }
 
-  // Cette méthode est appelée par PassportJS après avoir validé le token
-  // Elle injecte ce qu'on retourne dans `req.user`
+  // This method is called by Passport after the token is validated.
+  // The returned value is attached to req.user in route handlers.
   validate(payload: JwtPayload) {
-    return payload; // On peut retourner l'objet entier, ou juste { userId: payload.sub }
+    return payload; // You can return the whole payload or a subset (e.g., { userId: payload.sub })
   }
 }

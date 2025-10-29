@@ -1,5 +1,6 @@
-// src/matches/matches.controller.ts
-import { Controller, Get, UseGuards, Req, Param} from '@nestjs/common';
+// This controller handles endpoints related to user matches (e.g., candidate-recruiter matches).
+
+import { Controller, Get, UseGuards, Req, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { MatchesService } from './matches.service';
@@ -8,6 +9,9 @@ import { MatchesService } from './matches.service';
 export class MatchesController {
   constructor(private readonly matchesService: MatchesService) {}
 
+  // GET /matches
+  // Returns all matches for the authenticated user.
+  // Protected route: requires JWT authentication.
   @Get()
   @UseGuards(AuthGuard('jwt'))
   getAllMatches(@Req() req: Request) {
@@ -15,7 +19,10 @@ export class MatchesController {
     return this.matchesService.findAllMatches(user.sub);
   }
 
-  @Get(':id') // Ex: /matches/uuid-du-swipe
+  // GET /matches/:id
+  // Returns details for a specific match (by swipe ID) for the authenticated user.
+  // Protected route: requires JWT authentication.
+  @Get(':id') // Example: /matches/uuid-of-swipe
   @UseGuards(AuthGuard('jwt'))
   getMatchDetails(@Req() req: Request, @Param('id') swipeId: string) {
     const user = req.user as { sub: string };

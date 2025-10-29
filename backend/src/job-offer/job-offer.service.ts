@@ -1,5 +1,7 @@
 // Fichier: backend/src/job-offer/job-offer.service.ts
 
+// This service contains business logic for creating, retrieving, updating, and deleting job offers.
+
 import { Prisma } from '@prisma/client';
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -10,7 +12,9 @@ import { UpdateJobOfferDto } from './dto/update-job-offer.dto';
 export class JobOfferService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // Create a new job offer for a recruiter
   async create(createJobOfferDto: CreateJobOfferDto, userId: string) {
+    // Find the recruiter's profile and related data
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
       where: { userId },
       include: {
@@ -19,27 +23,32 @@ export class JobOfferService {
       },
     });
 
+    // If recruiter profile is not found, throw an error
     if (!recruiterProfile) { 
-      throw new NotFoundException('Profil recruteur introuvable.'); 
+      throw new NotFoundException('Recruiter profile not found.'); 
     }
 
+    // Recruiter must be associated with a company
     if (!recruiterProfile.memberships?.length) { 
-      throw new ForbiddenException('Vous devez être associé à une entreprise.'); 
+      throw new ForbiddenException('You must be associated with a company.'); 
     }
 
+    // Recruiter profile must be complete before posting a job offer
     if (!recruiterProfile.searchedCategories?.length || !recruiterProfile.desiredContractTypes?.length || !recruiterProfile.desiredExperienceLevel) {
-      throw new ForbiddenException("Veuillez finaliser votre profil (contrats, expérience, catégories) avant de poster une offre.");
+      throw new ForbiddenException("Please complete your profile (contracts, experience, categories) before posting a job offer.");
     }
 
+    // Get the company ID and category IDs from the recruiter's profile
     const companyId = recruiterProfile.memberships[0].company.id;
     const categoryIds = recruiterProfile.searchedCategories.map(cat => ({ id: cat.id }));
 
+    // Create the job offer in the database
     const jobOffer = await this.prisma.jobOffer.create({
       data: {
         ...createJobOfferDto,
         locationWKT: createJobOfferDto.locationWKT,
-        contractType: recruiterProfile.desiredContractTypes[0], // Héritage du profil
-        experienceLevel: recruiterProfile.desiredExperienceLevel, // Héritage du profil
+        contractType: recruiterProfile.desiredContractTypes[0], // Inherit from profile
+        experienceLevel: recruiterProfile.desiredExperienceLevel, // Inherit from profile
         company: {
           connect: { id: companyId },
         },
@@ -70,6 +79,7 @@ export class JobOfferService {
     return jobOffer;
   }
 
+  // Retrieve all active job offers, ordered by creation date (public endpoint)
   async findAll() {
     return this.prisma.jobOffer.findMany({
       where: { isActive: true },
@@ -101,6 +111,7 @@ export class JobOfferService {
     });
   }
 
+  // Retrieve a single job offer by its ID (public endpoint)
   async findOne(id: string) {
     const jobOffer = await this.prisma.jobOffer.findUnique({
       where: { id },
@@ -126,7 +137,9 @@ export class JobOfferService {
     return jobOffer;
   }
 
+  // Update a job offer (only the owner can update)
   async update(id: string, userId: string, updateJobOfferDto: UpdateJobOfferDto) {
+    // Find the job offer and check ownership
     const jobOffer = await this.prisma.jobOffer.findUnique({
       where: { id },
       include: {
@@ -137,13 +150,14 @@ export class JobOfferService {
     });
 
     if (!jobOffer) {
-      throw new NotFoundException('Offre d\'emploi introuvable.');
+      throw new NotFoundException('Job offer not found.');
     }
 
     if (jobOffer.createdBy.userId !== userId) {
-      throw new ForbiddenException('Vous ne pouvez modifier que vos propres offres.');
+      throw new ForbiddenException('You can only update your own job offers.');
     }
 
+    // Update the job offer with the provided data
     return this.prisma.jobOffer.update({
       where: { id },
       data: updateJobOfferDto,
@@ -159,8 +173,9 @@ export class JobOfferService {
     });
   }
 
+  // Delete a job offer (only the owner can delete)
   async remove(id: string, userId: string) {
-    // 1. On cherche l'offre pour vérifier qu'elle existe et qui l'a créée
+    // 1. Find the job offer to verify existence and ownership
     const jobOffer = await this.prisma.jobOffer.findUnique({
       where: { id },
       select: {
@@ -172,20 +187,21 @@ export class JobOfferService {
       },
     });
 
-    // 2. Si l'offre n'existe pas, on renvoie une erreur "Non trouvé" (404)
+    // 2. If the job offer does not exist, throw a "Not Found" error (404)
     if (!jobOffer) {
-      throw new NotFoundException(`Offre d'emploi avec l'ID "${id}" introuvable.`);
+      throw new NotFoundException(`Job offer with ID "${id}" not found.`);
     }
 
-    // 3. On vérifie que l'utilisateur qui demande la suppression est bien celui qui a créé l'offre
+    // 3. Check that the user requesting deletion is the creator
     if (jobOffer.createdBy.userId !== userId) {
-      throw new ForbiddenException('Vous n\'êtes pas autorisé à supprimer cette offre.');
+      throw new ForbiddenException('You are not authorized to delete this job offer.');
     }
 
-    // 4. Si tout est bon, on supprime l'offre de la base de données
+    // 4. If all checks pass, delete the job offer from the database
     await this.prisma.jobOffer.delete({ where: { id } });
   }
 
+  // Retrieve all job offers created by a specific recruiter
   async findAllByRecruiter(userId: string) {
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
       where: { userId },
@@ -209,9 +225,10 @@ export class JobOfferService {
     });
   }
 
+  // Update all job offers for a recruiter (cascade update)
   async updateOffersForRecruiter(recruiterProfileId: string, data: Prisma.JobOfferUpdateInput) {
-    // Cette fonction met à jour TOUTES les offres d'un recruteur.
-    // C'est la magie de la mise à jour en cascade.
+    // This function updates ALL job offers for a recruiter.
+    // Useful for cascading changes (e.g., when recruiter updates their profile).
     await this.prisma.jobOffer.updateMany({
       where: {
         createdById: recruiterProfileId,
@@ -219,7 +236,7 @@ export class JobOfferService {
       data: {
         experienceLevel: data.experienceLevel,
         contractType: data.contractType,
-        // On pourrait ajouter d'autres champs ici si nécessaire
+        // Add other fields here if needed
       },
     });
   }

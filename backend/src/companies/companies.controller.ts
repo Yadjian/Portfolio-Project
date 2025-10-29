@@ -1,9 +1,9 @@
-// Fichier: backend/src/companies/companies.controller.ts
+// This file defines the CompaniesController, which handles company-related endpoints.
 
 import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
-// import { Roles } from '../auth/roles/roles.decorator'; <-- Optionnel pour l'instant
+// import { Roles } from '../auth/roles/roles.decorator'; // Optionally use for role-based access
 // import { RolesGuard } from '../auth/roles/roles.guard';
 import { CompaniesService } from './companies.service';
 import { CreateCompanyOnboardingDto } from './dto/create-company-onboarding.dto';
@@ -12,17 +12,20 @@ import { CreateCompanyOnboardingDto } from './dto/create-company-onboarding.dto'
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
+  // POST /companies/onboarding
+  // Protected route: only accessible to authenticated users (JWT required)
+  // Handles onboarding a new company for a recruiter
   @Post('onboarding')
-  @UseGuards(AuthGuard('jwt')) // Protéger la route, c'est suffisant pour le moment
+  @UseGuards(AuthGuard('jwt')) // Protect the route with JWT authentication
   createCompanyOnboarding(
     @Req() req: Request,
     @Body() dto: CreateCompanyOnboardingDto,
   ) {
-    // FIX: On récupère l'ID de l'utilisateur depuis le token
+    // Extract the user ID from the JWT token payload
     const user = req.user as { sub: string };
     const userId = user.sub;
 
-    // FIX: On appelle la nouvelle méthode du service avec les bons arguments
+    // Call the service method to create a company for the recruiter
     return this.companiesService.createCompanyForRecruiter(dto, userId);
   }
 }

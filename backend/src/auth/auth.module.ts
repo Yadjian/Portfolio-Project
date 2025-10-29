@@ -1,21 +1,26 @@
-// src/auth/auth.module.ts
+// This file defines the AuthModule, which bundles authentication-related components and dependencies.
 
 import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { JwtStrategy } from './jwt.strategy'; // Nous allons le modifier
+import { JwtStrategy } from './jwt.strategy'; // JWT authentication strategy
 import { PassportModule } from '@nestjs/passport';
-import { PrismaModule } from '../prisma/prisma.module';
-import { JwtModule } from '@nestjs/jwt'; // <-- AJOUTÉ
-import { RefreshTokenStrategy } from './refreshToken.strategy';
+import { PrismaModule } from '../prisma/prisma.module'; // Database access module
+import { JwtModule } from '@nestjs/jwt'; // JWT utilities for token creation/validation
+import { RefreshTokenStrategy } from './refreshToken.strategy'; // Strategy for handling refresh tokens
 
 @Module({
   imports: [
+    // Registers Passport with JWT as the default authentication strategy
     PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.register({}), // <-- AJOUTÉ: configuration vide, nous la ferons dans le service
+    // Registers the JWT module (configuration will be set in the service)
+    JwtModule.register({}),
+    // Imports PrismaModule for database operations
     PrismaModule,
   ],
+  // Registers the authentication controller
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, RefreshTokenStrategy], // <-- Nous allons réécrire AuthService
+  // Registers providers: authentication service and strategies
+  providers: [AuthService, JwtStrategy, RefreshTokenStrategy],
 })
 export class AuthModule {}

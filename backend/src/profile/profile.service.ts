@@ -1,5 +1,8 @@
 // Fichier: backend/src/profile/profile.service.ts
 
+// This service handles all business logic related to user profile management,
+// including viewing, updating, uploading photos/resumes, and updating location or push tokens.
+
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -8,22 +11,24 @@ import { FileStorageService } from 'src/file-storage/file-storage.service';
 
 @Injectable()
 export class ProfileService {
-  constructor(private readonly prisma: PrismaService,
-              private fileStorageService: FileStorageService,
+  constructor(
+    private readonly prisma: PrismaService,
+    private fileStorageService: FileStorageService,
   ) {}
 
+  // Retrieves the full profile for a user, including candidate or recruiter details and categories
   async getUserProfile(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { 
         candidateProfile: {
           include: {
-            interestedInCategories: true, // ✅ Ajouter les catégories du candidat
+            interestedInCategories: true, // Include candidate's interested categories
           }
         }, 
         recruiterProfile: {
           include: {
-            searchedCategories: true, // ✅ Ajouter les catégories du recruteur
+            searchedCategories: true, // Include recruiter's searched categories
             memberships: {
               include: {
                 company: true,
@@ -33,29 +38,30 @@ export class ProfileService {
         }
       },
     });
-    if (!user) { throw new NotFoundException('Utilisateur non trouvé.'); }
+    if (!user) { throw new NotFoundException('User not found.'); }
     return user;
   }
 
+  // Updates the user's profile (candidate or recruiter), including photo upload if provided
   async updateUserProfile(userId: string, data: UpdateProfileDto, photoFile?: Express.Multer.File) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
     });
-    if (!user) throw new NotFoundException('Utilisateur non trouvé.');
+    if (!user) throw new NotFoundException('User not found.');
 
-    // ✅ Gestion de l'upload de photo
+    // Handle photo upload if a new photo is provided
     let photoUrlData = {};
     if (photoFile) {
       const url = await this.fileStorageService.uploadFile(photoFile, 'profile-photos');
       photoUrlData = { photoUrl: url };
     }
 
+    // Update recruiter profile if user is a recruiter
     if (user.recruiterProfile) {
       const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // ✅ Ajout photo
-      
-      delete dataToUpdate.coverLetterText;
+      const dataToUpdate: any = { ...restOfData, ...photoUrlData };
+      delete dataToUpdate.coverLetterText; // Remove candidate-only fields
 
       await this.prisma.recruiterProfile.update({
         where: { id: user.recruiterProfile.id },
@@ -67,9 +73,11 @@ export class ProfileService {
         },
         include: { searchedCategories: true },
       });
-    } else if (user.candidateProfile) {
+    } 
+    // Update candidate profile if user is a candidate
+    else if (user.candidateProfile) {
       const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // ✅ Ajout photo
+      const dataToUpdate: any = { ...restOfData, ...photoUrlData };
 
       await this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
@@ -87,68 +95,69 @@ export class ProfileService {
   }
 
   /**
-   * Met à jour la localisation GPS d'un candidat.
-   * @param userId L'ID de l'utilisateur provenant du token JWT.
-   * @param locationDto Les coordonnées GPS.
+   * Updates the GPS location for a candidate profile.
+   * @param userId The user's ID from the JWT token.
+   * @param locationDto The new location data.
    */
   async updateUserLocation(userId: string, locationDto: UpdateLocationDto) {
-    // FIX : On cherche l'utilisateur par son 'id'.
+    // Find the user by ID and include candidate profile
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: { candidateProfile: true },
     });
 
     if (!user.candidateProfile) {
-      throw new NotFoundException('Profil candidat non trouvé pour cet utilisateur.');
+      throw new NotFoundException('Candidate profile not found for this user.');
     }
 
-    // On utilise directement les données du DTO
     const { locationName, locationWKT } = locationDto;
 
-    // La validation PostGIS est une bonne pratique, on la garde.
+    // Validate the WKT format using PostGIS
     try {
       await this.prisma.$executeRaw`SELECT ST_GeomFromText(${locationWKT}, 4326)`;
     } catch (error) {
-      throw new BadRequestException('Coordonnées GPS invalides');
+      throw new BadRequestException('Invalid GPS coordinates');
     }
 
+    // Update the candidate profile with the new location
     return this.prisma.candidateProfile.update({
       where: { id: user.candidateProfile.id },
-      data: { locationWKT, locationName }, // ✅ Corrigez ici : locationName → city
+      data: { locationWKT, locationName },
     });
   }
 
   /**
-   * Met à jour la localisation GPS d'un recruteur.
-   * @param userId L'ID de l'utilisateur provenant du token JWT.
-   * @param locationDto Les coordonnées GPS.
+   * Updates the GPS location for a recruiter profile.
+   * @param userId The user's ID from the JWT token.
+   * @param locationDto The new location data.
    */
   async updateRecruiterLocation(userId: string, locationDto: UpdateLocationDto) {
-    // FIX : On cherche l'utilisateur par son 'id'.
+    // Find the user by ID and include recruiter profile
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
       include: { recruiterProfile: true },
     });
 
     if (!user.recruiterProfile) {
-      throw new NotFoundException('Profil recruteur non trouvé pour cet utilisateur.');
+      throw new NotFoundException('Recruiter profile not found for this user.');
     }
 
     const { locationName, locationWKT } = locationDto;
 
+    // Update the recruiter profile with the new location
     return this.prisma.recruiterProfile.update({
       where: { id: user.recruiterProfile.id },
-      data: { locationWKT, locationName }, // ✅ Corrigez ici : locationName → city
+      data: { locationWKT, locationName },
     });
   }
 
-  // === LA MÉTHODE DE MISE À JOUR PRINCIPALE ===
+  // Main method for updating a profile, handling photo upload and category updates
   async updateProfile(
     userId: string,
     dto: UpdateProfileDto,
     photoFile?: Express.Multer.File,
   ) {
-    // 1. Trouver le profil de l'utilisateur
+    // Find the user's profile (candidate or recruiter)
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
@@ -167,10 +176,10 @@ export class ProfileService {
       profileId = user.recruiterProfile.id;
       oldPhotoUrl = user.recruiterProfile.photoUrl;
     } else {
-      throw new NotFoundException('Profil non trouvé.');
+      throw new NotFoundException('Profile not found.');
     }
 
-    // 2. Gérer l'upload de la photo (si elle est fournie)
+    // Handle photo upload and delete old photo if necessary
     let photoUrlData = {};
     if (photoFile) {
       const url = await this.fileStorageService.uploadFile(
@@ -178,39 +187,36 @@ export class ProfileService {
         'profile-photos',
       );
       photoUrlData = { photoUrl: url };
-      
-      // Supprimer l'ancienne photo si elle existe
       if (oldPhotoUrl) {
         await this.fileStorageService.deleteFileByUrl(oldPhotoUrl);
       }
     }
 
-    // 3. Gérer les catégories (si elles sont fournies)
+    // Handle category updates if provided
     let categoriesData = {};
     if (dto.interestedInCategoryIds) {
-      // Utiliser le bon nom de champ selon le type de profil
+      // Use the correct field name based on profile type
       const categoryField = user.candidateProfile ? 'interestedInCategories' : 'searchedCategories';
-      
       categoriesData = {
         [categoryField]: {
           set: dto.interestedInCategoryIds.map(id => ({ id: id })),
         },
       };
-      // On enlève le champ du DTO pour ne pas qu'il soit passé tel quel
       delete dto.interestedInCategoryIds; 
     }
 
-    // 4. Mettre à jour la BDD
+    // Update the profile in the database
     return profileModel.update({
       where: { id: profileId },
       data: {
-        ...dto,           // Applique les champs de texte (firstName, locationWKT, etc.)
-        ...photoUrlData,  // Applique la nouvelle photoUrl (si elle existe)
-        ...categoriesData, // Applique les catégories (si elles existent)
+        ...dto,
+        ...photoUrlData,
+        ...categoriesData,
       },
     });
   }
 
+  // Retrieves all available job categories, ordered alphabetically
   async getJobCategories() {
     return this.prisma.jobCategory.findMany({
       select: {
@@ -221,19 +227,19 @@ export class ProfileService {
     });
   }
 
-  // === MÉTHODE POUR UPLOADER UNIQUEMENT LA PHOTO DE PROFIL ===
+  // Uploads or updates only the user's profile photo
   async updateProfilePhoto(userId: string, photoFile: Express.Multer.File) {
-    // 1. Trouver le profil de l'utilisateur
+    // Find the user's profile
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
     });
 
     if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé.');
+      throw new NotFoundException('User not found.');
     }
 
-    // 2. Récupérer l'ancienne URL de photo pour la supprimer
+    // Get the old photo URL to delete it after uploading the new one
     let oldPhotoUrl: string | null = null;
     if (user.candidateProfile) {
       oldPhotoUrl = user.candidateProfile.photoUrl;
@@ -241,13 +247,13 @@ export class ProfileService {
       oldPhotoUrl = user.recruiterProfile.photoUrl;
     }
 
-    // 3. Upload de la nouvelle photo sur R2
+    // Upload the new photo to R2
     const photoUrl = await this.fileStorageService.uploadFile(
       photoFile,
       'profile-photos',
     );
 
-    // 4. Mettre à jour le profil avec la nouvelle photoUrl
+    // Update the profile with the new photo URL
     if (user.candidateProfile) {
       await this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
@@ -259,10 +265,10 @@ export class ProfileService {
         data: { photoUrl },
       });
     } else {
-      throw new NotFoundException('Profil non trouvé.');
+      throw new NotFoundException('Profile not found.');
     }
 
-    // 5. Supprimer l'ancienne photo de R2 (si elle existe)
+    // Delete the old photo from R2 if it exists
     if (oldPhotoUrl) {
       await this.fileStorageService.deleteFileByUrl(oldPhotoUrl);
     }
@@ -270,25 +276,26 @@ export class ProfileService {
     return { photoUrl };
   }
 
+  // Uploads or updates the user's resume (PDF)
   async updateResume(userId: string, file: Express.Multer.File) {
-    // 1. Trouver le profil candidat
+    // Find the candidate profile
     const profile = await this.prisma.candidateProfile.findUnique({
       where: { userId },
     });
 
     if (!profile) {
-      throw new NotFoundException('Profil candidat non trouvé.');
+      throw new NotFoundException('Candidate profile not found.');
     }
 
-    // 2. Envoyer le nouveau fichier à R2
+    // Upload the new resume to R2
     const fileUrl = await this.fileStorageService.uploadFile(file, 'resumes');
 
-    // 3. Supprimer l'ancien CV de R2 (si il existe)
+    // Delete the old resume from R2 if it exists
     if (profile.resumeUrl) {
       await this.fileStorageService.deleteFileByUrl(profile.resumeUrl);
     }
 
-    // 4. Sauvegarder l'URL publique dans la BDD
+    // Save the new resume URL in the database
     const updatedProfile = await this.prisma.candidateProfile.update({
       where: { id: profile.id },
       data: {
@@ -297,27 +304,28 @@ export class ProfileService {
     });
 
     return {
-      message: 'CV mis à jour avec succès.',
+      message: 'Resume updated successfully.',
       resumeUrl: updatedProfile.resumeUrl,
     };
   }
 
+  // Deletes the user's resume from storage and database
   async deleteResume(userId: string) {
-    // 1. Trouver le profil candidat
+    // Find the candidate profile
     const profile = await this.prisma.candidateProfile.findUnique({
       where: { userId },
     });
 
     if (!profile) {
-      throw new NotFoundException('Profil candidat non trouvé.');
+      throw new NotFoundException('Candidate profile not found.');
     }
 
-    // 2. Supprimer le fichier de R2 (si il existe)
+    // Delete the resume file from R2 if it exists
     if (profile.resumeUrl) {
       await this.fileStorageService.deleteFileByUrl(profile.resumeUrl);
     }
 
-    // 3. Supprimer l'URL du CV dans la BDD
+    // Remove the resume URL from the database
     await this.prisma.candidateProfile.update({
       where: { id: profile.id },
       data: {
@@ -326,23 +334,25 @@ export class ProfileService {
     });
 
     return {
-      message: 'CV supprimé avec succès.',
+      message: 'Resume deleted successfully.',
     };
   }
 
-  async updatePushToken(userId: string, token: string | null) { // Permet de nullifier si l'utilisateur se déconnecte
+  // Updates the user's push notification token (for candidate or recruiter)
+  async updatePushToken(userId: string, token: string | null) {
+    // Find the user and their profile
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
     });
     if (!user) {
-      throw new NotFoundException('Utilisateur non trouvé.');
+      throw new NotFoundException('User not found.');
     }
     if (user.candidateProfile) {
         return this.prisma.candidateProfile.update({ where: { userId }, data: { pushToken: token } });
     } else if (user.recruiterProfile) {
         return this.prisma.recruiterProfile.update({ where: { userId }, data: { pushToken: token } });
     }
-    throw new NotFoundException('Profil non trouvé.');
+    throw new NotFoundException('Profile not found.');
   }
 }
