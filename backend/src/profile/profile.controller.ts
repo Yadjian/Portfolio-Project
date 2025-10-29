@@ -1,5 +1,7 @@
 // Fichier: backend/src/profile/profile.controller.ts
 
+// This controller handles all endpoints related to user profile management (view, update, upload photo/resume, etc.)
+
 import { Controller, Get, Put, Post, Delete, UseGuards, Req, Body, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
@@ -8,21 +10,24 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
-@Controller('profile') // Toutes les routes de ce contrôleur commenceront par /profile
+@Controller('profile') // All routes in this controller will start with /profile
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
 
-  @Get('me') // Définit la route GET /profile/me
-  @UseGuards(AuthGuard('jwt')) // Protège la route avec notre stratégie JWT
+  // GET /profile/me
+  // Returns the authenticated user's profile
+  @Get('me')
+  @UseGuards(AuthGuard('jwt')) // Protects the route with JWT authentication
   getProfile(@Req() req: Request) {
-    // req.user est le payload du token, attaché par le AuthGuard
+    // req.user is the JWT payload, attached by the AuthGuard
     const userId = req.user.sub;
-    
-    // On passe l'ID de l'utilisateur au service pour qu'il récupère les données
+    // Pass the user ID to the service to retrieve profile data
     return this.profileService.getUserProfile(userId);
   }
 
-  @Put('me') // Définit la route PUT /profile/me
+  // PUT /profile/me
+  // Updates the authenticated user's profile (including optional photo upload)
+  @Put('me')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('photoFile'))
   updateProfile(
@@ -30,32 +35,37 @@ export class ProfileController {
     @Body() updateProfileDto: UpdateProfileDto,
     @UploadedFile(
       new ParseFilePipe({
-        fileIsRequired: false, // L'upload de photo est optionnel
+        fileIsRequired: false, // Photo upload is optional
         validators: [
-          new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }), // 2 Mo
-          new FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }), // JPG ou PNG
+          new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }), // Max 2 MB
+          new FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }), // Only JPG or PNG
         ],
       }),
     ) photoFile?: Express.Multer.File,
   ) {
     const userId = req.user.sub;
-    
-    // On passe l'ID, les nouvelles données et le fichier (si présent) au service
+    // Pass the user ID, new data, and file (if present) to the service
     return this.profileService.updateProfile(userId, updateProfileDto, photoFile);
   }
-  @Put('location') // Crée la route POST /profile/location
+
+  // PUT /profile/location
+  // Updates the user's location (WKT and name)
+  @Put('location')
   @UseGuards(AuthGuard('jwt'))
   updateLocation(@Req() req: Request, @Body() updateLocationDto: UpdateLocationDto) {
     const userId = req.user.sub;
     return this.profileService.updateUserLocation(userId, updateLocationDto);
   }
 
+  // GET /profile/categories
+  // Returns all available job categories
   @Get('categories')
   async getJobCategories() {
     return this.profileService.getJobCategories();
   }
 
-  // === ENDPOINT POUR L'UPLOAD DE PHOTO DE PROFIL ===
+  // PUT /profile/photo
+  // Uploads or updates the user's profile photo
   @Put('photo')
   @UseGuards(AuthGuard('jwt'))
   @UseInterceptors(FileInterceptor('photoFile'))
@@ -64,8 +74,8 @@ export class ProfileController {
     @UploadedFile(
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }), // 2 Mo
-          new FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }), // JPG ou PNG
+          new MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }), // Max 2 MB
+          new FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }), // Only JPG or PNG
         ],
       }),
     ) photoFile: Express.Multer.File,
@@ -74,29 +84,29 @@ export class ProfileController {
     return this.profileService.updateProfilePhoto(userId, photoFile);
   }
 
-  // === NOUVEL ENDPOINT POUR L'UPLOAD DE CV ===
+  // PUT /profile/resume
+  // Uploads or updates the user's resume (PDF only)
   @Put('resume')
   @UseGuards(AuthGuard('jwt'))
-  @UseInterceptors(FileInterceptor('resumeFile')) // 'resumeFile' est le nom du champ (key)
+  @UseInterceptors(FileInterceptor('resumeFile')) // 'resumeFile' is the field name
   uploadResume(
     @Req() req: Request,
     @UploadedFile(
-      // Valideurs de fichier
       new ParseFilePipe({
         validators: [
-          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // 5 MB
-          new FileTypeValidator({ fileType: 'application/pdf' }), // Accepte que les PDF
+          new MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }), // Max 5 MB
+          new FileTypeValidator({ fileType: 'application/pdf' }), // Only PDF files
         ],
       }),
     ) file: Express.Multer.File,
   ) {
     const user = req.user as { sub: string };
-
-    // On passe le fichier et l'ID au service
+    // Pass the file and user ID to the service
     return this.profileService.updateResume(user.sub, file);
   }
 
-    // === ENDPOINT POUR SUPPRIMER LE CV ===
+  // DELETE /profile/resume
+  // Deletes the user's resume
   @Delete('resume')
   @UseGuards(AuthGuard('jwt'))
   deleteResume(@Req() req: Request) {
@@ -104,7 +114,8 @@ export class ProfileController {
     return this.profileService.deleteResume(user.sub);
   }
 
-  // === NOTIFICATION ===
+  // POST /profile/push-token
+  // Updates the user's push notification token
   @Post('push-token')
   @UseGuards(AuthGuard('jwt'))
   updatePushToken(@Req() req: Request, @Body('token') token: string) {
