@@ -1,4 +1,5 @@
-// src/discovery/discovery.service.ts
+// This service contains the business logic for user discovery features, such as finding nearby recruiters or candidates.
+
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
@@ -7,42 +8,34 @@ export class DiscoveryService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * RÉINTÉGRATION DE POSTGIS
-   * Trouve les recruteurs à proximité pour le deck du candidat.
+   * Finds recruiters near a candidate using PostGIS spatial queries.
+   * Filters out recruiters already swiped by the candidate.
+   * @param userId The candidate's user ID
+   * @param radiusInMeters Search radius in meters (default: 20,000)
+   * @returns Array of recruiter profiles with company info
    */
-  async getRecruitersForCandidate(userId: string, radiusInMeters: number = 20000) { // 20km par défaut
-    console.log('🔍 [Discovery] Getting recruiters for candidate userId:', userId);
-    
-    // 1. Trouver le profil du candidat ET sa localisation
+  async getRecruitersForCandidate(userId: string, radiusInMeters: number = 20000) {
+    // 1. Find the candidate profile and its location
     const candidateProfile = await this.prisma.candidateProfile.findUnique({
       where: { userId },
     });
 
-    console.log('👤 [Discovery] Candidate profile:', candidateProfile ? {
-      id: candidateProfile.id,
-      name: `${candidateProfile.firstName} ${candidateProfile.lastName}`,
-      locationWKT: candidateProfile.locationWKT,
-    } : 'NOT FOUND');
-
     if (!candidateProfile) {
-      throw new NotFoundException('Profil candidat non trouvé.');
+      throw new NotFoundException('Candidate profile not found.');
     }
     if (!candidateProfile.locationWKT) {
-      throw new NotFoundException('Votre localisation est requise pour la découverte.');
+      throw new NotFoundException('Your location is required for discovery.');
     }
     const candidateId = candidateProfile.id;
 
-    // 2. Trouver les recruteurs que ce candidat a DÉJÀ swipés
+    // 2. Find recruiters already swiped by this candidate
     const swipedRecruiters = await this.prisma.swipe.findMany({
       where: { candidateId: candidateId },
       select: { recruiterId: true },
     });
     const swipedRecruiterIds = swipedRecruiters.map(s => s.recruiterId);
-    console.log('🚫 [Discovery] Already swiped recruiters:', swipedRecruiterIds.length);
 
-    // 3. (NOUVEAU) Trouver les ID des recruteurs à proximité (PostGIS)
-    console.log('🔎 [Discovery] Searching for recruiters within', radiusInMeters, 'meters from', candidateProfile.locationWKT);
-    
+    // 3. Find nearby recruiters using PostGIS spatial query
     const nearbyRecruiterResults = await this.prisma.$queryRaw<Array<{ id: string }>>`
       SELECT "id"
       FROM "RecruiterProfile"
@@ -54,14 +47,13 @@ export class DiscoveryService {
       )
     `;
     const nearbyRecruiterIds = nearbyRecruiterResults.map(r => r.id);
-    console.log('📍 [Discovery] Nearby recruiters found:', nearbyRecruiterIds.length, nearbyRecruiterIds);
 
-    // 4. Requête finale : combine les deux filtres
+    // 4. Final query: recruiters who are nearby and not already swiped
     const finalRecruiters = await this.prisma.recruiterProfile.findMany({
       where: {
         id: {
-          in: nearbyRecruiterIds,     // Doit être à proximité
-          notIn: swipedRecruiterIds, // Ne doit pas avoir été swipé
+          in: nearbyRecruiterIds,
+          notIn: swipedRecruiterIds,
         },
       },
       include: {
@@ -73,62 +65,43 @@ export class DiscoveryService {
         },
       },
     });
-    
-    console.log('✅ [Discovery] Final recruiters to return:', finalRecruiters.length);
-    
-    // Mapper pour ajouter le nom de l'entreprise au niveau racine
+    // Map recruiters to include company name at the root level
     const recruitersWithCompany = finalRecruiters.map(recruiter => ({
       ...recruiter,
       companyName: recruiter.memberships?.[0]?.company?.name || null,
     }));
-    
-    console.log('🏢 [Discovery] Sample recruiter with company:', recruitersWithCompany[0] ? {
-      firstName: recruitersWithCompany[0].firstName,
-      lastName: recruitersWithCompany[0].lastName,
-      companyName: recruitersWithCompany[0].companyName,
-      hasMemberships: !!recruitersWithCompany[0].memberships?.length,
-    } : 'No recruiters');
-    
     return recruitersWithCompany;
   }
 
   /**
-   * RÉINTÉGRATION DE POSTGIS
-   * Trouve les candidats à proximité pour le deck du recruteur.
+   * Finds candidates near a recruiter using PostGIS spatial queries.
+   * Filters out candidates already swiped by the recruiter.
+   * @param userId The recruiter's user ID
+   * @param radiusInMeters Search radius in meters (default: 20,000)
+   * @returns Array of candidate profiles
    */
-  async getCandidatesForRecruiter(userId: string, radiusInMeters: number = 20000) { // 20km par défaut
-    console.log('🔍 [Discovery] Getting candidates for recruiter userId:', userId);
-    
-    // 1. Trouver le profil du recruteur ET sa localisation
+  async getCandidatesForRecruiter(userId: string, radiusInMeters: number = 20000) {
+    // 1. Find the recruiter profile and its location
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
       where: { userId },
     });
 
-    console.log('👤 [Discovery] Recruiter profile:', recruiterProfile ? {
-      id: recruiterProfile.id,
-      name: `${recruiterProfile.firstName} ${recruiterProfile.lastName}`,
-      locationWKT: recruiterProfile.locationWKT,
-    } : 'NOT FOUND');
-
     if (!recruiterProfile) {
-      throw new NotFoundException('Profil recruteur non trouvé.');
+      throw new NotFoundException('Recruiter profile not found.');
     }
     if (!recruiterProfile.locationWKT) {
-      throw new NotFoundException('Votre localisation est requise pour la découverte.');
+      throw new NotFoundException('Your location is required for discovery.');
     }
     const recruiterId = recruiterProfile.id;
 
-    // 2. Trouver les candidats que ce recruteur a DÉJÀ swipés
+    // 2. Find candidates already swiped by this recruiter
     const swipedCandidates = await this.prisma.swipe.findMany({
       where: { recruiterId: recruiterId },
       select: { candidateId: true },
     });
     const swipedCandidateIds = swipedCandidates.map(s => s.candidateId);
-    console.log('🚫 [Discovery] Already swiped candidates:', swipedCandidateIds.length);
 
-    // 3. Trouver les ID des candidats à proximité (PostGIS)
-    console.log('🔎 [Discovery] Searching for candidates within', radiusInMeters, 'meters from', recruiterProfile.locationWKT);
-    
+    // 3. Find nearby candidates using PostGIS spatial query
     const nearbyCandidateResults = await this.prisma.$queryRaw<Array<{ id: string }>>`
       SELECT "id"
       FROM "CandidateProfile"
@@ -140,58 +113,56 @@ export class DiscoveryService {
       )
     `;
     const nearbyCandidateIds = nearbyCandidateResults.map(r => r.id);
-    console.log('📍 [Discovery] Nearby candidates found:', nearbyCandidateIds.length, nearbyCandidateIds);
 
-    // 4. Requête finale : combine les deux filtres
+    // 4. Final query: candidates who are nearby and not already swiped
     const finalCandidates = await this.prisma.candidateProfile.findMany({
       where: {
         id: {
-          in: nearbyCandidateIds,     // Doit être à proximité
-          notIn: swipedCandidateIds, // Ne doit pas avoir été swipé
+          in: nearbyCandidateIds,
+          notIn: swipedCandidateIds,
         },
       },
       include: {
         interestedInCategories: true,
       },
     });
-    
-    console.log('✅ [Discovery] Final candidates to return:', finalCandidates.length);
-    
     return finalCandidates;
   }
 
   /**
-   * Trouve les candidats qui ont swipé RIGHT sur le recruteur (notifications).
+   * Finds candidates who have swiped RIGHT on the recruiter (pending notifications).
+   * @param userId The recruiter's user ID
+   * @returns Array of candidate profiles who are pending for the recruiter
    */
   async getPendingCandidatesForRecruiter(userId: string) {
-    // 1. Trouver le profil du recruteur
+    // 1. Find the recruiter profile
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
       where: { userId },
       select: { id: true },
     });
 
     if (!recruiterProfile) {
-      throw new NotFoundException('Profil recruteur non trouvé.');
+      throw new NotFoundException('Recruiter profile not found.');
     }
 
+    // 2. Find swipes where the candidate liked the recruiter, but the recruiter hasn't responded yet
     const pendingSwipes = await this.prisma.swipe.findMany({
       where: {
         recruiterId: recruiterProfile.id,
         candidateDirection: 'RIGHT',
-        recruiterDirection: null, // C'est la clé !
+        recruiterDirection: null, // Recruiter has not responded yet
       },
       include: {
-        // Inclure le profil du candidat pour afficher la carte
+        // Include candidate profile details for display
         candidate: {
           include: {
-            interestedInCategories: true, // Inclure les détails du profil
+            interestedInCategories: true,
           },
         },
       },
     });
 
-    // 3. Renvoyer la liste des profils de candidats
-    // (Le recruteur peut être n'importe où, cette liste est persistante)
+    // 3. Return the list of candidate profiles
     return pendingSwipes.map(swipe => swipe.candidate);
   }
 }

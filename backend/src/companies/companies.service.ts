@@ -1,8 +1,7 @@
-// Fichier: backend/src/companies/companies.service.ts
+// This file defines the CompaniesService, which contains business logic for company operations.
 
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-// Assurez-vous que le nom du DTO correspond à ce que vous avez créé
 import { CreateCompanyOnboardingDto } from './dto/create-company-onboarding.dto';
 
 @Injectable()
@@ -10,40 +9,40 @@ export class CompaniesService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Crée une entreprise et y associe un recruteur existant.
-   * C'est l'étape d'onboarding qui suit l'inscription d'un recruteur.
-   * @param dto Les informations sur l'entreprise (nom, SIRET)
-   * @param userId L'ID de l'utilisateur (recruteur) qui effectue l'action
+   * Creates a new company and associates it with an existing recruiter.
+   * This is the onboarding step that follows recruiter registration.
+   * @param dto Company information (name, SIRET)
+   * @param userId The ID of the user (recruiter) performing the action
    */
   async createCompanyForRecruiter(dto: CreateCompanyOnboardingDto, userId: string) {
-    // 1. Trouver le profil du recruteur qui fait la demande
+    // 1. Find the recruiter profile for the requesting user
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
       where: { userId },
-      include: { memberships: true }, // On inclut ses adhésions actuelles
+      include: { memberships: true }, // Include current memberships
     });
 
-    // Erreur si l'utilisateur n'a pas de profil recruteur
+    // Throw error if the user does not have a recruiter profile
     if (!recruiterProfile) {
-      throw new NotFoundException('Profil recruteur introuvable pour cet utilisateur.');
+      throw new NotFoundException('Recruiter profile not found for this user.');
     }
 
-    // Erreur si le recruteur est déjà membre d'une entreprise
+    // Throw error if the recruiter is already a member of a company
     if (recruiterProfile.memberships.length > 0) {
-      throw new ConflictException('Ce recruteur est déjà associé à une entreprise.');
+      throw new ConflictException('This recruiter is already associated with a company.');
     }
 
-    // 2. Vérifier que l'entreprise n'existe pas déjà avec ce SIRET
+    // 2. Check if a company with the same SIRET already exists
     const existingCompany = await this.prisma.company.findUnique({
       where: { siret: dto.siret },
     });
 
     if (existingCompany) {
-      throw new ConflictException('Une entreprise avec ce numéro SIRET existe déjà.');
+      throw new ConflictException('A company with this SIRET number already exists.');
     }
 
-    // 3. Utiliser une transaction pour créer l'entreprise ET l'adhésion
+    // 3. Use a transaction to create the company and the membership atomically
     return this.prisma.$transaction(async (tx) => {
-      // Créer la nouvelle entreprise
+      // Create the new company
       const company = await tx.company.create({
         data: {
           name: dto.companyName,
@@ -51,17 +50,17 @@ export class CompaniesService {
         },
       });
 
-      // Créer l'adhésion pour lier le recruteur à cette nouvelle entreprise
+      // Create the membership to link the recruiter to the new company
       const membership = await tx.recruiterMembership.create({
         data: {
           recruiterId: recruiterProfile.id,
           companyId: company.id,
-          isPrimary: true, // Le créateur est l'admin principal
-          internalRole: 'Admin', // Rôle par défaut
+          isPrimary: true, // The creator is the main admin
+          internalRole: 'Admin', // Default role
         },
       });
 
-      // On retourne l'entreprise et l'adhésion créées
+      // Return the created company and membership
       return { company, membership };
     });
   }
