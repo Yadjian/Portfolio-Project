@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+:root {
+  /* Mova Brand Colors */
+  --primary: #4930a3;
+  --primary-dark: #3a2682;
+  --primary-light: #6746c3;
+  --secondary: #07b9ff;
+  --secondary-dark: #0596cc;
+  
+  /* Neutral Colors */
+  --background: #f8f9ff;
+  --card-background: #ffffff;
+  --foreground: #1a1a1a;
+  --text-secondary: #6b7280;
+  --border: #e5e7eb;
+  
+  /* Status Colors */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+}
+
+/* Theme variables for 'inline' theme (use data-theme="inline" on an element) */
+[data-theme="inline"] {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f0a1e;
+    --card-background: #1a1530;
+    --foreground: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --border: #2d2440;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+}
+
+/* Smooth transitions */
+button, input, select, textarea {
+  transition: all 0.2s ease;
+}
+
+/* Focus styles */
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(73, 48, 163, 0.1);
+}
+
+button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(73, 48, 163, 0.3);
+}
+
+/* Hover effects */
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+  transform: translateY(0);
+}

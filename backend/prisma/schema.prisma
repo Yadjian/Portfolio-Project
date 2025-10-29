@@ -1,0 +1,235 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+// --- Énumérations ---
+
+enum ContractType {
+  CDI
+  CDD
+  ALTERNANCE
+  STAGE
+  FREELANCE
+  AUTRE
+}
+
+enum ExperienceLevel {
+  DEBUTANT
+  INTERMEDIAIRE
+  CONFIRME
+}
+
+enum ApplicationStatus {
+  ENVOYE
+  VU
+  EN_COURS
+  ACCEPTE
+  REFUSE
+  RETIRE
+}
+
+enum SwipeActorType {
+  CANDIDATE
+  RECRUITER
+}
+
+enum SwipeDirection {
+  LEFT
+  RIGHT
+}
+
+// --- NOUVEAU MODÈLE CENTRAL POUR L'IDENTITÉ ---
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  password           String
+  hashedRefreshToken String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Relations (un User peut avoir un profil candidat ET/OU un profil recruteur)
+  candidateProfile CandidateProfile?
+  recruiterProfile RecruiterProfile?
+}
+
+// --- MODÈLES DE PROFILS (CORRIGÉS) ---
+
+model CandidateProfile {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Champs propres au profil
+  firstName            String
+  lastName             String
+  resumeUrl            String?
+  photoUrl             String?
+  coverLetterText      String?
+  desiredJobTitle      String?
+  desiredContractTypes ContractType[] @default([])
+  locationWKT          String?
+  locationName         String?
+  searchRadiusKm       Int?
+  isActive             Boolean    @default(true)
+  notificationsEnabled Boolean    @default(true)
+  pushToken String?  @unique // Le token de notification push Expo
+
+  experienceLevel      ExperienceLevel? // <-- Niveau d'expérience (optionnel)
+  interestedInCategories JobCategory[] @relation("CandidateInterestedCategories")
+
+  // Relation vers le User (un profil candidat appartient à un seul user)
+  user   User @relation(fields: [userId], references: [id])
+  userId String  @unique // La relation est unique (one-to-one)
+
+  // Autres relations
+  applications Application[]
+  swipes       Swipe[]
+}
+
+model RecruiterProfile {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  // Champs propres au profil
+  firstName         String
+  lastName          String
+  photoUrl          String?          // Photo de profil du recruteur
+  internalRoleDefault String?
+  matchWindowStart  DateTime?
+  matchesTodayCount Int       @default(0)
+  dailyMatchLimit   Int       @default(100)
+  pushToken String?  @unique // Le token de notification push Expo
+
+  // NOUVEAUX CHAMPS POUR LES CRITÈRES DE RECHERCHE
+  locationWKT          String?          // La zone où le recruteur recherche
+  locationName         String?
+  searchDescription    String?          // Petite phrase d'accroche du recruteur
+  desiredExperienceLevel ExperienceLevel? // Le niveau d'expérience recherché
+  desiredContractTypes ContractType[]   @default([]) // Les types de contrats recherchés
+  searchedCategories   JobCategory[]    @relation("RecruiterSearchedCategories") // Catégories recherchées
+  
+  // Relation vers le User (un profil recruteur appartient à un seul user)
+  user   User @relation(fields: [userId], references: [id])
+  userId String  @unique // La relation est unique (one-to-one)
+
+  // Autres relations
+  memberships        RecruiterMembership[]
+  swipes             Swipe[]
+  viewedApplications Application[]       @relation("ViewedByRecruiter")
+  createdJobOffers   JobOffer[]          @relation("CreatedByRecruiter")
+}
+
+// --- AUTRES MODÈLES ---
+
+model Company {
+  id        String    @id @default(uuid())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  name      String
+  siret     String    @unique
+  logoUrl   String?
+  jobOffers JobOffer[]
+  members   RecruiterMembership[]
+}
+
+model RecruiterMembership {
+  id           String    @id @default(uuid())
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  internalRole String
+  isPrimary    Boolean   @default(false)
+  recruiter    RecruiterProfile @relation(fields: [recruiterId], references: [id])
+  recruiterId  String
+  company      Company   @relation(fields: [companyId], references: [id])
+  companyId    String
+  @@unique([recruiterId, companyId])
+}
+
+model JobCategory {
+  id        String     @id @default(uuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  name      String     @unique
+  jobOffers JobOffer[]
+
+  interestedCandidates CandidateProfile[] @relation("CandidateInterestedCategories")
+  searchingRecruiters  RecruiterProfile[] @relation("RecruiterSearchedCategories")
+}
+
+model JobOffer {
+  id           String         @id @default(uuid())
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  title        String
+  description  String
+  locationWKT          String?
+  locationName         String?
+  salaryMin    Int?
+  salaryMax    Int?
+  currency     String?
+  workHours    String?
+  isActive     Boolean        @default(true)
+  expiresAt    DateTime?
+  company      Company        @relation(fields: [companyId], references: [id])
+  companyId    String
+  applications Application[]
+  categories   JobCategory[]
+
+  // Champs hérités du profil du recruteur
+  contractType    ContractType
+  experienceLevel ExperienceLevel?
+
+  // Relation pour savoir qui a créé l'offre
+  createdBy   RecruiterProfile @relation("CreatedByRecruiter", fields: [createdById], references: [id])
+  createdById String
+}
+
+model Application {
+  id                  String            @id @default(uuid())
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  status              ApplicationStatus @default(ENVOYE)
+  cvUrl               String?
+  coverLetterText     String?
+  viewedAt            DateTime?
+  candidate           CandidateProfile  @relation(fields: [candidateId], references: [id])
+  candidateId         String
+  job                 JobOffer          @relation(fields: [jobId], references: [id])
+  jobId               String
+  viewedByRecruiter   RecruiterProfile?        @relation("ViewedByRecruiter", fields: [viewedByRecruiterId], references: [id])
+  viewedByRecruiterId String?
+  @@unique([candidateId, jobId])
+}
+
+model Swipe {
+  id        String         @id @default(uuid())
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  // La relation unique entre les deux profils
+  candidate   CandidateProfile @relation(fields: [candidateId], references: [id])
+  candidateId String
+  recruiter   RecruiterProfile @relation(fields: [recruiterId], references: [id])
+  recruiterId String
+
+  // L'état des swipes de chaque personne
+  candidateDirection SwipeDirection? // Null jusqu'à ce que le candidat swipe
+  recruiterDirection SwipeDirection? // Null jusqu'à ce que le recruteur swipe
+
+  isMatch   Boolean  @default(false)
+  matchedAt DateTime?
+
+  // Une seule ligne de swipe peut exister par couple candidat/recruteur
+  @@unique([candidateId, recruiterId])
+}
