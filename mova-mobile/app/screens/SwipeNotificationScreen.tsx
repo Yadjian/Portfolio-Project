@@ -217,10 +217,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         .then(response => {
           if (response && response.isMatch) {
             Alert.alert("C'est un Match !", "Vous pouvez maintenant discuter avec cette personne.");
-            
-            // ❤️ SIMULATION : Incrémenter le badge match SEULEMENT en cas de match
-            console.log('❤️ [SwipeScreen] MATCH détecté ! Incrémentation du badge...');
-            simulateMatchNotification();
+            // (Simulation supprimée)
           }
         })
         .catch(error => {

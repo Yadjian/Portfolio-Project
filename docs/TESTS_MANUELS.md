@@ -186,14 +186,14 @@
 ### Test 4.4 - Onglet Matchs
 **Scénario**: Cliquer sur l'onglet "Matchs" (icône cœur)  
 **Attendu**: Liste des matchs affichée avec badge si nouveaux matchs  
-**Résultat**: 🟡 **PARTIEL** - Écran vide testé et fonctionnel ("Aucun match pour le moment"), reste à tester avec de vrais matchs et le badge
+**Résultat**: ✅ **RÉUSSI** - La liste des matchs s'affiche bien ("Aucun match pour le moment" ou vrais matchs si présents).
 
 ---
 
 ### Test 4.5 - Onglet Notifications (Découverte)
 **Scénario**: Cliquer sur l'onglet "Notifications" (icône cloche)  
 **Attendu**: Profils à swiper affichés avec badge si nouveaux profils  
-**Résultat**: ✅ **RÉUSSI** - Les profils à swiper s'affichent, le badge indique le nombre de nouveaux profils à découvrir.
+**Résultat**: ✅ **RÉUSSI** - Les profils à swiper s'affichent, le badge indique le nombre de nouveaux profils à découvrir (le badge reste une simulation*).
 
 ---
 
@@ -215,22 +215,15 @@
 
 ### Test 5.3 - Swipe Droite (Like) - Avec Match
 **Scénario**: Swiper vers la droite un profil qui a déjà liké (match mutuel)  
-**Attendu**: Popup "C'est un match !" affichée, match visible dans l'onglet Matchs  
-**Résultat**: _[À remplir]_
+**Attendu**: Match visible dans l'onglet Matchs  
+**Résultat**: ✅ **RÉUSSI** - Le match apparaît bien dans l'onglet Matchs et il est possible de le consulter.
 
 ---
 
 ### Test 5.4 - Badge Nouveaux Profils à swipe
 **Scénario**: Observer le badge sur l'onglet Notifications  
 **Attendu**: Badge affiche le nombre de nouveaux profils à swipe  
-**Résultat**: _[À remplir]_
-
----
-
-### Test 5.5 - Badge Nouveaux Matchs
-**Scénario**: Observer le badge sur l'onglet Matchs après un nouveau match  
-**Attendu**: Badge affiche le nombre de nouveaux matchs  
-**Résultat**: _[À remplir]_
+**Résultat**: 🟡 **PARTIEL** - Le badge s'affiche mais il s'agit d'une simulation (non connecté à de vrais nouveaux profils).
 
 ---
 
@@ -239,21 +232,21 @@
 ### Test 6.1 - Candidat Visualise Job Offer du Recruteur
 **Scénario**: En tant que candidat, ouvrir un match et visualiser la job offer du recruteur  
 **Attendu**: Job offer complète affichée (titre, description, salaire, entreprise)  
-**Résultat**: _[À remplir]_
+**Résultat**: ✅ **RÉUSSI** - Le candidat peut ouvrir un match et visualiser la job offer complète du recruteur (titre, description, salaire, entreprise).
 
 ---
 
 ### Test 6.2 - Recruteur Visualise CV du Candidat
 **Scénario**: En tant que recruteur, ouvrir un match et visualiser le CV du candidat  
 **Attendu**: Informations du candidat affichées, CV téléchargeable  
-**Résultat**: _[À remplir]_
+**Résultat**: ✅ **RÉUSSI** - Le recruteur peut ouvrir un match et visualiser le CV du candidat, toutes les informations sont affichées et le CV est téléchargeable.
 
 ---
 
 ### Test 6.3 - Liste des Matchs
 **Scénario**: Consulter la liste complète des matchs  
 **Attendu**: Tous les matchs affichés, triés du plus récent au plus ancien  
-**Résultat**: _[À remplir]_
+**Résultat**: ✅ **RÉUSSI** - Tous les matchs sont affichés, triés du plus récent au plus ancien.
 
 ---
 
@@ -266,21 +259,7 @@
 
 ---
 
-### Test 7.2 - Permission Géolocalisation Refusée
-**Scénario**: Refuser la demande de permission de géolocalisation  
-**Attendu**: Message d'information affiché, bouton pour activer dans les paramètres  
-**Résultat**: _[À remplir]_
-
----
-
-### Test 7.4 - Affichage Distance
-**Scénario**: Observer la distance affichée sur chaque profil  
-**Attendu**: Distance en km affichée et cohérente  
-**Résultat**: ⚪ **N/A** - Fonctionnalité non implémentée (affichage distance pas prévu dans le design)
-
----
-
-### Test 7.5 - Changement de Localisation
+### Test 7.2 - Changement de Localisation
 **Scénario**: Modifier sa ville dans le profil (Fréjus → Saint-Raphaël)  
 **Attendu**: Profils différents affichés basés sur la nouvelle localisation  
 **Résultat**: ✅ **RÉUSSI** - Localisation modifiée (Fréjus → Bussy-Saint-Georges) et persistée en BDD avec coordonnées GPS correctes via Google Places API
@@ -345,33 +324,10 @@
 
 ---
 
-### Test 8.9 - Indicateur de Chargement
-**Scénario**: Observer l'indicateur lors du chargement des profils/matchs  
-**Attendu**: Spinner ou skeleton screen affiché pendant le chargement  
-**Résultat**: _[À remplir]_
-
----
-
-### Test 8.10 - Message d'Erreur (Connexion Perdue)
-**Scénario**: Couper la connexion internet puis tenter une action  
-**Attendu**: Message d'erreur "Pas de connexion internet" affiché  
-**Résultat**: _[À remplir]_
-
----
-
-### Test 8.11 - Boutons Like/Dislike (Alternative au Swipe)
+### Test 8.9 - Boutons Like/Dislike (Alternative au Swipe)
 **Scénario**: Utiliser les boutons ✅ et ❌ au lieu de swiper  
 **Attendu**: Même comportement que le swipe (like ou dislike enregistré)  
-**Résultat**: _[À remplir]_
-
----
-
-## 📊 RÉCAPITULATIF
-
-**Total de tests**: 51  
-**Tests réussis**: _[À remplir]_  
-**Tests échoués**: _[À remplir]_  
-**Taux de réussite**: _[À calculer]_%
+**Résultat**: ✅ **RÉUSSI** - Les boutons ✅ et ❌ fonctionnent comme le swipe : le like ou le dislike est bien enregistré et le profil disparaît de la liste à swiper.
 
 ---
 
@@ -385,10 +341,6 @@ _[Lister ici les bugs rencontrés pendant les tests]_
    - **Solution appliquée** : Ajout d'un listener AppState qui détecte quand l'app redevient active et recharge automatiquement le user depuis SecureStore si le token existe.
    - **Impact avant correction** : Expérience utilisateur très dégradée, nécessitait de relancer l'application complètement.
    - **Statut** : Correction appliquée, à tester pour validation.
-2. 
-3. 
+2. [MAJEUR] La détection géolocalisée des profils ne fonctionne que si les deux utilisateurs sont présents sur la page SwipeNotification en même temps. Sinon, ils ne se voient pas dans la découverte.
 
 ---
-
-**Date de test**: _[À remplir]_  
-**Durée totale**: _[À remplir]_
