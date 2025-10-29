@@ -1,6 +1,7 @@
 {
   "devDependencies": {
-    "@ljharb/tsconfig": "^0.3.2"
+    "@ljharb/tsconfig": "^0.3.2",
+    "prisma": "^6.18.0"
   },
   "dependencies": {
     "react-native-google-places-autocomplete": "^2.5.7"

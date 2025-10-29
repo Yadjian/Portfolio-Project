@@ -76,7 +76,6 @@ async function main() {
   // Créer des profils de test complets
   console.log('\n👥 Création des profils de test...');
   
-  const bcrypt = require('bcrypt');
   const testPassword = await bcrypt.hash('Test123!', 10);
 
   // Créer un compte admin (sans profil candidat ni recruteur)
@@ -97,6 +96,18 @@ async function main() {
 
   // Créer 6 recruteurs complets (MVP: 1 seul ContractType par profil)
   const testRecruiters = [
+    // --- Ajout stephan.paton@gmail.com ---
+    {
+      email: 'stephan.paton@gmail.com',
+      password: testPassword,
+      firstName: 'Stephane',
+      lastName: 'Paton',
+      location: { lat: 43.4332, lon: 6.7378, name: 'Fréjus, France' },
+      searchDescription: 'Agent de sécurité\n\nEntreprise de sécurité à Fréjus recherche agent de sécurité pour surveillance de sites événementiels. Sérieux, ponctuel, bonne présentation exigés.',
+      companyName: 'Stéphane Sécu',
+      desiredContractTypes: [ContractType.CDI],
+      desiredExperienceLevel: 'CONFIRME' as ExperienceLevel,
+    },
     {
       email: 'marc.dubois@gmail.com',
       password: testPassword,
@@ -282,6 +293,21 @@ async function main() {
 
   // Créer 3 candidats de test avec profils complets (MVP: 1 seul ContractType par profil)
   const testCandidates = [
+    // --- Ajout lucas.boyadjian@gmail.com ---
+    {
+      email: 'lucas.boyadjian@gmail.com',
+      password: testPassword,
+      firstName: 'Lucas',
+      lastName: 'Boyadjian',
+      location: { lat: 43.4332, lon: 6.7378, name: 'Fréjus, France' },
+      desiredJobTitle: 'Vendeur / Vendeuse',
+      resumeUrl: 'https://example.com/cv-lucasboyadjian.pdf',
+      photoUrl: 'https://randomuser.me/api/portraits/men/99.jpg',
+      coverLetterText: 'Motivé, dynamique et passionné par la vente, je recherche un poste de vendeur pour mettre à profit mon sens du contact et mon expérience en boutique.',
+      desiredContractTypes: [ContractType.CDI],
+      experienceLevel: 'CONFIRME' as ExperienceLevel,
+      searchRadiusKm: 20,
+    },
     {
       email: 'sophie.martin@gmail.com',
       password: testPassword,

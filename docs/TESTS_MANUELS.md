@@ -202,14 +202,14 @@
 ### Test 5.1 - Swipe Gauche (Refus)
 **Scénario**: Swiper un profil vers la gauche  
 **Attendu**: Profil refusé, disparaît, ne réapparaît plus  
-**Résultat**: _[À remplir]_
+**Résultat**: ✅ **RÉUSSI** - Le profil refusé disparaît et ne réapparaît plus dans la liste à swiper.
 
 ---
 
 ### Test 5.2 - Swipe Droite (Like) - Sans Match
 **Scénario**: Swiper un profil vers la droite (l'autre n'a pas encore liké)  
 **Attendu**: Like enregistré, aucune popup de match  
-**Résultat**: _[À remplir]_
+**Résultat**: ✅ **RÉUSSI** - Le like est bien enregistré, aucune popup de match n'apparaît tant que l'autre utilisateur n'a pas liké en retour.
 
 ---
 
@@ -270,13 +270,6 @@
 **Scénario**: Refuser la demande de permission de géolocalisation  
 **Attendu**: Message d'information affiché, bouton pour activer dans les paramètres  
 **Résultat**: _[À remplir]_
-
----
-
-### Test 7.3 - Rayon de Recherche
-**Scénario**: Modifier le rayon de recherche (20 km → 50 km)  
-**Attendu**: Plus de profils affichés dans la découverte  
-**Résultat**: ⚪ **N/A** - Fonctionnalité non implémentée (rayon de recherche fixe)
 
 ---
 
