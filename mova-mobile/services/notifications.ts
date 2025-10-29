@@ -42,12 +42,12 @@ if (!isExpoGo) {
       }),
     });
     
-    console.log('✅ [Notifications] expo-notifications module loaded');
+  // expo-notifications module loaded
   } catch (error) {
-    console.warn('⚠️ [Notifications] Unable to load expo-notifications:', error);
+    // Unable to load expo-notifications
   }
 } else {
-  console.log('ℹ️ [Notifications] Expo Go detected - Simulation mode without notifications');
+  // Expo Go detected - Simulation mode without notifications
 }
 
 /**
@@ -64,7 +64,6 @@ if (!isExpoGo) {
 export async function registerForPushNotificationsAsync() {
   // If running in Expo Go or modules not loaded, return undefined
   if (isExpoGo || !Notifications || !Device) {
-    console.log('ℹ️ [Notifications] Simulation mode - No push token');
     return undefined;
   }
 
@@ -94,19 +93,17 @@ export async function registerForPushNotificationsAsync() {
     
     // If permissions denied, inform user
     if (finalStatus !== 'granted') {
-      console.warn('❌ Notification permission denied');
       return;
     }
     
     // Obtain Expo Push token
     try {
       token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log('📱 Expo Push Token obtained:', token);
     } catch (error) {
-      console.error('❌ Error obtaining push token:', error);
+      // Error obtaining push token
     }
   } else {
-    console.warn('⚠️ Push notifications require a physical device');
+    // Push notifications require a physical device
   }
 
   return token;

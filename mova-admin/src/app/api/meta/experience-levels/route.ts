@@ -29,8 +29,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    // Log server-side error and return a generic 500 response
-    console.error('Erreur API experience-levels:', error);
+    // Return a generic 500 response on server error
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

@@ -32,27 +32,7 @@ const { height, width } = Dimensions.get('window');
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { loading } = useAuth();
-  const [backendStatus, setBackendStatus] = useState('Vérification de la connexion...');
 
-  // Test backend connectivity on mount
-  useEffect(() => {
-    const testBackendConnection = async () => {
-      const API_URL = getApiUrl();
-      console.log('🔍 [BACKEND TEST] URL détectée:', API_URL);
-      
-      try {
-        const data = await checkBackendHealth();
-        console.log('✅ [BACKEND TEST] Réponse reçue:', data);
-        setBackendStatus(`✅ Backend connecté (${API_URL})`);
-      } catch (error) {
-        console.error('❌ [BACKEND TEST] Message:', error instanceof Error ? error.message : 'Erreur inconnue');
-        setBackendStatus(`❌ Backend non accessible (${API_URL})`);
-      }
-    };
-
-    console.log('[BACKEND TEST] useEffect déclenché');
-    testBackendConnection();
-  }, []);
 
   // Request geolocation permission and send location periodically
   useEffect(() => {
@@ -61,7 +41,6 @@ export default function HomeScreen() {
     const askAndSendLocation = async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        console.log('Permission refusée');
         return;
       }
       try {
@@ -71,7 +50,6 @@ export default function HomeScreen() {
           longitude: location.coords.longitude,
         });
       } catch (error) {
-        console.error("Could not get location", error)
       }
     };
 
@@ -84,11 +62,6 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Backend status display */}
-        <View style={styles.statusContainer}>
-          <Text style={styles.statusText}>{backendStatus}</Text>
-        </View>
-
         {/* App logo and slogan */}
         <View style={styles.header}>
           <MovaLogo />

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform, TextInput, Keyboard, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -114,8 +113,6 @@ export default function EditProfileScreen() {
         const sortedCategories = [...categories].sort((a, b) => a.name.localeCompare(b.name));
         setJobCategories(sortedCategories);
       } catch (error) {
-        // Error fetching metadata
-        console.error("Erreur lors de la récupération des métadonnées:", error);
       }
     };
 
@@ -132,8 +129,6 @@ export default function EditProfileScreen() {
         const data = await getMyProfile();
 
         if (!data) {
-          // Profile not found
-          console.log("Profil non trouvé.");
           return;
         }
 
@@ -168,14 +163,9 @@ export default function EditProfileScreen() {
               setPresentation(searchDesc);
             }
           }
-        } else {
-          // Profile of this type not found
-          console.log(`Profil de type ${userType} non trouvé.`);
         }
 
       } catch (error) {
-        // Error fetching profile
-        console.error("Erreur lors de la récupération du profil:", error);
       } finally {
         setIsLoading(false);
       }
@@ -243,7 +233,7 @@ export default function EditProfileScreen() {
     } catch (error) {
       // Error saving profile
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      console.error("Erreur lors de l'enregistrement du profil.", errorMessage);
+      // (console.error retiré)
       alert("Erreur lors de l'enregistrement du profil: " + errorMessage);
     } finally {
       setIsLoading(false);

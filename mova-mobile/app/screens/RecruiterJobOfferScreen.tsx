@@ -77,7 +77,6 @@ export default function RecruiterJobOfferScreen() {
         const contracts = await getContractTypes();
         setContractTypes(contracts);
       } catch (error) {
-        console.error("Erreur lors de la récupération des types de contrat:", error);
       }
     };
     fetchMetaData();
@@ -104,7 +103,6 @@ export default function RecruiterJobOfferScreen() {
       }
     } catch (error) {
       if (isActive) {
-        console.error("Erreur lors de la récupération des offres:", error);
         Alert.alert("Erreur", "Impossible de charger vos offres.");
       }
     } finally {
@@ -118,7 +116,6 @@ export default function RecruiterJobOfferScreen() {
     useCallback(() => {
       let isActive = true;
       fetchOffers(isActive);
-      // Rafraîchir les badges
       refreshMatchBadge();
       return () => {
         isActive = false;
@@ -205,7 +202,6 @@ export default function RecruiterJobOfferScreen() {
       }
       Alert.alert('Succès', `Offre ${offer.isNew ? 'créée' : 'mise à jour'} !`);
     } catch (error: any) {
-      console.error("Erreur sauvegarde offre:", error);
       updateOfferState(index, { loading: false, error: error.message || 'Une erreur est survenue.' });
     }
   };

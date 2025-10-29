@@ -37,7 +37,6 @@ export default function JoinCompanyScreen() {
       await joinCompany({ siret });
       navigation.navigate('RecruiterProfile', { startEditing: true });
     } catch (error) {
-      console.error(error);
     }
   };
 

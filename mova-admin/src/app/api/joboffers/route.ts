@@ -38,7 +38,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data);
   } catch (error) {
     // Log the server-side error for debugging and return a generic 500 response.
-    console.error('Error fetching job offers:', error);
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }
@@ -83,7 +82,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data);
   } catch (error) {
     // Log and return a generic server error to the client.
-    console.error('Error creating job offer:', error);
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

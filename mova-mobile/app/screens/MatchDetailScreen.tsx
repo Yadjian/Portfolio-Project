@@ -32,10 +32,8 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
       try {
         setLoading(true);
         const data = await getMatchDetails(matchId);
-        console.log('Match details:', data);
         setDetails(data);
       } catch (error) {
-        console.error('Erreur lors de la récupération des détails du match:', error);
         Alert.alert('Erreur', 'Impossible de charger les détails du match');
       } finally {
         setLoading(false);
@@ -55,7 +53,6 @@ export default function MatchDetailScreen({ route, navigation }: { route: any; n
         Alert.alert('Erreur', 'Impossible d\'ouvrir le CV');
       }
     } catch (error) {
-      console.error('Erreur lors de l\'ouverture du CV:', error);
       Alert.alert('Erreur', 'Impossible d\'ouvrir le CV');
     }
   };

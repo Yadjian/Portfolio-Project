@@ -33,7 +33,6 @@ export default function UserHomeScreen() {
   // Refresh user data every time the screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      console.log('🔄 [UserHomeScreen] Rafraîchissement des données utilisateur...');
       refreshUser();
     }, [])
   );
@@ -46,19 +45,11 @@ export default function UserHomeScreen() {
 
   // Handle navigation to the user's profile (candidate or recruiter)
   const handleGoToProfile = () => {
-    console.log('🔍 [UserHomeScreen] handleGoToProfile appelé');
-    console.log('🔍 [UserHomeScreen] user complet:', JSON.stringify(user, null, 2));
-    console.log('🔍 [UserHomeScreen] candidateProfile:', user?.candidateProfile);
-    console.log('🔍 [UserHomeScreen] recruiterProfile:', user?.recruiterProfile);
-    
     if (user?.candidateProfile) {
-      console.log('✅ [UserHomeScreen] Navigation vers CandidateProfile');
       navigation.navigate('CandidateProfile', { startEditing: false });
     } else if (user?.recruiterProfile) {
-      console.log('✅ [UserHomeScreen] Navigation vers RecruiterProfile');
       navigation.navigate('RecruiterProfile', { startEditing: false });
     } else {
-      console.log('❌ [UserHomeScreen] Aucun profil trouvé');
     }
   };
 
@@ -97,7 +88,7 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: height * 0.12, // Crée un espace volontaire avec les boutons
+    marginBottom: height * 0.12,
   },
   slogan: {
     fontSize: width * 0.06,
@@ -111,7 +102,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButton: {
-    backgroundColor: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
+    backgroundColor: '#4930a3',
     borderRadius: 30,
     width: '100%',
     paddingVertical: 18,
@@ -132,7 +123,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 30,
     borderWidth: 1.5,
-    borderColor: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
+    borderColor: '#4930a3',
     width: '100%',
     paddingVertical: 18,
     justifyContent: 'center',
@@ -140,7 +131,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   secondaryButtonText: {
-    color: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
+    color: '#4930a3',
     fontSize: width * 0.045,
     fontWeight: 'bold',
   },

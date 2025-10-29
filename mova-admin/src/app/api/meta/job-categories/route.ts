@@ -35,8 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    // Log server-side error for debugging and return a generic 500 response to the client.
-    console.error('Erreur API job-categories:', error);
+    // Return a generic 500 response on server error
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

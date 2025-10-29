@@ -46,10 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userData = await getMyProfile();
       setUser(userData);
     } catch (error: any) {
-      console.error("Erreur lors du rafraîchissement de l'utilisateur:", error);
-      // If user not found or token invalid, logout
       if (error.message?.includes('Utilisateur non trouvé') || error.message?.includes('Unauthorized')) {
-        console.log("🚪 Déconnexion automatique: utilisateur non trouvé ou token invalide");
         await logout();
         setLoading(false);
       }
@@ -70,7 +67,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setLoading(false);
         }
       } catch (error) {
-        console.error("Erreur lors de la vérification du token:", error);
         setUser(null);
         setIsAuthenticated(false);
         setLoading(false);
@@ -83,10 +79,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const subscription = AppState.addEventListener('change', async (nextAppState) => {
       if (nextAppState === 'active') {
-        console.log('📱 App redevenue active, re-vérification du token...');
         const storedToken = await SecureStore.getItemAsync('auth_token');
         if (storedToken && !user) {
-          console.log('🔄 Token trouvé mais user perdu, rechargement...');
           setToken(storedToken);
           setIsAuthenticated(true);
           await refreshUser();
@@ -103,7 +97,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const recheckUser = async () => {
       if (isAuthenticated && token && !user && !loading) {
-        console.log('🔄 Détection de Fast Refresh: token présent mais user manquant, rechargement...');
         await refreshUser();
       }
     };
@@ -113,19 +106,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Register for push notifications when authenticated
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('📱 [AuthContext] Utilisateur connecté, enregistrement pour les notifications...');
       registerForPushNotificationsAsync()
         .then(pushToken => {
           if (pushToken) {
-            console.log('✅ [AuthContext] Push token obtenu, envoi au backend...');
             return updatePushToken(pushToken);
           }
         })
         .then(() => {
-          console.log('✅ [AuthContext] Push token enregistré sur le backend');
         })
-        .catch(error => {
-          console.error('❌ [AuthContext] Erreur lors de l\'enregistrement du push token:', error);
+        .catch(() => {
         });
     }
   }, [isAuthenticated, user]);
@@ -160,28 +149,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout and clear token
   const logout = async () => {
     try {
-      console.log('🚪 [AuthContext] Déconnexion en cours...');
-      
-      // Supprimer le push token du backend
       try {
-        await updatePushToken(''); // Envoyer une chaîne vide pour supprimer le token
-        console.log('✅ [AuthContext] Push token supprimé du backend');
+        await updatePushToken('');
       } catch (error) {
-        console.error('⚠️ [AuthContext] Erreur lors de la suppression du push token:', error);
       }
-      
-      // Supprimer les tokens locaux
       await SecureStore.deleteItemAsync('auth_token');
       await SecureStore.deleteItemAsync('refresh_token');
       await SecureStore.deleteItemAsync('last_match_count');
       await SecureStore.deleteItemAsync('last_profile_count');
-      
       setToken(null);
       setUser(null);
       setIsAuthenticated(false);
-      console.log('✅ [AuthContext] Déconnexion réussie');
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
     }
   };
 

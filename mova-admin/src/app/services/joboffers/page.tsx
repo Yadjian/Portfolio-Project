@@ -152,13 +152,9 @@ export default function JobOffersServices() {
         });
         if (res.ok) {
           const data = await res.json();
-          console.log('Catégories chargées:', data);
           setJobCategories(data);
-        } else {
-          console.error('Erreur HTTP:', res.status, res.statusText);
-        }
+        } 
       } catch (err) {
-        console.error('Erreur lors du chargement des catégories:', err);
       }
     };
     fetchCategories();
@@ -189,7 +185,7 @@ export default function JobOffersServices() {
           setExperienceLevels(data);
         }
       } catch (err) {
-        console.error('Erreur lors du chargement des métadonnées:', err);
+        // No developer console.log
       }
     };
     fetchMetadata();

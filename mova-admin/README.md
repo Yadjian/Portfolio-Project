@@ -199,10 +199,3 @@ docker run -p 3000:3000 --env BACKEND_URL=http://backend:3000 mova-admin
 - **Styles not loading:** Ensure `globals.css` is imported in `layout.tsx`.
 
 ---
-
-## 📝 License
-
-This project is licensed under the MIT License.  
-See [LICENSE](../LICENSE) for details.
-
----

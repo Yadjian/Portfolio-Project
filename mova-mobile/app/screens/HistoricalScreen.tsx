@@ -87,7 +87,6 @@ const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
         try {
           setLoading(true);
           const data = await getMatches();
-          console.log('Matches data:', data);
           
           // Récupérer le dernier compteur vu
           const lastCountStr = await SecureStore.getItemAsync('last_match_count');
@@ -111,7 +110,6 @@ const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
           await updateMatchCount(normalizedMatches.length);
         } catch (error) {
           // Error fetching matches for candidate
-          console.error('Erreur lors de la récupération des matchs:', error);
         } finally {
           setLoading(false);
         }
@@ -123,7 +121,6 @@ const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
 
   // Handle navigation to match detail
   const handleMatchPress = (matchId: string) => {
-    console.log('Match clicked:', matchId);
     navigation.navigate('MatchDetail', { matchId, userType: 'candidate' });
   };
 
@@ -167,7 +164,6 @@ const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
         try {
           setLoading(true);
           const data = await getMatches();
-          console.log('Matches data:', data);
           
           // Récupérer le dernier compteur vu
           const lastCountStr = await SecureStore.getItemAsync('last_match_count');
@@ -191,7 +187,6 @@ const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
           await updateMatchCount(normalizedMatches.length);
         } catch (error) {
           // Error fetching matches for recruiter
-          console.error('Erreur lors de la récupération des matchs:', error);
         } finally {
           setLoading(false);
         }
@@ -203,7 +198,6 @@ const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
 
   // Handle navigation to match detail
   const handleMatchPress = (matchId: string) => {
-    console.log('Match clicked:', matchId);
     navigation.navigate('MatchDetail', { matchId, userType: 'recruiter' });
   };
 

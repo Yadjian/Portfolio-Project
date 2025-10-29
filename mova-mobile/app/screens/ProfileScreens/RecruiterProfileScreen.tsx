@@ -102,11 +102,9 @@ export default function RecruiterProfileScreen() {
             setUserId(profileData.id);
           }
           
-          // Rafraîchir les badges
           await refreshMatchBadge();
         } catch (error) {
           // Error loading recruiter profile
-          console.error("Erreur lors du chargement du profil recruteur:", error);
         }
       };
       fetchRecruiterData();

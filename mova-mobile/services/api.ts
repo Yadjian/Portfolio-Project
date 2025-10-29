@@ -27,7 +27,6 @@ async function handleResponse(response: Response) {
   try {
     data = text ? JSON.parse(text) : {};
   } catch (error) {
-    console.error("La réponse du serveur n'est pas un JSON valide:", text);
     throw new Error(`Erreur HTTP ${response.status}: Réponse non-JSON du serveur.`);
   }
 
@@ -35,7 +34,6 @@ async function handleResponse(response: Response) {
     if (response.status === 401) {
       return null;
     }
-    console.error("Réponse d'erreur brute du serveur:", text);
     throw new Error(data.message || `Erreur HTTP ${response.status}`);
   }
   return data;
@@ -258,7 +256,6 @@ export async function checkBackendHealth() {
 }
 
 export async function sendLocationToBackend(coords: { latitude: number; longitude: number }) {
-  console.log('Coordonnées envoyées :', coords);
 }
 
 // PUSH NOTIFICATIONS

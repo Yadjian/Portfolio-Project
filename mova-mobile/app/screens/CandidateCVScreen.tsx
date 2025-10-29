@@ -50,11 +50,9 @@ export default function CandidateCVScreen({ navigation }: any) {
             setCvUrl(null);
           }
           
-          // Rafraîchir les badges
           await refreshMatchBadge();
         } catch (e) {
-          // Error loading CV
-          console.error('Erreur chargement CV:', e);
+          setError('Erreur lors du chargement du CV');
         }
       };
       loadExistingCV();

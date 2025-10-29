@@ -47,7 +47,6 @@ const CustomPlacesAutocomplete: React.FC<CustomPlacesAutocompleteProps> = ({ api
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Synchronise l'état interne 'input' avec la prop 'value' venant de l'extérieur
   useEffect(() => {
     setInput(value);
   }, [value]);
@@ -140,12 +139,12 @@ const styles = StyleSheet.create({
   },
   list: {
     position: 'absolute',
-    top: 54, // height of inputContainer + a small margin
+    top: 54,
     left: 0,
     right: 0,
     backgroundColor: 'white',
     borderRadius: 8,
-    maxHeight: 300, // Augmenté de 200 à 300 pour afficher plus de suggestions
+    maxHeight: 300,
     borderWidth: 1,
     borderColor: '#ddd',
     elevation: 3,

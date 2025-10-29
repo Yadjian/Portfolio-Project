@@ -43,6 +43,6 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 8,
     backgroundColor: 'transparent',
-    marginTop: Platform.OS === 'ios' ? 6 : 0, // décale vers le haut sur iOS
+    marginTop: Platform.OS === 'ios' ? 6 : 0,
   },
 });

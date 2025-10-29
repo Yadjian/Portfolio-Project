@@ -8,7 +8,6 @@ import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
 import { UserType } from '@/lib/types';
 import { getProfilesToSwipe, sendSwipeAction, undoPreviousSwipe } from '../../services/api';
 import Colors from '@/constants/Colors';
-import { markAllProfilesAsViewed } from '@/lib/notificationStorage';
 import { useNotifications } from '@/contexts/NotificationContext';
 
 const { width } = Dimensions.get('window');
@@ -89,12 +88,9 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   // Fetch profiles to swipe on mount
   useEffect(() => {
     const getLocationAndFetchProfiles = async () => {
-      console.log('🔄 [SwipeScreen] Démarrage de la récupération des profils...');
       // Request geolocation permission
       let { status } = await Location.requestForegroundPermissionsAsync();
-      console.log('📍 [SwipeScreen] Permission de localisation:', status);
       if (status !== 'granted') {
-        console.error('❌ [SwipeScreen] Permission to access location was denied');
         setProfiles([]);
         setNotificationCount(0);
         return;
@@ -102,15 +98,11 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
 
       try {
         // Get current location
-        console.log('📡 [SwipeScreen] Récupération de la position GPS...');
         let location = await Location.getCurrentPositionAsync({});
         const { latitude, longitude } = location.coords;
-        console.log('✅ [SwipeScreen] Position obtenue:', { latitude, longitude });
 
         // Fetch profiles from backend
-        console.log('🌐 [SwipeScreen] Appel API pour récupérer les profils...');
         const data = await getProfilesToSwipe(userType, latitude, longitude);
-        console.log('📦 [SwipeScreen] Profils reçus:', data?.length || 0);
 
         // Initialiser le tableau de profils
         const allProfiles: any[] = [];
@@ -158,13 +150,10 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         setProfiles(allProfiles.length > 0 ? allProfiles : []);
         setNotificationCount(allProfiles.length);
         
-        // Mettre à jour le badge des profils dans le contexte
         await refreshProfileBadge(allProfiles.length);
         
-        // Rafraîchir le badge des matchs
         await refreshMatchBadge();
       } catch (error) {
-        console.error("Erreur lors de la récupération des profils à swiper:", error);
         setProfiles([]);
         setNotificationCount(0);
       }
@@ -177,10 +166,10 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const baseTabs = userType === 'recruiter' ? getRecruiterTabs(navigation, profileBadgeCount) : getCandidateTabs(navigation, profileBadgeCount);
   const tabs = baseTabs.map(tab => {
     if (tab.id === 'notifications') {
-      return { ...tab, onPress: () => {} }; // Désactiver le clic sur l'onglet actif
+      return { ...tab, onPress: () => {} };
     }
     if (tab.id === 'matches') {
-      return { ...tab, badge: matchBadgeCount }; // Badge des matchs
+      return { ...tab, badge: matchBadgeCount };
     }
     return tab;
   });
@@ -217,11 +206,9 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         .then(response => {
           if (response && response.isMatch) {
             Alert.alert("C'est un Match !", "Vous pouvez maintenant discuter avec cette personne.");
-            // (Simulation supprimée)
           }
         })
-        .catch(error => {
-          console.error("Erreur lors de l'envoi de l'action de swipe:", error);
+        .catch(() => {
         });
 
       // Animate card out
@@ -234,7 +221,6 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         setProfiles(prevProfiles => {
           const newProfiles = prevProfiles.slice(1);
           setNotificationCount(newProfiles.length);
-          // Mettre à jour le badge après chaque swipe
           refreshProfileBadge(newProfiles.length);
           return newProfiles;
         });
@@ -300,7 +286,6 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         setLastSwipedProfile(null);
       }
     } catch (error) {
-      console.error('Erreur lors de l\'annulation du swipe:', error);
     }
   };
 

@@ -76,11 +76,8 @@ export default function CandidateProfileScreen() {
             }));
             setUserId(profileData.id);
           }
-          
-          // Rafraîchir les badges de notification
           await refreshMatchBadge();
       } catch (error) {
-        console.error('Erreur chargement profil:', error);
       }
       };
       fetchUser();

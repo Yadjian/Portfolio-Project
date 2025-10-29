@@ -76,8 +76,6 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
         userType.toUpperCase() as 'CANDIDATE' | 'RECRUITER'
       );
 
-      console.log('Compte créé avec succès:', data);
-
       // Navigate to the next step based on user type
       if (userType === 'recruiter') {
         navigation.navigate('CreateCompany', { userId: data.userId });
@@ -87,7 +85,6 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      console.error('Erreur lors de la création du compte:', errorMessage);
       Alert.alert('Erreur', errorMessage);
     } finally {
       setIsLoading(false);

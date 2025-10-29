@@ -41,15 +41,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [profileBadgeCount, setProfileBadgeCount] = useState(0);
   const [matchBadgeCount, setMatchBadgeCount] = useState(0);
 
-  // 🔔 Testing function: Simulate a profile notification (bell icon)
+  // Testing function: Simulate a profile notification (bell icon)
   const simulateProfileNotification = useCallback(() => {
-    console.log('🔔 [NotificationContext] SIMULATION: Profile badge incremented by 3');
     setProfileBadgeCount(prev => prev + 3);
   }, []);
 
-  // ❤️ Testing function: Simulate a match notification (heart icon)
+  // Testing function: Simulate a match notification (heart icon)
   const simulateMatchNotification = useCallback(() => {
-    console.log('❤️ [NotificationContext] SIMULATION: Match badge incremented by 1');
     setMatchBadgeCount(prev => prev + 1);
   }, []);
 
@@ -63,28 +61,18 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     try {
       const matches = await getMatches();
       if (!matches) {
-        console.log('[NotificationContext] No matches (user not authenticated or error)');
         setMatchBadgeCount(0);
         return;
       }
       const currentMatchCount = matches.length;
-      
       // Read last stored count from secure storage
       const lastCountStr = await SecureStore.getItemAsync('last_match_count');
       const lastCount = lastCountStr ? parseInt(lastCountStr, 10) : 0;
-      
       // Calculate new matches since last visit
       const newMatchCount = Math.max(0, currentMatchCount - lastCount);
-      
-      console.log('[NotificationContext] 📊 Current matches:', currentMatchCount);
-      console.log('[NotificationContext] 💾 Last stored count:', lastCount);
-      console.log('[NotificationContext] 🔔 New matches to display:', newMatchCount);
-      
       setMatchBadgeCount(newMatchCount);
-      
       // Note: Counter will be updated when user visits the matches page
     } catch (error) {
-      console.log('[NotificationContext] Error refreshing match badge (ignored):', error);
       setMatchBadgeCount(0);
     }
   }, []);
@@ -100,49 +88,32 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const refreshProfileBadge = useCallback(async (currentProfileCount?: number) => {
     try {
       let profileCount = currentProfileCount;
-      
       // If not provided, fetch from backend
       if (profileCount === undefined) {
-        console.log('[NotificationContext] 🔄 Fetching profiles from backend...');
-        
         // Request location permission
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
-          console.log('[NotificationContext] ❌ Location permission denied');
           profileCount = 0;
         } else {
           // Get current location
           const location = await Location.getCurrentPositionAsync({});
           const { latitude, longitude } = location.coords;
-          
           // Determine user type from AuthContext user profile
           const profile = await getMyProfile();
           const userType = profile?.candidateProfile ? 'candidate' : 'recruiter';
-          console.log('[NotificationContext] 👤 Detected userType:', userType);
-          
           // Fetch profiles to swipe
           const profiles = await getProfilesToSwipe(userType, latitude, longitude);
           profileCount = profiles?.length || 0;
-          console.log('[NotificationContext] 📦 Fetched profiles:', profileCount);
         }
       }
-      
       // Read last stored count from secure storage
       const lastCountStr = await SecureStore.getItemAsync('last_profile_count');
       const lastCount = lastCountStr ? parseInt(lastCountStr, 10) : 0;
-      
       // Calculate new profiles since last visit
       const newProfileCount = Math.max(0, (profileCount || 0) - lastCount);
-      
-      console.log('[NotificationContext] 📊 Current profiles:', profileCount);
-      console.log('[NotificationContext] 💾 Last stored count:', lastCount);
-      console.log('[NotificationContext] 🔔 New profiles to display:', newProfileCount);
-      
       setProfileBadgeCount(newProfileCount);
-      
       // Note: Counter will be updated when user visits the discovery page
     } catch (error) {
-      console.log('[NotificationContext] Error refreshing profile badge (ignored):', error);
       setProfileBadgeCount(0);
     }
   }, []);
@@ -156,18 +127,14 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
    */
   useEffect(() => {
     if (isAuthenticated && user) {
-      console.log('[NotificationContext] 🔔 User authenticated, loading badges...');
       refreshMatchBadge();
       refreshProfileBadge();
-      
-      // 🔔 SIMULATION: Add badges after connection (for testing)
+      // SIMULATION: Add badges after connection (for testing)
       setTimeout(() => {
-        console.log('[NotificationContext] 🎭 Simulating notifications after login...');
         simulateProfileNotification(); // Bell badge +3
         simulateMatchNotification();   // Heart badge +1
       }, 1000); // Small delay to make it visible
     } else {
-      console.log('[NotificationContext] 🚪 User logged out, resetting badges');
       setProfileBadgeCount(0);
       setMatchBadgeCount(0);
     }
