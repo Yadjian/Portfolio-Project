@@ -24,9 +24,9 @@ export declare class MatchesService {
                 id: string;
                 createdAt: Date;
                 updatedAt: Date;
-                recruiterId: string;
                 internalRole: string;
                 isPrimary: boolean;
+                recruiterId: string;
                 companyId: string;
             })[];
         };
@@ -66,13 +66,13 @@ export declare class MatchesService {
         locationName: string | null;
         isActive: boolean;
         experienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
-        companyId: string;
         title: string;
         description: string;
+        workHours: string | null;
         salaryMin: number | null;
         salaryMax: number | null;
+        companyId: string;
         currency: string | null;
-        workHours: string | null;
         expiresAt: Date | null;
         contractType: import("@prisma/client").$Enums.ContractType;
         createdById: string;

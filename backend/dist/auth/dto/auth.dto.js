@@ -11,22 +11,18 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthDto = void 0;
 const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
 class AuthDto {
 }
 exports.AuthDto = AuthDto;
 __decorate([
-    (0, class_validator_1.IsEmail)({}, { message: 'Format d\'email invalide' }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'L\'email est obligatoire' }),
-    (0, class_validator_1.MaxLength)(254, { message: 'L\'email ne peut pas dépasser 254 caractères' }),
-    (0, class_transformer_1.Transform)(({ value }) => value?.toLowerCase().trim()),
+    (0, class_validator_1.IsEmail)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], AuthDto.prototype, "email", void 0);
 __decorate([
-    (0, class_validator_1.IsString)({ message: 'Le mot de passe doit être une chaîne de caractères' }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'Le mot de passe ne peut pas être vide' }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     (0, class_validator_1.MinLength)(6, { message: 'Le mot de passe doit faire au moins 6 caractères.' }),
-    (0, class_validator_1.MaxLength)(128, { message: 'Le mot de passe ne peut pas dépasser 128 caractères' }),
     __metadata("design:type", String)
 ], AuthDto.prototype, "password", void 0);
 //# sourceMappingURL=auth.dto.js.map

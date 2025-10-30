@@ -17,27 +17,21 @@ let CompaniesService = class CompaniesService {
         this.prisma = prisma;
     }
     async createCompanyForRecruiter(dto, userId) {
-        if (!userId) {
-            throw new common_1.BadRequestException('Utilisateur requis pour créer une entreprise.');
-        }
-        if (!dto.companyName?.trim() || !dto.siret?.trim()) {
-            throw new common_1.BadRequestException('Nom d\'entreprise et SIRET requis.');
-        }
         const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
             where: { userId },
             include: { memberships: true },
         });
         if (!recruiterProfile) {
-            throw new common_1.NotFoundException('Profil recruteur introuvable pour cet utilisateur.');
+            throw new common_1.NotFoundException('Recruiter profile not found for this user.');
         }
         if (recruiterProfile.memberships.length > 0) {
-            throw new common_1.ConflictException('Ce recruteur est déjà associé à une entreprise.');
+            throw new common_1.ConflictException('This recruiter is already associated with a company.');
         }
         const existingCompany = await this.prisma.company.findUnique({
             where: { siret: dto.siret },
         });
         if (existingCompany) {
-            throw new common_1.ConflictException('Une entreprise avec ce numéro SIRET existe déjà.');
+            throw new common_1.ConflictException('A company with this SIRET number already exists.');
         }
         return this.prisma.$transaction(async (tx) => {
             const company = await tx.company.create({
@@ -54,8 +48,6 @@ let CompaniesService = class CompaniesService {
                     internalRole: 'Admin',
                 },
             });
-            console.log(`✅ Company created: ${company.id} (${company.name}) by user ${userId}`);
-            console.log(`✅ Membership created: ${membership.id} for recruiter ${recruiterProfile.id}`);
             return { company, membership };
         });
     }

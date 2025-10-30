@@ -210,6 +210,9 @@ export declare class ProfileService {
         id: string;
         name: string;
     }[]>;
+    updateProfilePhoto(userId: string, photoFile: Express.Multer.File): Promise<{
+        photoUrl: string;
+    }>;
     updateResume(userId: string, file: Express.Multer.File): Promise<{
         message: string;
         resumeUrl: string;
@@ -255,5 +258,4 @@ export declare class ProfileService {
         searchDescription: string | null;
         desiredExperienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
     }>;
-    updateProfilePhoto(userId: string, photoFile: Express.Multer.File): Promise<any>;
 }

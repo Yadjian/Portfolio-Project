@@ -23,7 +23,9 @@ let NotificationsModule = class NotificationsModule {
 exports.NotificationsModule = NotificationsModule;
 exports.NotificationsModule = NotificationsModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, firebase_module_1.FirebaseModule,
+        imports: [
+            prisma_module_1.PrismaModule,
+            firebase_module_1.FirebaseModule,
             bullmq_1.BullModule.registerQueue({
                 name: exports.SWIPE_NOTIFICATION_QUEUE,
             }),

@@ -17,7 +17,7 @@ let ProfileModule = class ProfileModule {
 exports.ProfileModule = ProfileModule;
 exports.ProfileModule = ProfileModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, file_storage_module_1.FileStorageModule,],
+        imports: [prisma_module_1.PrismaModule, file_storage_module_1.FileStorageModule],
         controllers: [profile_controller_1.ProfileController],
         providers: [profile_service_1.ProfileService]
     })

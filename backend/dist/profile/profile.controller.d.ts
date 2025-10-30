@@ -110,7 +110,9 @@ export declare class ProfileController {
         id: string;
         name: string;
     }[]>;
-    uploadProfilePhoto(req: Request, photoFile: Express.Multer.File): Promise<any>;
+    uploadProfilePhoto(req: Request, photoFile: Express.Multer.File): Promise<{
+        photoUrl: string;
+    }>;
     uploadResume(req: Request, file: Express.Multer.File): Promise<{
         message: string;
         resumeUrl: string;

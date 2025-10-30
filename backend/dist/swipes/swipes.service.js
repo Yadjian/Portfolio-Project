@@ -25,16 +25,7 @@ let SwipesService = class SwipesService {
         this.matchQueue = matchQueue;
     }
     async handleSwipe(userId, dto) {
-        if (!userId) {
-            throw new common_1.BadRequestException('Utilisateur requis pour swiper.');
-        }
-        if (!dto?.profileId?.trim() || !dto?.direction) {
-            throw new common_1.BadRequestException('ID de profil et direction requis.');
-        }
         const { profileId: swipedProfileId, direction } = dto;
-        if (swipedProfileId === userId) {
-            throw new common_1.ForbiddenException('Vous ne pouvez pas swiper sur votre propre profil.');
-        }
         const swiperUser = await this.prisma.user.findUnique({
             where: { id: userId },
             include: {
@@ -43,7 +34,7 @@ let SwipesService = class SwipesService {
             },
         });
         if (!swiperUser) {
-            throw new common_1.NotFoundException('Utilisateur non trouvé.');
+            throw new common_1.NotFoundException('User not found.');
         }
         let candidateId;
         let recruiterId;
@@ -54,31 +45,15 @@ let SwipesService = class SwipesService {
             recruiterId = swipedProfileId;
             swiperDirectionField = 'candidateDirection';
             otherDirectionField = 'recruiterDirection';
-            const targetRecruiter = await this.prisma.recruiterProfile.findUnique({
-                where: { id: swipedProfileId },
-                select: { id: true }
-            });
-            if (!targetRecruiter) {
-                console.warn(`🚨 SWIPE SECURITY: Candidate ${userId} tried to swipe on invalid recruiter ${swipedProfileId}`);
-                throw new common_1.NotFoundException('Profil recruteur introuvable.');
-            }
         }
         else if (swiperUser.recruiterProfile) {
             candidateId = swipedProfileId;
             recruiterId = swiperUser.recruiterProfile.id;
             swiperDirectionField = 'recruiterDirection';
             otherDirectionField = 'candidateDirection';
-            const targetCandidate = await this.prisma.candidateProfile.findUnique({
-                where: { id: swipedProfileId },
-                select: { id: true }
-            });
-            if (!targetCandidate) {
-                console.warn(`🚨 SWIPE SECURITY: Recruiter ${userId} tried to swipe on invalid candidate ${swipedProfileId}`);
-                throw new common_1.NotFoundException('Profil candidat introuvable.');
-            }
         }
         else {
-            throw new common_1.ForbiddenException("L'utilisateur n'a pas de profil actif.");
+            throw new common_1.ForbiddenException("User does not have an active profile.");
         }
         const swipe = await this.prisma.swipe.upsert({
             where: {
@@ -107,7 +82,6 @@ let SwipesService = class SwipesService {
                 recruiterId: recruiterId,
                 swipeId: updatedSwipe.id,
             });
-            console.log(`Job ajouté à ${notifications_module_1.SWIPE_NOTIFICATION_QUEUE}: candidate-swipe-right`);
         }
         if (updatedSwipe.candidateDirection === 'RIGHT' &&
             updatedSwipe.recruiterDirection === 'RIGHT' &&
@@ -122,23 +96,17 @@ let SwipesService = class SwipesService {
                 matchId: matchData.id,
                 matchedAt: matchData.matchedAt,
             });
-            console.log(`Job ajouté à ${notifications_module_1.MATCH_NOTIFICATION_QUEUE}: new-match-candidate`);
             await this.matchQueue.add('new-match-recruiter', {
                 candidateId: candidateId,
                 recruiterId: recruiterId,
                 matchId: matchData.id,
                 matchedAt: matchData.matchedAt,
             });
-            console.log(`Job ajouté à ${notifications_module_1.MATCH_NOTIFICATION_QUEUE}: new-match-recruiter`);
             return { match: true, matchedAt: matchData.matchedAt };
         }
-        console.log(`✅ Swipe authorized: ${direction} by user ${userId} on profile ${swipedProfileId}`);
         return { match: false };
     }
     async undoLastSwipe(userId) {
-        if (!userId) {
-            throw new common_1.BadRequestException('Utilisateur requis pour annuler un swipe.');
-        }
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
             include: {
@@ -147,7 +115,7 @@ let SwipesService = class SwipesService {
             },
         });
         if (!user) {
-            throw new common_1.NotFoundException('Utilisateur non trouvé.');
+            throw new common_1.NotFoundException('User not found.');
         }
         let lastSwipe;
         let directionField;
@@ -176,10 +144,10 @@ let SwipesService = class SwipesService {
             directionField = 'recruiterDirection';
         }
         else {
-            throw new common_1.ForbiddenException("L'utilisateur n'a pas de profil actif.");
+            throw new common_1.ForbiddenException("User does not have an active profile.");
         }
         if (!lastSwipe) {
-            return { success: false, message: 'Aucun swipe à annuler.' };
+            return { success: false, message: 'No swipe to undo.' };
         }
         await this.prisma.swipe.update({
             where: { id: lastSwipe.id },
@@ -189,7 +157,6 @@ let SwipesService = class SwipesService {
                 matchedAt: null,
             },
         });
-        console.log(`✅ Swipe undo authorized: ${lastSwipe.id} by user ${userId}`);
         return { success: true };
     }
 };

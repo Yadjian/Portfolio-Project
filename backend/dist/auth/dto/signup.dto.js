@@ -11,7 +11,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SignupDto = exports.UserRole = void 0;
 const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
 var UserRole;
 (function (UserRole) {
     UserRole["CANDIDATE"] = "CANDIDATE";
@@ -21,28 +20,19 @@ class SignupDto {
 }
 exports.SignupDto = SignupDto;
 __decorate([
-    (0, class_validator_1.IsEmail)({}, { message: 'Format d\'email invalide' }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'L\'email est obligatoire' }),
-    (0, class_validator_1.MaxLength)(254, { message: 'L\'email ne peut pas dépasser 254 caractères' }),
-    (0, class_transformer_1.Transform)(({ value }) => value?.toLowerCase().trim()),
+    (0, class_validator_1.IsEmail)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], SignupDto.prototype, "email", void 0);
 __decorate([
-    (0, class_validator_1.IsString)({ message: 'Le mot de passe doit être une chaîne de caractères' }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'Le mot de passe ne peut pas être vide' }),
-    (0, class_validator_1.MinLength)(8, { message: 'Le mot de passe doit contenir au moins 8 caractères.' }),
-    (0, class_validator_1.MaxLength)(128, { message: 'Le mot de passe ne peut pas dépasser 128 caractères' }),
-    (0, class_validator_1.Matches)(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-        message: 'Le mot de passe doit contenir au moins 1 majuscule, 1 minuscule et 1 chiffre.'
-    }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, class_validator_1.MinLength)(6, { message: 'Le mot de passe doit faire au moins 6 caractères.' }),
     __metadata("design:type", String)
 ], SignupDto.prototype, "password", void 0);
 __decorate([
-    (0, class_validator_1.IsIn)([UserRole.CANDIDATE, UserRole.RECRUITER], {
-        message: 'Le rôle doit être CANDIDATE ou RECRUITER'
-    }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'Le rôle est obligatoire' }),
-    (0, class_transformer_1.Transform)(({ value }) => value?.toUpperCase()),
+    (0, class_validator_1.IsIn)([UserRole.CANDIDATE, UserRole.RECRUITER]),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], SignupDto.prototype, "role", void 0);
 //# sourceMappingURL=signup.dto.js.map

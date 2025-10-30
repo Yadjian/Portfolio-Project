@@ -18,7 +18,7 @@ let SwipesModule = class SwipesModule {
 exports.SwipesModule = SwipesModule;
 exports.SwipesModule = SwipesModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule, notifications_module_1.NotificationsModule,],
+        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule, notifications_module_1.NotificationsModule],
         controllers: [swipes_controller_1.SwipesController],
         providers: [swipes_service_1.SwipesService],
     })

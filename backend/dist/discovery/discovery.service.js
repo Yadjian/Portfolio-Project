@@ -17,20 +17,14 @@ let DiscoveryService = class DiscoveryService {
         this.prisma = prisma;
     }
     async getRecruitersForCandidate(userId, radiusInMeters = 20000) {
-        console.log('🔍 [Discovery] Getting recruiters for candidate userId:', userId);
         const candidateProfile = await this.prisma.candidateProfile.findUnique({
             where: { userId },
         });
-        console.log('👤 [Discovery] Candidate profile:', candidateProfile ? {
-            id: candidateProfile.id,
-            name: `${candidateProfile.firstName} ${candidateProfile.lastName}`,
-            locationWKT: candidateProfile.locationWKT,
-        } : 'NOT FOUND');
         if (!candidateProfile) {
-            throw new common_1.NotFoundException('Profil candidat non trouvé.');
+            throw new common_1.NotFoundException('Candidate profile not found.');
         }
         if (!candidateProfile.locationWKT) {
-            throw new common_1.NotFoundException('Votre localisation est requise pour la découverte.');
+            throw new common_1.NotFoundException('Your location is required for discovery.');
         }
         const candidateId = candidateProfile.id;
         const swipedRecruiters = await this.prisma.swipe.findMany({
@@ -38,20 +32,17 @@ let DiscoveryService = class DiscoveryService {
             select: { recruiterId: true },
         });
         const swipedRecruiterIds = swipedRecruiters.map(s => s.recruiterId);
-        console.log('🚫 [Discovery] Already swiped recruiters:', swipedRecruiterIds.length);
-        console.log('🔎 [Discovery] Searching for recruiters within', radiusInMeters, 'meters from', candidateProfile.locationWKT);
         const nearbyRecruiterResults = await this.prisma.$queryRaw `
       SELECT "id"
       FROM "RecruiterProfile"
       WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
-        ST_GeomFromText("locationWKT", 4326)::geography,
-        ST_GeomFromText(${candidateProfile.locationWKT}, 4326)::geography,
+        "locationWKT"::geography,
+        ${candidateProfile.locationWKT}::geography,
         ${radiusInMeters}
       )
     `;
         const nearbyRecruiterIds = nearbyRecruiterResults.map(r => r.id);
-        console.log('📍 [Discovery] Nearby recruiters found:', nearbyRecruiterIds.length, nearbyRecruiterIds);
         const finalRecruiters = await this.prisma.recruiterProfile.findMany({
             where: {
                 id: {
@@ -68,34 +59,21 @@ let DiscoveryService = class DiscoveryService {
                 },
             },
         });
-        console.log('✅ [Discovery] Final recruiters to return:', finalRecruiters.length);
         const recruitersWithCompany = finalRecruiters.map(recruiter => ({
             ...recruiter,
             companyName: recruiter.memberships?.[0]?.company?.name || null,
         }));
-        console.log('🏢 [Discovery] Sample recruiter with company:', recruitersWithCompany[0] ? {
-            firstName: recruitersWithCompany[0].firstName,
-            lastName: recruitersWithCompany[0].lastName,
-            companyName: recruitersWithCompany[0].companyName,
-            hasMemberships: !!recruitersWithCompany[0].memberships?.length,
-        } : 'No recruiters');
         return recruitersWithCompany;
     }
     async getCandidatesForRecruiter(userId, radiusInMeters = 20000) {
-        console.log('🔍 [Discovery] Getting candidates for recruiter userId:', userId);
         const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
             where: { userId },
         });
-        console.log('👤 [Discovery] Recruiter profile:', recruiterProfile ? {
-            id: recruiterProfile.id,
-            name: `${recruiterProfile.firstName} ${recruiterProfile.lastName}`,
-            locationWKT: recruiterProfile.locationWKT,
-        } : 'NOT FOUND');
         if (!recruiterProfile) {
-            throw new common_1.NotFoundException('Profil recruteur non trouvé.');
+            throw new common_1.NotFoundException('Recruiter profile not found.');
         }
         if (!recruiterProfile.locationWKT) {
-            throw new common_1.NotFoundException('Votre localisation est requise pour la découverte.');
+            throw new common_1.NotFoundException('Your location is required for discovery.');
         }
         const recruiterId = recruiterProfile.id;
         const swipedCandidates = await this.prisma.swipe.findMany({
@@ -103,20 +81,17 @@ let DiscoveryService = class DiscoveryService {
             select: { candidateId: true },
         });
         const swipedCandidateIds = swipedCandidates.map(s => s.candidateId);
-        console.log('🚫 [Discovery] Already swiped candidates:', swipedCandidateIds.length);
-        console.log('🔎 [Discovery] Searching for candidates within', radiusInMeters, 'meters from', recruiterProfile.locationWKT);
         const nearbyCandidateResults = await this.prisma.$queryRaw `
       SELECT "id"
       FROM "CandidateProfile"
       WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
-        ST_GeomFromText("locationWKT", 4326)::geography,
-        ST_GeomFromText(${recruiterProfile.locationWKT}, 4326)::geography,
+        "locationWKT"::geography,
+        ${recruiterProfile.locationWKT}::geography,
         ${radiusInMeters}
       )
     `;
         const nearbyCandidateIds = nearbyCandidateResults.map(r => r.id);
-        console.log('📍 [Discovery] Nearby candidates found:', nearbyCandidateIds.length, nearbyCandidateIds);
         const finalCandidates = await this.prisma.candidateProfile.findMany({
             where: {
                 id: {
@@ -128,7 +103,6 @@ let DiscoveryService = class DiscoveryService {
                 interestedInCategories: true,
             },
         });
-        console.log('✅ [Discovery] Final candidates to return:', finalCandidates.length);
         return finalCandidates;
     }
     async getPendingCandidatesForRecruiter(userId) {
@@ -137,7 +111,7 @@ let DiscoveryService = class DiscoveryService {
             select: { id: true },
         });
         if (!recruiterProfile) {
-            throw new common_1.NotFoundException('Profil recruteur non trouvé.');
+            throw new common_1.NotFoundException('Recruiter profile not found.');
         }
         const pendingSwipes = await this.prisma.swipe.findMany({
             where: {

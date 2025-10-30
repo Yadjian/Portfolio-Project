@@ -11,25 +11,17 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateLocationDto = void 0;
 const class_validator_1 = require("class-validator");
-const class_transformer_1 = require("class-transformer");
 class UpdateLocationDto {
 }
 exports.UpdateLocationDto = UpdateLocationDto;
 __decorate([
-    (0, class_validator_1.IsString)({ message: 'Le nom de lieu doit être une chaîne de caractères' }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'Le nom de lieu est obligatoire' }),
-    (0, class_validator_1.MaxLength)(255, { message: 'Le nom de lieu est trop long (max 255 caractères)' }),
-    (0, class_transformer_1.Transform)(({ value }) => value?.trim()),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], UpdateLocationDto.prototype, "locationName", void 0);
 __decorate([
-    (0, class_validator_1.IsString)({ message: 'Les coordonnées doivent être une chaîne de caractères' }),
-    (0, class_validator_1.IsNotEmpty)({ message: 'Les coordonnées sont obligatoires' }),
-    (0, class_validator_1.MaxLength)(500, { message: 'Les coordonnées sont trop longues (max 500 caractères)' }),
-    (0, class_validator_1.ValidateIf)((o) => o.locationWKT && o.locationWKT.length > 0),
-    (0, class_validator_1.Matches)(/^POINT\s*\(\s*-?\d+\.?\d*\s+-?\d+\.?\d*\s*\)$/i, {
-        message: 'Format de coordonnées invalide. Exemple: POINT(2.3522 48.8566)'
-    }),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsNotEmpty)(),
     __metadata("design:type", String)
 ], UpdateLocationDto.prototype, "locationWKT", void 0);
 //# sourceMappingURL=update-location.dto.js.map

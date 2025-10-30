@@ -43,25 +43,12 @@ const path = __importStar(require("path"));
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     const port = process.env.PORT ?? 3000;
-    app.enableCors({
-        origin: process.env.NODE_ENV === 'production'
-            ? process.env.ALLOWED_ORIGINS?.split(',') || []
-            : true,
-        credentials: true,
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    });
+    app.enableCors();
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
-        forbidNonWhitelisted: false,
+        forbidNonWhitelisted: true,
         transform: true,
-        skipUndefinedProperties: true,
-        skipNullProperties: false,
-        skipMissingProperties: false,
         disableErrorMessages: false,
-        validateCustomDecorators: true,
-        transformOptions: {
-            enableImplicitConversion: true,
-        },
     }));
     console.log('Database URL:', process.env.DATABASE_URL);
     console.log('Redis URL:', process.env.REDIS_URL);
@@ -80,7 +67,6 @@ async function bootstrap() {
     }
     await app.listen(port, '0.0.0.0');
     console.log(`Server is running on http://localhost:${port}`);
-    console.log('🔒 Progressive validation enabled (frontend-compatible)');
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

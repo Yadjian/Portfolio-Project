@@ -27,52 +27,24 @@ let ProfileController = class ProfileController {
         const userId = req.user.sub;
         return this.profileService.getUserProfile(userId);
     }
-    async updateProfile(req, updateProfileDto, photoFile) {
-        try {
-            const userId = req.user.sub;
-            return await this.profileService.updateProfile(userId, updateProfileDto, photoFile);
-        }
-        catch (error) {
-            if (error.response?.statusCode === 400) {
-                console.warn('Validation error in updateProfile:', error.response.message);
-            }
-            throw error;
-        }
+    updateProfile(req, updateProfileDto, photoFile) {
+        const userId = req.user.sub;
+        return this.profileService.updateProfile(userId, updateProfileDto, photoFile);
     }
-    async updateLocation(req, updateLocationDto) {
-        try {
-            const userId = req.user.sub;
-            return await this.profileService.updateUserLocation(userId, updateLocationDto);
-        }
-        catch (error) {
-            if (error.message?.includes('ST_GeomFromText')) {
-                throw new common_1.BadRequestException('Coordonnées GPS invalides. Vérifiez le format.');
-            }
-            throw error;
-        }
+    updateLocation(req, updateLocationDto) {
+        const userId = req.user.sub;
+        return this.profileService.updateUserLocation(userId, updateLocationDto);
     }
     async getJobCategories() {
         return this.profileService.getJobCategories();
     }
-    async uploadProfilePhoto(req, photoFile) {
-        try {
-            const userId = req.user.sub;
-            return await this.profileService.updateProfilePhoto(userId, photoFile);
-        }
-        catch (error) {
-            console.warn('Photo upload error:', error.message);
-            throw error;
-        }
+    uploadProfilePhoto(req, photoFile) {
+        const userId = req.user.sub;
+        return this.profileService.updateProfilePhoto(userId, photoFile);
     }
-    async uploadResume(req, file) {
-        try {
-            const user = req.user;
-            return await this.profileService.updateResume(user.sub, file);
-        }
-        catch (error) {
-            console.warn('Resume upload error:', error.message);
-            throw error;
-        }
+    uploadResume(req, file) {
+        const user = req.user;
+        return this.profileService.updateResume(user.sub, file);
     }
     deleteResume(req) {
         const user = req.user;
@@ -101,23 +73,22 @@ __decorate([
     __param(2, (0, common_1.UploadedFile)(new common_1.ParseFilePipe({
         fileIsRequired: false,
         validators: [
-            new common_1.MaxFileSizeValidator({ maxSize: 3 * 1024 * 1024 }),
-            new common_1.FileTypeValidator({ fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i }),
+            new common_1.MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }),
+            new common_1.FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }),
         ],
     }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, update_profile_dto_1.UpdateProfileDto, Object]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", void 0)
 ], ProfileController.prototype, "updateProfile", null);
 __decorate([
     (0, common_1.Put)('location'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, update_location_dto_1.UpdateLocationDto]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", void 0)
 ], ProfileController.prototype, "updateLocation", null);
 __decorate([
     (0, common_1.Get)('categories'),
@@ -129,38 +100,35 @@ __decorate([
     (0, common_1.Put)('photo'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('photoFile')),
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.UploadedFile)(new common_1.ParseFilePipe({
         validators: [
-            new common_1.MaxFileSizeValidator({ maxSize: 3 * 1024 * 1024 }),
-            new common_1.FileTypeValidator({ fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i }),
+            new common_1.MaxFileSizeValidator({ maxSize: 2 * 1024 * 1024 }),
+            new common_1.FileTypeValidator({ fileType: /^image\/(jpeg|png)$/i }),
         ],
     }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", void 0)
 ], ProfileController.prototype, "uploadProfilePhoto", null);
 __decorate([
     (0, common_1.Put)('resume'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('resumeFile')),
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.UploadedFile)(new common_1.ParseFilePipe({
         validators: [
-            new common_1.MaxFileSizeValidator({ maxSize: 7 * 1024 * 1024 }),
-            new common_1.FileTypeValidator({ fileType: /^application\/pdf$/i }),
+            new common_1.MaxFileSizeValidator({ maxSize: 5 * 1024 * 1024 }),
+            new common_1.FileTypeValidator({ fileType: 'application/pdf' }),
         ],
     }))),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, Object]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:returntype", void 0)
 ], ProfileController.prototype, "uploadResume", null);
 __decorate([
     (0, common_1.Delete)('resume'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
@@ -169,7 +137,6 @@ __decorate([
 __decorate([
     (0, common_1.Post)('push-token'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
-    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)('token')),
     __metadata("design:type", Function),

@@ -1,1 +1,1 @@
-{"version":3,"file":"update-job-offer.dto.js","sourceRoot":"","sources":["../../../src/job-offer/dto/update-job-offer.dto.ts"],"names":[],"mappings":";;;AAAA,6CAA8C;AAC9C,iEAA2D;AAI3D,MAAa,iBAAkB,SAAQ,IAAA,qBAAW,EAAC,wCAAiB,CAAC;CAAG;AAAxE,8CAAwE"}
+{"version":3,"file":"update-job-offer.dto.js","sourceRoot":"","sources":["../../../src/job-offer/dto/update-job-offer.dto.ts"],"names":[],"mappings":";;;AAAA,6CAA8C;AAC9C,iEAA2D;AAK3D,MAAa,iBAAkB,SAAQ,IAAA,qBAAW,EAAC,wCAAiB,CAAC;CAAG;AAAxE,8CAAwE"}

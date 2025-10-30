@@ -47,7 +47,6 @@ const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../prisma/prisma.service");
 const jwt_1 = require("@nestjs/jwt");
 const bcrypt = __importStar(require("bcrypt"));
-const crypto = __importStar(require("crypto"));
 const signup_dto_1 = require("./dto/signup.dto");
 let AuthService = class AuthService {
     constructor(prisma, jwtService) {
@@ -57,16 +56,16 @@ let AuthService = class AuthService {
     async signup(dto) {
         const { email, password, role } = dto;
         const existingUser = await this.prisma.user.findUnique({
-            where: { email },
+            where: { email: email.toLowerCase() },
         });
         if (existingUser) {
-            throw new common_1.ConflictException('Un utilisateur avec cet email existe déjà.');
+            throw new common_1.ConflictException('A user with this email already exists.');
         }
-        const hashedPassword = await bcrypt.hash(password, 12);
+        const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = await this.prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
                 data: {
-                    email,
+                    email: email.toLowerCase(),
                     password: hashedPassword,
                 },
             });
@@ -97,14 +96,14 @@ let AuthService = class AuthService {
     async login(dto) {
         const { email, password } = dto;
         const user = await this.prisma.user.findUnique({
-            where: { email },
+            where: { email: email.toLowerCase() },
         });
         if (!user) {
-            throw new common_1.UnauthorizedException('Identifiants incorrects.');
+            throw new common_1.UnauthorizedException('Invalid credentials.');
         }
         const isPasswordMatching = await bcrypt.compare(password, user.password);
         if (!isPasswordMatching) {
-            throw new common_1.UnauthorizedException('Identifiants incorrects.');
+            throw new common_1.UnauthorizedException('Invalid credentials.');
         }
         const tokens = await this.getTokens(user.id, user.email);
         await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
@@ -114,7 +113,9 @@ let AuthService = class AuthService {
         await this.prisma.user.updateMany({
             where: {
                 id: userId,
-                hashedRefreshToken: { not: null },
+                hashedRefreshToken: {
+                    not: null,
+                },
             },
             data: {
                 hashedRefreshToken: null,
@@ -133,7 +134,7 @@ let AuthService = class AuthService {
         return newTokens;
     }
     async updateRefreshTokenHash(userId, refreshToken) {
-        const hash = await bcrypt.hash(refreshToken, 12);
+        const hash = await bcrypt.hash(refreshToken, 10);
         await this.prisma.user.update({
             where: { id: userId },
             data: { hashedRefreshToken: hash },
@@ -143,7 +144,6 @@ let AuthService = class AuthService {
         const payload = {
             sub: userId,
             email,
-            jti: crypto.randomUUID(),
         };
         const [accessToken, refreshToken] = await Promise.all([
             this.jwtService.signAsync(payload, {
@@ -155,7 +155,10 @@ let AuthService = class AuthService {
                 expiresIn: '7d',
             }),
         ]);
-        return { accessToken, refreshToken };
+        return {
+            accessToken,
+            refreshToken,
+        };
     }
 };
 exports.AuthService = AuthService;

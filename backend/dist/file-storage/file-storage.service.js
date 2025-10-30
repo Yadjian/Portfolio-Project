@@ -49,10 +49,9 @@ let FileStorageService = class FileStorageService {
                 Key: fileName,
             });
             await this.s3Client.send(command);
-            console.log(`✅ Fichier supprimé de R2: ${fileName}`);
         }
         catch (error) {
-            console.error('❌ Erreur lors de la suppression du fichier R2:', error);
+            console.error('Error deleting file from R2:', error);
         }
     }
 };

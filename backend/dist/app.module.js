@@ -25,9 +25,6 @@ const admin_module_1 = require("./admin/admin.module");
 const platform_express_1 = require("@nestjs/platform-express");
 const bullmq_1 = require("@nestjs/bullmq");
 const notifications_module_1 = require("./notifications/notifications.module");
-const firebase_module_1 = require("./firebase/firebase.module");
-const throttler_1 = require("@nestjs/throttler");
-const core_1 = require("@nestjs/core");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -36,8 +33,8 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             bullmq_1.BullModule.forRoot({
                 connection: {
-                    host: 'redis',
-                    port: 6379,
+                    host: process.env.REDIS_HOST || 'redis',
+                    port: parseInt(process.env.REDIS_PORT) || 6379,
                 },
             }),
             auth_module_1.AuthModule,
@@ -55,25 +52,9 @@ exports.AppModule = AppModule = __decorate([
             platform_express_1.MulterModule.register({
                 dest: './uploads',
             }),
-            firebase_module_1.FirebaseModule,
-            throttler_1.ThrottlerModule.forRoot([
-                {
-                    name: 'default',
-                    ttl: 60000,
-                    limit: 10,
-                },
-                {
-                    name: 'auth',
-                    ttl: 900000,
-                    limit: 5,
-                },
-            ]),
         ],
         controllers: [app_controller_1.AppController, health_controller_1.HealthController],
-        providers: [app_service_1.AppService, {
-                provide: core_1.APP_GUARD,
-                useClass: throttler_1.ThrottlerGuard,
-            }],
+        providers: [app_service_1.AppService],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map

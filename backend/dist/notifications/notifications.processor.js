@@ -22,7 +22,6 @@ let SwipeNotificationsProcessor = class SwipeNotificationsProcessor extends bull
         this.prisma = prisma;
     }
     async process(job) {
-        console.log(`[${notifications_module_1.SWIPE_NOTIFICATION_QUEUE}] Received job ${job.id} with name ${job.name}`);
         switch (job.name) {
             case 'candidate-swipe-right':
                 return this.handleCandidateSwipe(job);
@@ -32,7 +31,6 @@ let SwipeNotificationsProcessor = class SwipeNotificationsProcessor extends bull
         }
     }
     async handleCandidateSwipe(job) {
-        console.log(`[swipe-notification] Processing job ${job.id} (candidate-swipe-right)`);
         const { candidateId, recruiterId } = job.data;
         try {
             const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
@@ -44,7 +42,7 @@ let SwipeNotificationsProcessor = class SwipeNotificationsProcessor extends bull
                 select: { firstName: true }
             });
             if (recruiterProfile?.pushToken && candidateProfile) {
-                await this.firebaseService.sendPushNotification(recruiterProfile.pushToken, 'Nouveau Swipe ! 👍', `${candidateProfile.firstName} est intéressé(e) par votre profil !`, { type: 'new_swipe', candidateId: candidateId });
+                await this.firebaseService.sendPushNotification(recruiterProfile.pushToken, 'Nouveau Swipe !', `${candidateProfile.firstName} est intéressé(e) par votre profil !`, { type: 'new_swipe', candidateId: candidateId });
             }
             else {
                 console.warn(`Recruiter ${recruiterId} has no push token or candidate ${candidateId} not found.`);
@@ -68,7 +66,6 @@ let MatchNotificationsProcessor = class MatchNotificationsProcessor extends bull
         this.prisma = prisma;
     }
     async process(job) {
-        console.log(`[${notifications_module_1.MATCH_NOTIFICATION_QUEUE}] Received job ${job.id} with name ${job.name}`);
         switch (job.name) {
             case 'new-match-candidate':
                 return this.handleMatchCandidate(job);
@@ -80,7 +77,6 @@ let MatchNotificationsProcessor = class MatchNotificationsProcessor extends bull
         }
     }
     async handleMatchCandidate(job) {
-        console.log(`[match-notification] Processing job ${job.id} (new-match-candidate)`);
         const { candidateId, recruiterId } = job.data;
         try {
             const candidateProfile = await this.prisma.candidateProfile.findUnique({
@@ -92,7 +88,7 @@ let MatchNotificationsProcessor = class MatchNotificationsProcessor extends bull
                 select: { firstName: true }
             });
             if (candidateProfile?.pushToken && recruiterProfile) {
-                await this.firebaseService.sendPushNotification(candidateProfile.pushToken, '🎉 Nouveau Match !', `Vous avez matché avec ${recruiterProfile.firstName} ! Consultez vos matchs.`, { type: 'new_match', recruiterId: recruiterId });
+                await this.firebaseService.sendPushNotification(candidateProfile.pushToken, 'Nouveau Match !', `Vous avez matché avec ${recruiterProfile.firstName} ! Consultez vos matchs.`, { type: 'new_match', recruiterId: recruiterId });
             }
             else {
                 console.warn(`Candidate ${candidateId} has no push token or recruiter ${recruiterId} not found.`);
@@ -103,7 +99,6 @@ let MatchNotificationsProcessor = class MatchNotificationsProcessor extends bull
         }
     }
     async handleMatchRecruiter(job) {
-        console.log(`[match-notification] Processing job ${job.id} (new-match-recruiter)`);
         const { candidateId, recruiterId } = job.data;
         try {
             const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
@@ -115,7 +110,7 @@ let MatchNotificationsProcessor = class MatchNotificationsProcessor extends bull
                 select: { firstName: true }
             });
             if (recruiterProfile?.pushToken && candidateProfile) {
-                await this.firebaseService.sendPushNotification(recruiterProfile.pushToken, '🎉 Nouveau Match !', `Vous avez matché avec ${candidateProfile.firstName} ! Consultez vos matchs.`, { type: 'new_match', candidateId: candidateId });
+                await this.firebaseService.sendPushNotification(recruiterProfile.pushToken, 'Nouveau Match !', `Vous avez matché avec ${candidateProfile.firstName} ! Consultez vos matchs.`, { type: 'new_match', candidateId: candidateId });
             }
             else {
                 console.warn(`Recruiter ${recruiterId} has no push token or candidate ${candidateId} not found.`);

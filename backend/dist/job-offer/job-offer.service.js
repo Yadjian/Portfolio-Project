@@ -17,9 +17,6 @@ let JobOfferService = class JobOfferService {
         this.prisma = prisma;
     }
     async create(createJobOfferDto, userId) {
-        if (!userId) {
-            throw new common_1.BadRequestException('Utilisateur requis pour créer une offre.');
-        }
         const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
             where: { userId },
             include: {
@@ -28,13 +25,13 @@ let JobOfferService = class JobOfferService {
             },
         });
         if (!recruiterProfile) {
-            throw new common_1.NotFoundException('Profil recruteur introuvable.');
+            throw new common_1.NotFoundException('Recruiter profile not found.');
         }
         if (!recruiterProfile.memberships?.length) {
-            throw new common_1.ForbiddenException('Vous devez être associé à une entreprise.');
+            throw new common_1.ForbiddenException('You must be associated with a company.');
         }
         if (!recruiterProfile.searchedCategories?.length || !recruiterProfile.desiredContractTypes?.length || !recruiterProfile.desiredExperienceLevel) {
-            throw new common_1.ForbiddenException("Veuillez finaliser votre profil (contrats, expérience, catégories) avant de poster une offre.");
+            throw new common_1.ForbiddenException("Please complete your profile (contracts, experience, categories) before posting a job offer.");
         }
         const companyId = recruiterProfile.memberships[0].company.id;
         const categoryIds = recruiterProfile.searchedCategories.map(cat => ({ id: cat.id }));
@@ -70,7 +67,6 @@ let JobOfferService = class JobOfferService {
                 },
             },
         });
-        console.log(`✅ Job offer created: ${jobOffer.id} by user ${userId}`);
         return jobOffer;
     }
     async findAll() {
@@ -126,9 +122,6 @@ let JobOfferService = class JobOfferService {
         return jobOffer;
     }
     async update(id, userId, updateJobOfferDto) {
-        if (!id || !userId) {
-            throw new common_1.BadRequestException('ID offre et utilisateur requis.');
-        }
         const jobOffer = await this.prisma.jobOffer.findUnique({
             where: { id },
             include: {
@@ -138,24 +131,11 @@ let JobOfferService = class JobOfferService {
             },
         });
         if (!jobOffer) {
-            throw new common_1.NotFoundException('Offre d\'emploi introuvable.');
+            throw new common_1.NotFoundException('Job offer not found.');
         }
-        const isCreator = jobOffer.createdBy.userId === userId;
-        let isMemberOfCompany = false;
-        if (!isCreator) {
-            const membership = await this.prisma.recruiterMembership.findFirst({
-                where: {
-                    companyId: jobOffer.companyId,
-                    recruiter: { userId: userId }
-                }
-            });
-            isMemberOfCompany = !!membership;
+        if (jobOffer.createdBy.userId !== userId) {
+            throw new common_1.ForbiddenException('You can only update your own job offers.');
         }
-        if (!isCreator && !isMemberOfCompany) {
-            console.warn(`🚨 IDOR blocked: User ${userId} tried to update job offer ${id}`);
-            throw new common_1.ForbiddenException('Vous ne pouvez modifier que les offres de votre entreprise.');
-        }
-        console.log(`✅ Job offer update authorized: ${id} by user ${userId} (creator: ${isCreator}, member: ${isMemberOfCompany})`);
         return this.prisma.jobOffer.update({
             where: { id },
             data: updateJobOfferDto,
@@ -171,13 +151,9 @@ let JobOfferService = class JobOfferService {
         });
     }
     async remove(id, userId) {
-        if (!id || !userId) {
-            throw new common_1.BadRequestException('ID offre et utilisateur requis.');
-        }
         const jobOffer = await this.prisma.jobOffer.findUnique({
             where: { id },
             select: {
-                companyId: true,
                 createdBy: {
                     select: {
                         userId: true,
@@ -186,30 +162,14 @@ let JobOfferService = class JobOfferService {
             },
         });
         if (!jobOffer) {
-            throw new common_1.NotFoundException(`Offre d'emploi avec l'ID "${id}" introuvable.`);
+            throw new common_1.NotFoundException(`Job offer with ID "${id}" not found.`);
         }
-        const isCreator = jobOffer.createdBy.userId === userId;
-        let isMemberOfCompany = false;
-        if (!isCreator) {
-            const membership = await this.prisma.recruiterMembership.findFirst({
-                where: {
-                    companyId: jobOffer.companyId,
-                    recruiter: { userId: userId }
-                }
-            });
-            isMemberOfCompany = !!membership;
+        if (jobOffer.createdBy.userId !== userId) {
+            throw new common_1.ForbiddenException('You are not authorized to delete this job offer.');
         }
-        if (!isCreator && !isMemberOfCompany) {
-            console.warn(`🚨 IDOR deletion blocked: User ${userId} tried to delete job offer ${id}`);
-            throw new common_1.ForbiddenException('Vous n\'êtes pas autorisé à supprimer cette offre.');
-        }
-        console.log(`✅ Job offer deletion authorized: ${id} by user ${userId} (creator: ${isCreator}, member: ${isMemberOfCompany})`);
         await this.prisma.jobOffer.delete({ where: { id } });
     }
     async findAllByRecruiter(userId) {
-        if (!userId) {
-            throw new common_1.BadRequestException('Utilisateur requis.');
-        }
         const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
             where: { userId },
         });

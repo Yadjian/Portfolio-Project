@@ -132,7 +132,7 @@ let AdminService = class AdminService {
             },
         });
         if (!user) {
-            throw new common_1.NotFoundException('Utilisateur non trouvé');
+            throw new common_1.NotFoundException('User not found');
         }
         return {
             ...user,
@@ -172,7 +172,7 @@ let AdminService = class AdminService {
     async updateUser(id, dto) {
         const user = await this.prisma.user.findUnique({ where: { id } });
         if (!user) {
-            throw new common_1.NotFoundException('Utilisateur non trouvé');
+            throw new common_1.NotFoundException('User not found');
         }
         const updateData = {};
         if (dto.email)
@@ -208,10 +208,10 @@ let AdminService = class AdminService {
     async deleteUser(id) {
         const user = await this.prisma.user.findUnique({ where: { id } });
         if (!user) {
-            throw new common_1.NotFoundException('Utilisateur non trouvé');
+            throw new common_1.NotFoundException('User not found');
         }
         await this.prisma.user.delete({ where: { id } });
-        return { message: 'Utilisateur supprimé' };
+        return { message: 'User deleted' };
     }
 };
 exports.AdminService = AdminService;

@@ -40,7 +40,7 @@ let ProfileService = class ProfileService {
             },
         });
         if (!user) {
-            throw new common_1.NotFoundException('Utilisateur non trouvé.');
+            throw new common_1.NotFoundException('User not found.');
         }
         return user;
     }
@@ -50,12 +50,9 @@ let ProfileService = class ProfileService {
             include: { candidateProfile: true, recruiterProfile: true },
         });
         if (!user)
-            throw new common_1.NotFoundException('Utilisateur non trouvé.');
+            throw new common_1.NotFoundException('User not found.');
         let photoUrlData = {};
         if (photoFile) {
-            if (photoFile.size > 3 * 1024 * 1024) {
-                console.warn(`Large photo upload: ${photoFile.size} bytes`);
-            }
             const url = await this.fileStorageService.uploadFile(photoFile, 'profile-photos');
             photoUrlData = { photoUrl: url };
         }
@@ -96,22 +93,18 @@ let ProfileService = class ProfileService {
             include: { candidateProfile: true },
         });
         if (!user.candidateProfile) {
-            throw new common_1.NotFoundException('Profil candidat non trouvé pour cet utilisateur.');
+            throw new common_1.NotFoundException('Candidate profile not found for this user.');
         }
         const { locationName, locationWKT } = locationDto;
         try {
             await this.prisma.$executeRaw `SELECT ST_GeomFromText(${locationWKT}, 4326)`;
         }
         catch (error) {
-            console.warn('PostGIS validation error:', error.message);
-            throw new common_1.BadRequestException('Coordonnées GPS invalides. Vérifiez le format.');
+            throw new common_1.BadRequestException('Invalid GPS coordinates');
         }
         return this.prisma.candidateProfile.update({
             where: { id: user.candidateProfile.id },
-            data: {
-                locationWKT,
-                locationName: locationName
-            },
+            data: { locationWKT, locationName },
         });
     }
     async updateRecruiterLocation(userId, locationDto) {
@@ -120,22 +113,12 @@ let ProfileService = class ProfileService {
             include: { recruiterProfile: true },
         });
         if (!user.recruiterProfile) {
-            throw new common_1.NotFoundException('Profil recruteur non trouvé pour cet utilisateur.');
+            throw new common_1.NotFoundException('Recruiter profile not found for this user.');
         }
         const { locationName, locationWKT } = locationDto;
-        try {
-            await this.prisma.$executeRaw `SELECT ST_GeomFromText(${locationWKT}, 4326)`;
-        }
-        catch (error) {
-            console.warn('PostGIS validation error for recruiter:', error.message);
-            throw new common_1.BadRequestException('Coordonnées GPS invalides. Vérifiez le format.');
-        }
         return this.prisma.recruiterProfile.update({
             where: { id: user.recruiterProfile.id },
-            data: {
-                locationWKT,
-                locationName: locationName
-            },
+            data: { locationWKT, locationName },
         });
     }
     async updateProfile(userId, dto, photoFile) {
@@ -143,37 +126,35 @@ let ProfileService = class ProfileService {
             where: { id: userId },
             include: { candidateProfile: true, recruiterProfile: true },
         });
-        if (!user) {
-            throw new common_1.NotFoundException('Utilisateur non trouvé.');
-        }
         let profileModel;
         let profileId;
+        let oldPhotoUrl = null;
         if (user.candidateProfile) {
             profileModel = this.prisma.candidateProfile;
             profileId = user.candidateProfile.id;
+            oldPhotoUrl = user.candidateProfile.photoUrl;
         }
         else if (user.recruiterProfile) {
             profileModel = this.prisma.recruiterProfile;
             profileId = user.recruiterProfile.id;
+            oldPhotoUrl = user.recruiterProfile.photoUrl;
         }
         else {
-            throw new common_1.NotFoundException('Profil non trouvé.');
+            throw new common_1.NotFoundException('Profile not found.');
         }
         let photoUrlData = {};
         if (photoFile) {
-            if (photoFile.size > 3 * 1024 * 1024) {
-                console.warn(`Large photo upload: ${photoFile.size} bytes for user ${userId}`);
-            }
             const url = await this.fileStorageService.uploadFile(photoFile, 'profile-photos');
             photoUrlData = { photoUrl: url };
+            if (oldPhotoUrl) {
+                await this.fileStorageService.deleteFileByUrl(oldPhotoUrl);
+            }
         }
         let categoriesData = {};
-        if (dto.interestedInCategoryIds && dto.interestedInCategoryIds.length > 0) {
-            const categoryFieldName = user.candidateProfile
-                ? 'interestedInCategories'
-                : 'searchedCategories';
+        if (dto.interestedInCategoryIds) {
+            const categoryField = user.candidateProfile ? 'interestedInCategories' : 'searchedCategories';
             categoriesData = {
-                [categoryFieldName]: {
+                [categoryField]: {
                     set: dto.interestedInCategoryIds.map(id => ({ id: id })),
                 },
             };
@@ -197,23 +178,61 @@ let ProfileService = class ProfileService {
             orderBy: { name: 'asc' }
         });
     }
-    async updateResume(userId, file) {
-        if (file.size > 7 * 1024 * 1024) {
-            console.warn(`Large resume upload: ${file.size} bytes for user ${userId}`);
+    async updateProfilePhoto(userId, photoFile) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { candidateProfile: true, recruiterProfile: true },
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('User not found.');
         }
+        let oldPhotoUrl = null;
+        if (user.candidateProfile) {
+            oldPhotoUrl = user.candidateProfile.photoUrl;
+        }
+        else if (user.recruiterProfile) {
+            oldPhotoUrl = user.recruiterProfile.photoUrl;
+        }
+        const photoUrl = await this.fileStorageService.uploadFile(photoFile, 'profile-photos');
+        if (user.candidateProfile) {
+            await this.prisma.candidateProfile.update({
+                where: { id: user.candidateProfile.id },
+                data: { photoUrl },
+            });
+        }
+        else if (user.recruiterProfile) {
+            await this.prisma.recruiterProfile.update({
+                where: { id: user.recruiterProfile.id },
+                data: { photoUrl },
+            });
+        }
+        else {
+            throw new common_1.NotFoundException('Profile not found.');
+        }
+        if (oldPhotoUrl) {
+            await this.fileStorageService.deleteFileByUrl(oldPhotoUrl);
+        }
+        return { photoUrl };
+    }
+    async updateResume(userId, file) {
         const profile = await this.prisma.candidateProfile.findUnique({
             where: { userId },
         });
         if (!profile) {
-            throw new common_1.NotFoundException('Profil candidat non trouvé.');
+            throw new common_1.NotFoundException('Candidate profile not found.');
         }
         const fileUrl = await this.fileStorageService.uploadFile(file, 'resumes');
+        if (profile.resumeUrl) {
+            await this.fileStorageService.deleteFileByUrl(profile.resumeUrl);
+        }
         const updatedProfile = await this.prisma.candidateProfile.update({
             where: { id: profile.id },
-            data: { resumeUrl: fileUrl },
+            data: {
+                resumeUrl: fileUrl,
+            },
         });
         return {
-            message: 'CV mis à jour avec succès.',
+            message: 'Resume updated successfully.',
             resumeUrl: updatedProfile.resumeUrl,
         };
     }
@@ -222,73 +241,36 @@ let ProfileService = class ProfileService {
             where: { userId },
         });
         if (!profile) {
-            throw new common_1.NotFoundException('Profil candidat non trouvé.');
+            throw new common_1.NotFoundException('Candidate profile not found.');
+        }
+        if (profile.resumeUrl) {
+            await this.fileStorageService.deleteFileByUrl(profile.resumeUrl);
         }
         await this.prisma.candidateProfile.update({
             where: { id: profile.id },
-            data: { resumeUrl: null },
+            data: {
+                resumeUrl: null,
+            },
         });
         return {
-            message: 'CV supprimé avec succès.',
+            message: 'Resume deleted successfully.',
         };
     }
     async updatePushToken(userId, token) {
-        if (token && (token.length < 5 || token.length > 2000)) {
-            console.warn(`Suspicious push token length: ${token.length} for user ${userId}`);
-        }
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
             include: { candidateProfile: true, recruiterProfile: true },
         });
         if (!user) {
-            throw new common_1.NotFoundException('Utilisateur non trouvé.');
+            throw new common_1.NotFoundException('User not found.');
         }
         if (user.candidateProfile) {
-            return this.prisma.candidateProfile.update({
-                where: { userId },
-                data: { pushToken: token }
-            });
+            return this.prisma.candidateProfile.update({ where: { userId }, data: { pushToken: token } });
         }
         else if (user.recruiterProfile) {
-            return this.prisma.recruiterProfile.update({
-                where: { userId },
-                data: { pushToken: token }
-            });
+            return this.prisma.recruiterProfile.update({ where: { userId }, data: { pushToken: token } });
         }
-        throw new common_1.NotFoundException('Profil non trouvé.');
-    }
-    async updateProfilePhoto(userId, photoFile) {
-        if (photoFile.size > 3 * 1024 * 1024) {
-            console.warn(`Large profile photo: ${photoFile.size} bytes for user ${userId}`);
-        }
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-            include: {
-                candidateProfile: { select: { id: true } },
-                recruiterProfile: { select: { id: true } },
-            },
-        });
-        if (!user) {
-            throw new common_1.NotFoundException('Utilisateur non trouvé');
-        }
-        const photoUrl = await this.fileStorageService.uploadFile(photoFile, 'profile-photos');
-        if (user.candidateProfile) {
-            const updatedProfile = await this.prisma.candidateProfile.update({
-                where: { id: user.candidateProfile.id },
-                data: { photoUrl },
-            });
-            return { photoUrl: updatedProfile.photoUrl };
-        }
-        else if (user.recruiterProfile) {
-            const updatedProfile = await this.prisma.recruiterProfile.update({
-                where: { id: user.recruiterProfile.id },
-                data: { photoUrl },
-            });
-            return { photoUrl: updatedProfile.photoUrl };
-        }
-        else {
-            throw new common_1.ForbiddenException("L'utilisateur n'a pas de profil actif");
-        }
+        throw new common_1.NotFoundException('Profile not found.');
     }
 };
 exports.ProfileService = ProfileService;
