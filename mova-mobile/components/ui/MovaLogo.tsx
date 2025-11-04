@@ -39,7 +39,7 @@ export default function MovaLogo({ sizeProp }: { sizeProp?: number }) {
         },
       ]}
     >
-      <Text style={[styles.title, { fontSize: size * 0.32, fontFamily: 'Poppins_700Bold' }]}>Mova</Text>
+      <Text style={[styles.title, { fontSize: size * 0.24, fontFamily: 'Poppins_700Bold' }]}>Mova</Text>
     </LinearGradient>
   );
 }
