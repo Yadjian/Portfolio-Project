@@ -1,15 +1,11 @@
 import { PrismaClient, ContractType, ExperienceLevel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
-// Initialiser le client Prisma
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log(`Début du script de seeding...`);
-
-  // La liste des catégories de postes que vous voulez ajouter
+  // List of job categories to seed
   const jobCategoriesToCreate = [
-    // Hôtellerie, Restauration, Tourisme, Vente
     'Serveur / Serveuse',
     'Cuisinier / Cuisinière',
     'Barman / Barmaid',
@@ -31,20 +27,16 @@ async function main() {
     'Chauffeur / Chauffeuse',
   ];
 
-  // On transforme la liste de noms en objets pour createMany
+  // Transform the list of names into objects for createMany
   const dataToInsert = jobCategoriesToCreate.map(name => ({ name }));
 
-  // On utilise createMany avec skipDuplicates pour ne pas créer de doublons
-  // On utilise createMany pour insérer toutes les nouvelles catégories
-  const result = await prisma.jobCategory.createMany({
+  // Insert all new categories, skipping duplicates
+  await prisma.jobCategory.createMany({
     data: dataToInsert,
-    skipDuplicates: true, // Très important ! Évite les erreurs si une catégorie existe déjà.
+    skipDuplicates: true, // Prevents errors if a category already exists
   });
 
-  console.log(`Seeding terminé. ${result.count} nouvelles catégories ont été ajoutées.`);
-
-
-  // Création d'un compte admin (sans profil candidat ni recruteur)
+  // Create an admin account (without candidate or recruiter profile)
   const testPassword = await bcrypt.hash('Test123!', 10);
   const adminEmail = 'admin@mova.com';
   const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
@@ -55,14 +47,14 @@ async function main() {
         password: testPassword,
       },
     });
-    console.log('✅ Compte admin créé: admin@mova.com (mot de passe: Test123!)');
-  } else {
-    console.log('ℹ️  Compte admin existe déjà: admin@mova.com');
+    // Admin account created
   }
+  // If the admin already exists, do nothing
 }
 
 main()
   .catch(e => {
+    // Log any error and exit with failure
     console.error(e);
     process.exit(1);
   })

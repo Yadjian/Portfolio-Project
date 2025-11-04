@@ -40,9 +40,8 @@ const styles = StyleSheet.create({
   button: {
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 4,
     paddingHorizontal: 8,
     backgroundColor: 'transparent',
-    marginTop: Platform.OS === 'ios' ? 6 : 0,
   },
 });

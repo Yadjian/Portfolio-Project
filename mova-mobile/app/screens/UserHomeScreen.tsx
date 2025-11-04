@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../lib/types';
 import MovaLogo from '../../components/ui/MovaLogo';
 import Colors from '../../constants/Colors';
-
-const { height, width } = Dimensions.get('window');
 
 /**
  * UserHomeScreen
@@ -29,6 +27,7 @@ const { height, width } = Dimensions.get('window');
 export default function UserHomeScreen() {
   const { logout, user, refreshUser } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const { height, width } = useWindowDimensions();
 
   // Refresh user data every time the screen is focused
   useFocusEffect(
@@ -55,20 +54,27 @@ export default function UserHomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
+      <View style={[styles.content, { paddingHorizontal: width * 0.05 }]}>
+        <View style={[styles.header, { marginBottom: height * 0.12 }]}>
           <MovaLogo />
-          <Text style={styles.slogan}>
+          <Text style={[styles.slogan, { 
+            fontSize: Math.min(width * 0.055, 24),
+            lineHeight: Math.min(width * 0.075, 32)
+          }]}>
             Votre prochain emploi commence par une rencontre !
           </Text>
         </View>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.primaryButton} onPress={handleGoToProfile}>
-            <Text style={styles.primaryButtonText}>Retourner au profil</Text>
+            <Text style={[styles.primaryButtonText, { fontSize: Math.min(width * 0.045, 18) }]}>
+              Retourner au profil
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.secondaryButton} onPress={handleLogout}>
-            <Text style={styles.secondaryButtonText}>Déconnexion</Text>
+            <Text style={[styles.secondaryButtonText, { fontSize: Math.min(width * 0.045, 18) }]}>
+              Déconnexion
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -84,19 +90,15 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: width * 0.05,
   },
   header: {
     alignItems: 'center',
-    marginBottom: height * 0.12,
   },
   slogan: {
-    fontSize: width * 0.06,
     color: Colors.light.text,
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 24,
-    lineHeight: width * 0.08,
   },
   buttonContainer: {
     alignItems: 'center',
@@ -116,7 +118,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: width * 0.045,
     fontWeight: 'bold',
   },
   secondaryButton: {
@@ -132,7 +133,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#4930a3',
-    fontSize: width * 0.045,
     fontWeight: 'bold',
   },
 });

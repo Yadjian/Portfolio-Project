@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, Dimensions, TouchableOpacity, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, SafeAreaView, useWindowDimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
@@ -8,8 +8,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { sendLocationToBackend, checkBackendHealth } from '../../services/api';
 import Colors from '../../constants/Colors';
 import { AuthStackParamList, getApiUrl } from '@/lib/types';
-
-const { height, width } = Dimensions.get('window');
 
 /**
  * HomeScreen
@@ -32,7 +30,7 @@ const { height, width } = Dimensions.get('window');
 export default function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { loading } = useAuth();
-
+  const { height, width } = useWindowDimensions();
 
   // Request geolocation permission and send location periodically
   useEffect(() => {
@@ -61,11 +59,14 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
+      <View style={[styles.content, { paddingHorizontal: width * 0.05 }]}>
         {/* App logo and slogan */}
-        <View style={styles.header}>
+        <View style={[styles.header, { marginBottom: height * 0.12 }]}>
           <MovaLogo />
-          <Text style={styles.slogan}>
+          <Text style={[styles.slogan, { 
+            fontSize: Math.min(width * 0.055, 24),
+            lineHeight: Math.min(width * 0.075, 32)
+          }]}>
             Votre prochain emploi commence par une rencontre !
           </Text>
         </View>
@@ -76,7 +77,9 @@ export default function HomeScreen() {
             style={styles.primaryButton}
             onPress={() => navigation.navigate('ChooseRegisterType')}
           >
-            <Text style={styles.primaryButtonText}>Créer mon compte</Text>
+            <Text style={[styles.primaryButtonText, { fontSize: Math.min(width * 0.045, 18) }]}>
+              Créer mon compte
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -84,7 +87,7 @@ export default function HomeScreen() {
             onPress={() => navigation.navigate('Login')}
             disabled={loading}
           >
-            <Text style={styles.secondaryButtonText}>
+            <Text style={[styles.secondaryButtonText, { fontSize: Math.min(width * 0.045, 18) }]}>
               {loading ? 'Chargement...' : 'Connexion'}
             </Text>
           </TouchableOpacity>
@@ -103,7 +106,6 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: width * 0.05,
   },
   statusContainer: {
     position: 'absolute',
@@ -126,15 +128,12 @@ const styles = StyleSheet.create({
   },
   header: {
     alignItems: 'center',
-    marginBottom: height * 0.12,
   },
   slogan: {
-    fontSize: width * 0.06,
     color: Colors.light.text,
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 24,
-    lineHeight: width * 0.08,
   },
   buttonContainer: {
     alignItems: 'center',
@@ -154,7 +153,6 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: width * 0.045,
     fontWeight: 'bold',
   },
   secondaryButton: {
@@ -170,7 +168,6 @@ const styles = StyleSheet.create({
   },
   secondaryButtonText: {
     color: '#4930a3',
-    fontSize: width * 0.045,
     fontWeight: 'bold',
   },
 });
