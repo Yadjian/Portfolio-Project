@@ -16,7 +16,7 @@ async function main() {
     'Valet / Femme de chambre',
     'Vendeur / Vendeuse',
     'Animateur / Animatrice',
-    'Moniteur de sports',
+    'Moniteur / Monitrice de sports',
     'Plagiste',
     'Guide touristique',
     'Ouvrier agricole',
