@@ -163,7 +163,7 @@ export async function sendSwipeAction(profileId: string, direction: 'LEFT' | 'RI
 
 export async function undoPreviousSwipe() {
   const response = await fetch(`${API_URL}/swipes/undo`, {
-    method: 'POST',
+    method: 'DELETE',
     headers: await getHeaders(true),
   });
   return handleResponse(response);

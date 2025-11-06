@@ -217,8 +217,8 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
       // Send swipe action to backend
       sendSwipeAction(currentProfile.id, action)
         .then(response => {
-          if (response && response.isMatch) {
-            Alert.alert("C'est un Match !", "Vous pouvez maintenant discuter avec cette personne.");
+          if (response && response.match) {
+            Alert.alert("C'est un Match !");
           }
         })
         .catch(() => {
