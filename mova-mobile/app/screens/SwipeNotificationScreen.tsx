@@ -69,7 +69,6 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   // Get notification context
   const { matchBadgeCount, profileBadgeCount, setProfileBadgeCount, refreshMatchBadge, refreshProfileBadge, simulateMatchNotification } = useNotifications();
 
-  // Styles dynamiques
   const dynamicStyles = StyleSheet.create({
     card: {
       position: 'absolute',
@@ -119,7 +118,6 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         // Fetch profiles from backend
         const data = await getProfilesToSwipe(userType, latitude, longitude);
 
-        // Initialiser le tableau de profils
         const allProfiles: any[] = [];
 
         // Map backend profiles to UI format
