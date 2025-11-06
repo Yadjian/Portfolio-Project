@@ -219,6 +219,9 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         .then(response => {
           if (response && response.match) {
             Alert.alert("C'est un Match !");
+            // Simulate match notification when a real match occurs
+            // TODO: This will be replaced by real push notifications in development build
+            simulateMatchNotification();
           }
         })
         .catch(() => {
