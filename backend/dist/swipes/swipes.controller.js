@@ -43,7 +43,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], SwipesController.prototype, "createSwipe", null);
 __decorate([
-    (0, common_1.Post)('undo'),
+    (0, common_1.Delete)('undo'),
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
