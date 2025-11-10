@@ -16,15 +16,22 @@ let DiscoveryService = class DiscoveryService {
     constructor(prisma) {
         this.prisma = prisma;
     }
-    async getRecruitersForCandidate(userId, radiusInMeters = 20000) {
+    async getRecruitersForCandidate(userId, radiusInMeters = 20000, coords) {
         const candidateProfile = await this.prisma.candidateProfile.findUnique({
             where: { userId },
         });
         if (!candidateProfile) {
-            throw new common_1.NotFoundException('Candidate profile not found.');
+            throw new common_1.NotFoundException('Profil candidat introuvable.');
         }
-        if (!candidateProfile.locationWKT) {
-            throw new common_1.NotFoundException('Your location is required for discovery.');
+        let searchLocation;
+        if (coords) {
+            searchLocation = `POINT(${coords.longitude} ${coords.latitude})`;
+        }
+        else {
+            if (!candidateProfile.locationWKT) {
+                throw new common_1.NotFoundException('Votre localisation est requise pour la découverte.');
+            }
+            searchLocation = candidateProfile.locationWKT;
         }
         const candidateId = candidateProfile.id;
         const swipedRecruiters = await this.prisma.swipe.findMany({
@@ -38,7 +45,7 @@ let DiscoveryService = class DiscoveryService {
       WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
         "locationWKT"::geography,
-        ${candidateProfile.locationWKT}::geography,
+        ${searchLocation}::geography,
         ${radiusInMeters}
       )
     `;
@@ -65,15 +72,22 @@ let DiscoveryService = class DiscoveryService {
         }));
         return recruitersWithCompany;
     }
-    async getCandidatesForRecruiter(userId, radiusInMeters = 20000) {
+    async getCandidatesForRecruiter(userId, radiusInMeters = 20000, coords) {
         const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
             where: { userId },
         });
         if (!recruiterProfile) {
-            throw new common_1.NotFoundException('Recruiter profile not found.');
+            throw new common_1.NotFoundException('Profil recruteur introuvable.');
         }
-        if (!recruiterProfile.locationWKT) {
-            throw new common_1.NotFoundException('Your location is required for discovery.');
+        let searchLocation;
+        if (coords) {
+            searchLocation = `POINT(${coords.longitude} ${coords.latitude})`;
+        }
+        else {
+            if (!recruiterProfile.locationWKT) {
+                throw new common_1.NotFoundException('Votre localisation est requise pour la découverte.');
+            }
+            searchLocation = recruiterProfile.locationWKT;
         }
         const recruiterId = recruiterProfile.id;
         const swipedCandidates = await this.prisma.swipe.findMany({
@@ -87,7 +101,7 @@ let DiscoveryService = class DiscoveryService {
       WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
         "locationWKT"::geography,
-        ${recruiterProfile.locationWKT}::geography,
+        ${searchLocation}::geography,
         ${radiusInMeters}
       )
     `;
@@ -111,7 +125,7 @@ let DiscoveryService = class DiscoveryService {
             select: { id: true },
         });
         if (!recruiterProfile) {
-            throw new common_1.NotFoundException('Recruiter profile not found.');
+            throw new common_1.NotFoundException('Profil recruteur introuvable.');
         }
         const pendingSwipes = await this.prisma.swipe.findMany({
             where: {

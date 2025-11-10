@@ -131,22 +131,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
    */
   useEffect(() => {
     if (isAuthenticated && user) {
-      refreshMatchBadge();
-      refreshProfileBadge();
+      // Initialize badges from backend data
+      const initBadges = async () => {
+        await refreshMatchBadge();
+        await refreshProfileBadge();
+        
+        // TODO: Real push notifications are ready (backend + frontend) but require a development build
+        // Expo Go does NOT support push notifications (SDK 53+)
+        // Simulation: Add +2 to profile badge for demo purposes (one time only)
+        setProfileBadgeCount(prev => prev + 2);
+      };
       
-      // TODO: Real push notifications are ready (backend + frontend) but require a development build
-      // Expo Go does NOT support push notifications (SDK 53+)
-      // Using simulation for now until we deploy with a development build
-      setTimeout(() => {
-        simulateProfileNotification(); // Bell badge +2
-        // Match notification simulation is triggered only when a real match occurs (in SwipeNotificationScreen)
-        // Not simulated at login to be more realistic
-      }, 1000); // Small delay to make it visible
+      void initBadges();
     } else {
       setProfileBadgeCount(0);
       setMatchBadgeCount(0);
     }
-  }, [isAuthenticated, user, refreshMatchBadge, refreshProfileBadge, simulateProfileNotification]);
+  }, [isAuthenticated, user, refreshMatchBadge, refreshProfileBadge]);
 
   return (
     <NotificationContext.Provider

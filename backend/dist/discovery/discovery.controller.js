@@ -20,15 +20,23 @@ let DiscoveryController = class DiscoveryController {
     constructor(discoveryService) {
         this.discoveryService = discoveryService;
     }
-    getRecruiterDiscoveryDeck(req, radius) {
+    getRecruiterDiscoveryDeck(req, radius, latitude, longitude) {
         const user = req.user;
         const userId = user.sub;
-        return this.discoveryService.getRecruitersForCandidate(userId, radius);
+        const coords = latitude && longitude ? {
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+        } : undefined;
+        return this.discoveryService.getRecruitersForCandidate(userId, radius, coords);
     }
-    getCandidateDiscoveryDeck(req, radius) {
+    getCandidateDiscoveryDeck(req, radius, latitude, longitude) {
         const user = req.user;
         const userId = user.sub;
-        return this.discoveryService.getCandidatesForRecruiter(userId, radius);
+        const coords = latitude && longitude ? {
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+        } : undefined;
+        return this.discoveryService.getCandidatesForRecruiter(userId, radius, coords);
     }
     getPendingCandidates(req) {
         const user = req.user;
@@ -42,8 +50,10 @@ __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Query)('radius', new common_1.DefaultValuePipe(20000), common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Query)('latitude')),
+    __param(3, (0, common_1.Query)('longitude')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:paramtypes", [Object, Number, String, String]),
     __metadata("design:returntype", void 0)
 ], DiscoveryController.prototype, "getRecruiterDiscoveryDeck", null);
 __decorate([
@@ -51,8 +61,10 @@ __decorate([
     (0, common_1.UseGuards)((0, passport_1.AuthGuard)('jwt')),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Query)('radius', new common_1.DefaultValuePipe(20000), common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Query)('latitude')),
+    __param(3, (0, common_1.Query)('longitude')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, Number]),
+    __metadata("design:paramtypes", [Object, Number, String, String]),
     __metadata("design:returntype", void 0)
 ], DiscoveryController.prototype, "getCandidateDiscoveryDeck", null);
 __decorate([

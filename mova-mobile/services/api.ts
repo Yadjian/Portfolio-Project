@@ -144,7 +144,7 @@ export async function uploadProfilePhoto(photoUri: string) {
 
 export async function getProfilesToSwipe(userType: UserType, latitude: number, longitude: number) {
   const endpoint = userType === 'candidate' ? 'recruiters' : 'candidates';
-  const url = `${API_URL}/discovery/${endpoint}`;
+  const url = `${API_URL}/discovery/${endpoint}?latitude=${latitude}&longitude=${longitude}`;
 
   const response = await fetch(url, {
     headers: await getHeaders(true),

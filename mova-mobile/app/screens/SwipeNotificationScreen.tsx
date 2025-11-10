@@ -130,7 +130,8 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
               const description = descriptionParts.slice(1).join('\n\n') || 'Aucune présentation disponible';
               return {
                 ...profile,
-                avatarUrl: profile.avatarUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
+                profilePhoto: profile.photoUrl,
+                avatarUrl: profile.photoUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
                 location: profile.locationName || 'Localisation non spécifiée',
                 jobSeeking: jobTitle,
                 experienceRequired: profile.desiredExperienceLevel || 'Non spécifié',

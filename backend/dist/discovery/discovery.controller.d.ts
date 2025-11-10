@@ -3,7 +3,7 @@ import { DiscoveryService } from './discovery.service';
 export declare class DiscoveryController {
     private readonly discoveryService;
     constructor(discoveryService: DiscoveryService);
-    getRecruiterDiscoveryDeck(req: Request, radius: number): Promise<{
+    getRecruiterDiscoveryDeck(req: Request, radius: number, latitude?: string, longitude?: string): Promise<{
         companyName: string;
         searchedCategories: {
             id: string;
@@ -47,7 +47,7 @@ export declare class DiscoveryController {
         searchDescription: string | null;
         desiredExperienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
     }[]>;
-    getCandidateDiscoveryDeck(req: Request, radius: number): Promise<({
+    getCandidateDiscoveryDeck(req: Request, radius: number, latitude?: string, longitude?: string): Promise<({
         interestedInCategories: {
             id: string;
             createdAt: Date;

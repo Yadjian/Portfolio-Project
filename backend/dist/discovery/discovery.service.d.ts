@@ -2,7 +2,10 @@ import { PrismaService } from '../prisma/prisma.service';
 export declare class DiscoveryService {
     private readonly prisma;
     constructor(prisma: PrismaService);
-    getRecruitersForCandidate(userId: string, radiusInMeters?: number): Promise<{
+    getRecruitersForCandidate(userId: string, radiusInMeters?: number, coords?: {
+        latitude: number;
+        longitude: number;
+    }): Promise<{
         companyName: string;
         searchedCategories: {
             id: string;
@@ -46,7 +49,10 @@ export declare class DiscoveryService {
         searchDescription: string | null;
         desiredExperienceLevel: import("@prisma/client").$Enums.ExperienceLevel | null;
     }[]>;
-    getCandidatesForRecruiter(userId: string, radiusInMeters?: number): Promise<({
+    getCandidatesForRecruiter(userId: string, radiusInMeters?: number, coords?: {
+        latitude: number;
+        longitude: number;
+    }): Promise<({
         interestedInCategories: {
             id: string;
             createdAt: Date;

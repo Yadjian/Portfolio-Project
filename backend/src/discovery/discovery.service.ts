@@ -12,20 +12,34 @@ export class DiscoveryService {
    * Filters out recruiters already swiped by the candidate.
    * @param userId The candidate's user ID
    * @param radiusInMeters Search radius in meters (default: 20,000)
+   * @param coords Optional real-time coordinates {latitude, longitude}. If provided, uses these instead of profile location.
    * @returns Array of recruiter profiles with company info
    */
-  async getRecruitersForCandidate(userId: string, radiusInMeters: number = 20000) {
+  async getRecruitersForCandidate(
+    userId: string,
+    radiusInMeters: number = 20000,
+    coords?: { latitude: number; longitude: number }
+  ) {
     // 1. Find the candidate profile and its location
     const candidateProfile = await this.prisma.candidateProfile.findUnique({
       where: { userId },
     });
 
     if (!candidateProfile) {
-      throw new NotFoundException('Candidate profile not found.');
+      throw new NotFoundException('Profil candidat introuvable.');
     }
-    if (!candidateProfile.locationWKT) {
-      throw new NotFoundException('Your location is required for discovery.');
+
+    // Use real-time coordinates if provided, otherwise fall back to profile location
+    let searchLocation: string;
+    if (coords) {
+      searchLocation = `POINT(${coords.longitude} ${coords.latitude})`;
+    } else {
+      if (!candidateProfile.locationWKT) {
+        throw new NotFoundException('Votre localisation est requise pour la découverte.');
+      }
+      searchLocation = candidateProfile.locationWKT;
     }
+
     const candidateId = candidateProfile.id;
 
     // 2. Find recruiters already swiped by this candidate
@@ -42,7 +56,7 @@ export class DiscoveryService {
       WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
         "locationWKT"::geography,
-        ${candidateProfile.locationWKT}::geography,
+        ${searchLocation}::geography,
         ${radiusInMeters}
       )
     `;
@@ -78,20 +92,34 @@ export class DiscoveryService {
    * Filters out candidates already swiped by the recruiter.
    * @param userId The recruiter's user ID
    * @param radiusInMeters Search radius in meters (default: 20,000)
+   * @param coords Optional real-time coordinates {latitude, longitude}. If provided, uses these instead of profile location.
    * @returns Array of candidate profiles
    */
-  async getCandidatesForRecruiter(userId: string, radiusInMeters: number = 20000) {
+  async getCandidatesForRecruiter(
+    userId: string,
+    radiusInMeters: number = 20000,
+    coords?: { latitude: number; longitude: number }
+  ) {
     // 1. Find the recruiter profile and its location
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
       where: { userId },
     });
 
     if (!recruiterProfile) {
-      throw new NotFoundException('Recruiter profile not found.');
+      throw new NotFoundException('Profil recruteur introuvable.');
     }
-    if (!recruiterProfile.locationWKT) {
-      throw new NotFoundException('Your location is required for discovery.');
+
+    // Use real-time coordinates if provided, otherwise fall back to profile location
+    let searchLocation: string;
+    if (coords) {
+      searchLocation = `POINT(${coords.longitude} ${coords.latitude})`;
+    } else {
+      if (!recruiterProfile.locationWKT) {
+        throw new NotFoundException('Votre localisation est requise pour la découverte.');
+      }
+      searchLocation = recruiterProfile.locationWKT;
     }
+
     const recruiterId = recruiterProfile.id;
 
     // 2. Find candidates already swiped by this recruiter
@@ -108,7 +136,7 @@ export class DiscoveryService {
       WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
         "locationWKT"::geography,
-        ${recruiterProfile.locationWKT}::geography,
+        ${searchLocation}::geography,
         ${radiusInMeters}
       )
     `;
@@ -142,7 +170,7 @@ export class DiscoveryService {
     });
 
     if (!recruiterProfile) {
-      throw new NotFoundException('Recruiter profile not found.');
+      throw new NotFoundException('Profil recruteur introuvable.');
     }
 
     // 2. Find swipes where the candidate liked the recruiter, but the recruiter hasn't responded yet
