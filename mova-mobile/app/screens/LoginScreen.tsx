@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Text, TextInput, useWindowDimensions, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Keyboard, Alert, ActivityIndicator } from 'react-native';
+import { View, StyleSheet, Text, TextInput, KeyboardAvoidingView, Platform, ScrollView, TouchableOpacity, Keyboard, Alert, ActivityIndicator, useWindowDimensions } from 'react-native';
 import MovaLogo from '../../components/ui/MovaLogo';
 import { Ionicons } from '@expo/vector-icons';
 import { login, getMyProfile } from '../../services/api';
@@ -26,6 +26,7 @@ import { login, getMyProfile } from '../../services/api';
  */
 
 export default function LoginScreen({ navigation }: any) {
+  const { width } = useWindowDimensions();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);

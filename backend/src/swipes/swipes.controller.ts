@@ -1,6 +1,6 @@
 // This controller handles endpoints related to swipe actions (like/dislike) between users.
 
-import { Controller, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Delete } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { CreateSwipeDto } from './dto/create-swipe.dto';
@@ -23,10 +23,10 @@ export class SwipesController {
     return this.swipesService.handleSwipe(userId, createSwipeDto);
   }
 
-  // POST /swipes/undo
+  // DELETE /swipes/undo
   // Undoes the last swipe action for the authenticated user.
   // Protected route: requires JWT authentication.
-  @Post('undo')
+  @Delete('undo')
   @UseGuards(AuthGuard('jwt'))
   undoSwipe(@Req() req: Request) {
     const user = req.user as { sub: string };

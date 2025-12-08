@@ -43,7 +43,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // Testing function: Simulate a profile notification (bell icon)
   const simulateProfileNotification = useCallback(() => {
-    setProfileBadgeCount(prev => prev + 3);
+    setProfileBadgeCount(prev => prev + 2); // Changed from +3 to +2
   }, []);
 
   // Testing function: Simulate a match notification (heart icon)
@@ -72,8 +72,12 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const newMatchCount = Math.max(0, currentMatchCount - lastCount);
       setMatchBadgeCount(newMatchCount);
       // Note: Counter will be updated when user visits the matches page
+      
+      // Return the current match count for simulation logic
+      return currentMatchCount;
     } catch (error) {
       setMatchBadgeCount(0);
+      return 0;
     }
   }, []);
 
@@ -127,18 +131,23 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
    */
   useEffect(() => {
     if (isAuthenticated && user) {
-      refreshMatchBadge();
-      refreshProfileBadge();
-      // SIMULATION: Add badges after connection (for testing)
-      setTimeout(() => {
-        simulateProfileNotification(); // Bell badge +3
-        simulateMatchNotification();   // Heart badge +1
-      }, 1000); // Small delay to make it visible
+      // Initialize badges from backend data
+      const initBadges = async () => {
+        await refreshMatchBadge();
+        await refreshProfileBadge();
+        
+        // TODO: Real push notifications are ready (backend + frontend) but require a development build
+        // Expo Go does NOT support push notifications (SDK 53+)
+        // Simulation: Add +2 to profile badge for demo purposes (one time only)
+        setProfileBadgeCount(prev => prev + 2);
+      };
+      
+      void initBadges();
     } else {
       setProfileBadgeCount(0);
       setMatchBadgeCount(0);
     }
-  }, [isAuthenticated, user, refreshMatchBadge, refreshProfileBadge, simulateProfileNotification, simulateMatchNotification]);
+  }, [isAuthenticated, user, refreshMatchBadge, refreshProfileBadge]);
 
   return (
     <NotificationContext.Provider

@@ -144,7 +144,7 @@ export async function uploadProfilePhoto(photoUri: string) {
 
 export async function getProfilesToSwipe(userType: UserType, latitude: number, longitude: number) {
   const endpoint = userType === 'candidate' ? 'recruiters' : 'candidates';
-  const url = `${API_URL}/discovery/${endpoint}`;
+  const url = `${API_URL}/discovery/${endpoint}?latitude=${latitude}&longitude=${longitude}`;
 
   const response = await fetch(url, {
     headers: await getHeaders(true),
@@ -163,7 +163,7 @@ export async function sendSwipeAction(profileId: string, direction: 'LEFT' | 'RI
 
 export async function undoPreviousSwipe() {
   const response = await fetch(`${API_URL}/swipes/undo`, {
-    method: 'POST',
+    method: 'DELETE',
     headers: await getHeaders(true),
   });
   return handleResponse(response);

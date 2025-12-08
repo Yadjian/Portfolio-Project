@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -11,8 +11,6 @@ import { getCandidateTabs } from '@/constants/tabsConfig';
 import { useNotifications } from '@/contexts/NotificationContext';
 import Colors from '../../../constants/Colors';
 import ProfileSection from '../../../components/ui/ProfileSection';
-
-const { width } = Dimensions.get('window');
 
 /**
  * CandidateProfileScreen
@@ -37,6 +35,7 @@ export default function CandidateProfileScreen() {
   // Get navigation and route objects
   const route = useRoute<RouteProp<AuthStackParamList, 'CandidateProfile'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const { width } = useWindowDimensions();
   
   // Get notification badges from context
   const { matchBadgeCount, profileBadgeCount, refreshMatchBadge } = useNotifications();

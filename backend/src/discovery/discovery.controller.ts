@@ -13,39 +13,54 @@ export class DiscoveryController {
   // GET /discovery/recruiters
   // Returns a list of recruiters for the candidate to discover.
   // Protected route: requires JWT authentication.
-  // Accepts an optional 'radius' query parameter (default: 20000).
+  // Accepts optional 'radius', 'latitude', and 'longitude' query parameters.
   @Get('recruiters')
   @UseGuards(AuthGuard('jwt'))
   getRecruiterDiscoveryDeck(
     @Req() req: Request,
     @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
+    @Query('latitude') latitude?: string,
+    @Query('longitude') longitude?: string,
   ) {
     // Extract user ID from JWT payload
     const user = req.user as { sub: string };
     const userId = user.sub;
 
+    // Parse coordinates if provided
+    const coords = latitude && longitude ? {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+    } : undefined;
+
     // Call the service to get recruiters for the candidate
-    // (Swipe filtering can be added here in the future)
-    return this.discoveryService.getRecruitersForCandidate(userId, radius);
+    return this.discoveryService.getRecruitersForCandidate(userId, radius, coords);
   }
   
   // === RECRUITER ENDPOINT ===
   // GET /discovery/candidates
   // Returns a list of candidates for the recruiter to discover.
   // Protected route: requires JWT authentication.
-  // Accepts an optional 'radius' query parameter (default: 20000).
+  // Accepts optional 'radius', 'latitude', and 'longitude' query parameters.
   @Get('candidates')
   @UseGuards(AuthGuard('jwt'))
   getCandidateDiscoveryDeck(
     @Req() req: Request,
     @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
+    @Query('latitude') latitude?: string,
+    @Query('longitude') longitude?: string,
   ) {
     // Extract user ID from JWT payload
     const user = req.user as { sub: string };
     const userId = user.sub;
 
+    // Parse coordinates if provided
+    const coords = latitude && longitude ? {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+    } : undefined;
+
     // Call the service to get candidates for the recruiter
-    return this.discoveryService.getCandidatesForRecruiter(userId, radius);
+    return this.discoveryService.getCandidatesForRecruiter(userId, radius, coords);
   }
   
   // === RECRUITER NOTIFICATIONS ENDPOINT ===
