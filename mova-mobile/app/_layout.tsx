@@ -2,13 +2,25 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { useFonts } from 'expo-font';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import * as SplashScreen from 'expo-splash-screen';
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
+import { NotificationProvider, useNotifications } from '../contexts/NotificationContext';
 import AuthStack from './navigation/AuthStack';
 import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
 import * as ExpoCrypto from 'expo-crypto';
+import Constants from 'expo-constants';
+
+const isExpoGoApp = Constants.appOwnership === 'expo';
+let Notifications: any = null;
+
+if (!isExpoGoApp) {
+  try {
+    Notifications = require('expo-notifications');
+  } catch (error) {
+  }
+}
 
 /**
  * RootLayout
@@ -21,6 +33,7 @@ import * as ExpoCrypto from 'expo-crypto';
  * - Wraps the app in the AuthProvider for authentication context.
  * - Handles splash screen display until fonts are loaded.
  * - Chooses between dark and light theme based on user preference.
+ * - Listens for push notifications and updates badge counts.
  * - Renders the authentication stack (AuthStack) for both authenticated and unauthenticated users (can be customized).
  *
  * Key logic:
@@ -29,19 +42,17 @@ import * as ExpoCrypto from 'expo-crypto';
  * - Uses useAuth to check authentication state and loading.
  */
 
-// Polyfill global.crypto.getRandomValues — doit être exécuté en tout premier
 if (!global.crypto) {
   const getRandomValues = <T extends ArrayBufferView>(array: T): T => {
     const byteView = new Uint8Array(array.buffer, array.byteOffset, array.byteLength);
 
-    // Guard and call via `any` to satisfy TS/typing differences
     if ('assertByteCount' in ExpoCrypto) {
       (ExpoCrypto as any).assertByteCount?.(byteView.length);
     }
 
     const bytes = (ExpoCrypto as any).getRandomBytes
       ? (ExpoCrypto as any).getRandomBytes(byteView.length)
-      : // fallback to Math.random if expo crypto doesn't expose getRandomBytes
+      :
         Array.from({ length: byteView.length }, () => Math.floor(Math.random() * 256));
 
     byteView.set(bytes);
@@ -67,7 +78,7 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const [loaded, error] = useFonts({
     DancingScript_700Bold,
-    ...FontAwesome.font, // Police pour les icônes
+    ...FontAwesome.font,
   });
 
   useEffect(() => {
@@ -86,7 +97,9 @@ export default function RootLayout() {
 
   return (
     <AuthProvider>
-      <RootLayoutNav />
+      <NotificationProvider>
+        <RootLayoutNav />
+      </NotificationProvider>
     </AuthProvider>
   );
 }
@@ -94,19 +107,55 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, loading } = useAuth();
+  const { refreshMatchBadge, refreshProfileBadge } = useNotifications();
+  const notificationListener = useRef<any>(null);
+  const responseListener = useRef<any>(null);
 
-  // Afficher un écran de chargement pendant la vérification de l'auth
+  const isExpoGo = Constants.appOwnership === 'expo';
+
+  useEffect(() => {
+    if (isExpoGo || !Notifications) {
+      return;
+    }
+
+    try {
+      notificationListener.current = Notifications.addNotificationReceivedListener((notification: any) => {
+        const data = notification.request.content.data;
+        if (data?.type === 'new_match') {
+          refreshMatchBadge();
+        } else if (data?.type === 'new_swipe') {
+          void refreshProfileBadge();
+        }
+      });
+
+      responseListener.current = Notifications.addNotificationResponseReceivedListener((response: any) => {
+        const data = response.notification.request.content.data;
+        if (data?.type === 'new_match') {
+          refreshMatchBadge();
+        } else if (data?.type === 'new_swipe') {
+          void refreshProfileBadge();
+        }
+      });
+    } catch (error) {
+    }
+
+    // Cleanup listeners on unmount
+    return () => {
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
+    };
+  }, [isExpoGo, refreshMatchBadge, refreshProfileBadge]);
+
   if (loading) {
-    return null; // Tu peux remplacer par un composant de loading
+    return null;
   }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {/* 
-        Cette logique est la clé :
-        - Si l'utilisateur n'est PAS authentifié, on affiche le AuthStack (Login, Register, etc.)
-        - Si l'utilisateur EST authentifié, on le redirige vers son profil (géré par AuthStack après la connexion)
-      */}
       {isAuthenticated ? <AuthStack /> : <AuthStack />}
     </ThemeProvider>
   );

@@ -1,4 +1,5 @@
-// src/discovery/discovery.controller.ts
+// This file defines the DiscoveryController, which handles endpoints related to user discovery features.
+
 import { Controller, Get, UseGuards, Query, DefaultValuePipe, ParseIntPipe, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
@@ -6,37 +7,74 @@ import { DiscoveryService } from './discovery.service';
 
 @Controller('discovery')
 export class DiscoveryController {
-  constructor(private readonly discoveryService: DiscoveryService) {} // Injecter le service
+  constructor(private readonly discoveryService: DiscoveryService) {} // Inject the DiscoveryService
 
-  // === ENDPOINT CANDIDAT ===
+  // === CANDIDATE ENDPOINT ===
+  // GET /discovery/recruiters
+  // Returns a list of recruiters for the candidate to discover.
+  // Protected route: requires JWT authentication.
+  // Accepts optional 'radius', 'latitude', and 'longitude' query parameters.
   @Get('recruiters')
   @UseGuards(AuthGuard('jwt'))
-  getRecruiterDiscoveryDeck(@Req() req: Request, @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,) {
+  getRecruiterDiscoveryDeck(
+    @Req() req: Request,
+    @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
+    @Query('latitude') latitude?: string,
+    @Query('longitude') longitude?: string,
+  ) {
+    // Extract user ID from JWT payload
     const user = req.user as { sub: string };
     const userId = user.sub;
 
-    // Pour l'instant, on appelle la méthode existante
-    // Plus tard, on ajoutera le filtre des swipes ici
-    return this.discoveryService.getRecruitersForCandidate(userId, radius);
+    // Parse coordinates if provided
+    const coords = latitude && longitude ? {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+    } : undefined;
+
+    // Call the service to get recruiters for the candidate
+    return this.discoveryService.getRecruitersForCandidate(userId, radius, coords);
   }
   
-  // === ENDPOINT RECRUTEUR ===
+  // === RECRUITER ENDPOINT ===
+  // GET /discovery/candidates
+  // Returns a list of candidates for the recruiter to discover.
+  // Protected route: requires JWT authentication.
+  // Accepts optional 'radius', 'latitude', and 'longitude' query parameters.
   @Get('candidates')
   @UseGuards(AuthGuard('jwt'))
-  getCandidateDiscoveryDeck(@Req() req: Request, @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,) {
+  getCandidateDiscoveryDeck(
+    @Req() req: Request,
+    @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
+    @Query('latitude') latitude?: string,
+    @Query('longitude') longitude?: string,
+  ) {
+    // Extract user ID from JWT payload
     const user = req.user as { sub: string };
     const userId = user.sub;
 
-    return this.discoveryService.getCandidatesForRecruiter(userId, radius);
+    // Parse coordinates if provided
+    const coords = latitude && longitude ? {
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude),
+    } : undefined;
+
+    // Call the service to get candidates for the recruiter
+    return this.discoveryService.getCandidatesForRecruiter(userId, radius, coords);
   }
   
-  // === ENDPOINT NOTIFICATIONS RECRUTEUR ===
+  // === RECRUITER NOTIFICATIONS ENDPOINT ===
+  // GET /discovery/pending-candidates
+  // Returns a list of candidates who are pending for the recruiter (e.g., waiting for a response).
+  // Protected route: requires JWT authentication.
   @Get('pending-candidates')
   @UseGuards(AuthGuard('jwt'))
   getPendingCandidates(@Req() req: Request) {
+    // Extract user ID from JWT payload
     const user = req.user as { sub: string };
     const userId = user.sub;
 
+    // Call the service to get pending candidates for the recruiter
     return this.discoveryService.getPendingCandidatesForRecruiter(userId);
   }
 }

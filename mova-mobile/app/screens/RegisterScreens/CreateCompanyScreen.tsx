@@ -62,7 +62,6 @@ export default function CreateCompanyScreen({ route }: { route: RouteProp<AuthSt
       navigation.navigate('EditProfileScreen', { userType: 'recruiter', userId, companyName, startEditing: true });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Une erreur inattendue est survenue.";
-      console.error("Erreur lors de la création de l'entreprise:", errorMessage);
       alert(`Erreur: ${errorMessage}`);
     }
   };

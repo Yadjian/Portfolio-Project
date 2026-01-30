@@ -74,7 +74,7 @@ export default function GenericInputBar({ style, rightIcon, multiline, ...props 
               textAlignVertical: multiline ? 'top' : 'center',
             },
             styles.input,
-            style, // custom style overrides defaults
+            style,
           ]}
           multiline={multiline}
           {...props}

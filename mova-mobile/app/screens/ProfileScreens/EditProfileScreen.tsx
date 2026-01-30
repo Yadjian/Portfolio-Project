@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable, Modal, TouchableOpacity, Image, Platform, TextInput, Keyboard, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -80,8 +79,8 @@ export default function EditProfileScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Dropdown options for contract types, experience levels, and job categories
-  const [contractTypes, setContractTypes] = useState<string[]>([]);
-  const [experienceLevels, setExperienceLevels] = useState<string[]>([]);
+  const [contractTypes, setContractTypes] = useState<any[]>([]);
+  const [experienceLevels, setExperienceLevels] = useState<any[]>([]);
   const [jobCategories, setJobCategories] = useState<{ id: string; name: string }[]>([]);
 
   // Listen for keyboard show/hide events to adjust UI if needed
@@ -114,8 +113,6 @@ export default function EditProfileScreen() {
         const sortedCategories = [...categories].sort((a, b) => a.name.localeCompare(b.name));
         setJobCategories(sortedCategories);
       } catch (error) {
-        // Error fetching metadata
-        console.error("Erreur lors de la récupération des métadonnées:", error);
       }
     };
 
@@ -132,8 +129,6 @@ export default function EditProfileScreen() {
         const data = await getMyProfile();
 
         if (!data) {
-          // Profile not found
-          console.log("Profil non trouvé.");
           return;
         }
 
@@ -168,14 +163,9 @@ export default function EditProfileScreen() {
               setPresentation(searchDesc);
             }
           }
-        } else {
-          // Profile of this type not found
-          console.log(`Profil de type ${userType} non trouvé.`);
         }
 
       } catch (error) {
-        // Error fetching profile
-        console.error("Erreur lors de la récupération du profil:", error);
       } finally {
         setIsLoading(false);
       }
@@ -243,7 +233,7 @@ export default function EditProfileScreen() {
     } catch (error) {
       // Error saving profile
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      console.error("Erreur lors de l'enregistrement du profil.", errorMessage);
+      // (console.error retiré)
       alert("Erreur lors de l'enregistrement du profil: " + errorMessage);
     } finally {
       setIsLoading(false);
@@ -481,18 +471,22 @@ export default function EditProfileScreen() {
           >
             <TouchableOpacity style={styles.modalOverlay} onPress={() => setExperienceModalVisible(false)}>
               <View style={styles.smallModalContent}>
-                {experienceLevels.map((level, index) => (
-                  <Pressable
-                    key={index}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setExperience(level);
-                      setExperienceModalVisible(false);
-                    }}
-                  >
-                    <Text style={{ fontSize: 18 }}>{level}</Text>
-                  </Pressable>
-                ))}
+                {experienceLevels.map((level, index) => {
+                  const displayText = typeof level === 'string' ? level : level.label || level.value;
+                  const valueText = typeof level === 'string' ? level : level.value;
+                  return (
+                    <Pressable
+                      key={index}
+                      style={styles.modalOption}
+                      onPress={() => {
+                        setExperience(valueText);
+                        setExperienceModalVisible(false);
+                      }}
+                    >
+                      <Text style={{ fontSize: 18 }}>{displayText}</Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </TouchableOpacity>
           </Modal>
@@ -506,18 +500,22 @@ export default function EditProfileScreen() {
           >
             <TouchableOpacity style={styles.modalOverlay} onPress={() => setContractModalVisible(false)}>
               <View style={styles.smallModalContent}>
-                {contractTypes.map((type, index) => (
-                  <Pressable
-                    key={index}
-                    style={styles.modalOption}
-                    onPress={() => {
-                      setContractType(type);
-                      setContractModalVisible(false);
-                    }}
-                  >
-                    <Text style={{ fontSize: 18 }}>{type}</Text>
-                  </Pressable>
-                ))}
+                {contractTypes.map((type, index) => {
+                  const displayText = typeof type === 'string' ? type : type.label || type.value;
+                  const valueText = typeof type === 'string' ? type : type.value;
+                  return (
+                    <Pressable
+                      key={index}
+                      style={styles.modalOption}
+                      onPress={() => {
+                        setContractType(valueText);
+                        setContractModalVisible(false);
+                      }}
+                    >
+                      <Text style={{ fontSize: 18 }}>{displayText}</Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </TouchableOpacity>
           </Modal>

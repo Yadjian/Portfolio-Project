@@ -12,6 +12,12 @@ export default ({ config }) => ({
     scheme: 'movamobile',
     userInterfaceStyle: 'automatic',
     newArchEnabled: true,
+    notification: {
+      icon: './assets/images/icon.png',
+      color: '#FF6347',
+      androidMode: 'default',
+      androidCollapsedTitle: 'Mova',
+    },
     splash: {
       image: './assets/images/splash-icon.png',
       resizeMode: 'contain',
@@ -29,6 +35,7 @@ export default ({ config }) => ({
     },
     android: {
       ...config.android,
+      useNextNotificationsApi: true,
       adaptiveIcon: {
         foregroundImage: './assets/images/adaptive-icon.png',
         backgroundColor: '#ffffff',

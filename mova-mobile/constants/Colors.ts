@@ -32,20 +32,20 @@ export default {
     primary: primary,
     accent: accent,
     error: error,
-    border: '#E5E7EB', // Lighter grey for borders
+    border: '#E5E7EB',
   },
   dark: {
     // Modern dark theme colors
     text: '#FFFFFF',
     textSecondary: mediumGrey,
-    background: '#111827', // Very dark blue/grey
-    backgroundCard: '#1F2937', // Slightly lighter dark blue/grey
+    background: '#111827',
+    backgroundCard: '#1F2937',
     tint: '#FFFFFF',
     tabIconDefault: mediumGrey,
     tabIconSelected: '#FFFFFF',
     primary: primary,
     accent: accent,
     error: error,
-    border: '#374151', // Darker border color
+    border: '#374151',
   },
 };

@@ -35,7 +35,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json(data);
   } catch (error) {
     // Log the error server-side for debugging and return a generic 500 response.
-    console.error('Login error:', error);
     return NextResponse.json(
       { error: 'Erreur serveur' },
       { status: 500 }

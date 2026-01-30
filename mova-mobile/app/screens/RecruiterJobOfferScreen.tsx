@@ -6,6 +6,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import BottomTabBar from '../../components/ui/BottomTabBar';
 import { getRecruiterTabs } from '../../constants/tabsConfig';
 import { useAuth } from '../../contexts/AuthContext';
+import { useNotifications } from '@/contexts/NotificationContext';
 import { getMyJobOffers, createJobOffer, updateJobOffer, deleteJobOffer, getContractTypes } from '../../services/api';
 
 const { width } = Dimensions.get('window');
@@ -53,6 +54,7 @@ type JobOfferUI = {
 export default function RecruiterJobOfferScreen() {
   const navigation = useNavigation();
   const { user, refreshUser } = useAuth();
+  const { matchBadgeCount, profileBadgeCount, refreshMatchBadge } = useNotifications();
   const [offers, setOffers] = useState<JobOfferUI[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [contractModalVisible, setContractModalVisible] = useState(false);
@@ -75,7 +77,6 @@ export default function RecruiterJobOfferScreen() {
         const contracts = await getContractTypes();
         setContractTypes(contracts);
       } catch (error) {
-        console.error("Erreur lors de la récupération des types de contrat:", error);
       }
     };
     fetchMetaData();
@@ -102,7 +103,6 @@ export default function RecruiterJobOfferScreen() {
       }
     } catch (error) {
       if (isActive) {
-        console.error("Erreur lors de la récupération des offres:", error);
         Alert.alert("Erreur", "Impossible de charger vos offres.");
       }
     } finally {
@@ -116,10 +116,11 @@ export default function RecruiterJobOfferScreen() {
     useCallback(() => {
       let isActive = true;
       fetchOffers(isActive);
+      refreshMatchBadge();
       return () => {
         isActive = false;
       };
-    }, [fetchOffers])
+    }, [fetchOffers, refreshMatchBadge])
   );
 
   // --- UI STATE HELPERS ---
@@ -201,7 +202,6 @@ export default function RecruiterJobOfferScreen() {
       }
       Alert.alert('Succès', `Offre ${offer.isNew ? 'créée' : 'mise à jour'} !`);
     } catch (error: any) {
-      console.error("Erreur sauvegarde offre:", error);
       updateOfferState(index, { loading: false, error: error.message || 'Une erreur est survenue.' });
     }
   };
@@ -437,7 +437,15 @@ export default function RecruiterJobOfferScreen() {
       </Modal>
 
       {/* Bottom tab bar for recruiter navigation */}
-      <BottomTabBar tabs={getRecruiterTabs(navigation)} activeTabId="offre" />
+      <BottomTabBar 
+        tabs={getRecruiterTabs(navigation, profileBadgeCount).map(tab => {
+          if (tab.id === 'matches') {
+            return { ...tab, badge: matchBadgeCount };
+          }
+          return tab;
+        })} 
+        activeTabId="offre" 
+      />
     </View>
   );
 }

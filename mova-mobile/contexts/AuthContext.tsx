@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import * as SecureStore from 'expo-secure-store';
-import { login as apiLogin, getMyProfile } from '../services/api';
+import { AppState } from 'react-native';
+import { login as apiLogin, getMyProfile, updatePushToken } from '../services/api';
+import { registerForPushNotificationsAsync } from '../services/notifications';
 
 /**
  * AuthContext
@@ -11,6 +13,7 @@ import { login as apiLogin, getMyProfile } from '../services/api';
  * - Stores and manages authentication state (isAuthenticated, user, token).
  * - Handles login, logout, and user refresh logic.
  * - Persists JWT token securely using expo-secure-store.
+ * - Registers device for push notifications after login.
  * - Exposes a React context and hook for use throughout the app.
  *
  * Usage:
@@ -43,10 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userData = await getMyProfile();
       setUser(userData);
     } catch (error: any) {
-      console.error("Erreur lors du rafraîchissement de l'utilisateur:", error);
-      // If user not found or token invalid, logout
       if (error.message?.includes('Utilisateur non trouvé') || error.message?.includes('Unauthorized')) {
-        console.log("🚪 Déconnexion automatique: utilisateur non trouvé ou token invalide");
         await logout();
         setLoading(false);
       }
@@ -67,7 +67,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setLoading(false);
         }
       } catch (error) {
-        console.error("Erreur lors de la vérification du token:", error);
         setUser(null);
         setIsAuthenticated(false);
         setLoading(false);
@@ -75,6 +74,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     checkToken();
   }, []);
+
+  // Re-check token when app comes back to foreground (fixes Expo Go refresh issue)
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', async (nextAppState) => {
+      if (nextAppState === 'active') {
+        const storedToken = await SecureStore.getItemAsync('auth_token');
+        if (storedToken && !user) {
+          setToken(storedToken);
+          setIsAuthenticated(true);
+          await refreshUser();
+        }
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [user]);
+
+  // Additional check: if authenticated but no user data, reload it (handles Fast Refresh while app is active)
+  useEffect(() => {
+    const recheckUser = async () => {
+      if (isAuthenticated && token && !user && !loading) {
+        await refreshUser();
+      }
+    };
+    recheckUser();
+  }, [isAuthenticated, token, user, loading]);
+
+  // Register for push notifications when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      registerForPushNotificationsAsync()
+        .then(pushToken => {
+          if (pushToken) {
+            return updatePushToken(pushToken);
+          }
+        })
+        .then(() => {
+        })
+        .catch(() => {
+        });
+    }
+  }, [isAuthenticated, user]);
 
   // Login with email and password
   const login = async (email: string, password: string) => {
@@ -106,12 +149,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout and clear token
   const logout = async () => {
     try {
+      try {
+        await updatePushToken('');
+      } catch (error) {
+      }
       await SecureStore.deleteItemAsync('auth_token');
+      await SecureStore.deleteItemAsync('refresh_token');
+      await SecureStore.deleteItemAsync('last_match_count');
+      await SecureStore.deleteItemAsync('last_profile_count');
       setToken(null);
       setUser(null);
       setIsAuthenticated(false);
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error);
     }
   };
 

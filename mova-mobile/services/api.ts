@@ -27,7 +27,6 @@ async function handleResponse(response: Response) {
   try {
     data = text ? JSON.parse(text) : {};
   } catch (error) {
-    console.error("La réponse du serveur n'est pas un JSON valide:", text);
     throw new Error(`Erreur HTTP ${response.status}: Réponse non-JSON du serveur.`);
   }
 
@@ -35,7 +34,6 @@ async function handleResponse(response: Response) {
     if (response.status === 401) {
       return null;
     }
-    console.error("Réponse d'erreur brute du serveur:", text);
     throw new Error(data.message || `Erreur HTTP ${response.status}`);
   }
   return data;
@@ -146,7 +144,7 @@ export async function uploadProfilePhoto(photoUri: string) {
 
 export async function getProfilesToSwipe(userType: UserType, latitude: number, longitude: number) {
   const endpoint = userType === 'candidate' ? 'recruiters' : 'candidates';
-  const url = `${API_URL}/discovery/${endpoint}`;
+  const url = `${API_URL}/discovery/${endpoint}?latitude=${latitude}&longitude=${longitude}`;
 
   const response = await fetch(url, {
     headers: await getHeaders(true),
@@ -165,7 +163,7 @@ export async function sendSwipeAction(profileId: string, direction: 'LEFT' | 'RI
 
 export async function undoPreviousSwipe() {
   const response = await fetch(`${API_URL}/swipes/undo`, {
-    method: 'POST',
+    method: 'DELETE',
     headers: await getHeaders(true),
   });
   return handleResponse(response);
@@ -258,7 +256,16 @@ export async function checkBackendHealth() {
 }
 
 export async function sendLocationToBackend(coords: { latitude: number; longitude: number }) {
-  console.log('Coordonnées envoyées :', coords);
+}
+
+// PUSH NOTIFICATIONS
+export async function updatePushToken(token: string) {
+  const response = await fetch(`${API_URL}/profile/push-token`, {
+    method: 'POST',
+    headers: await getHeaders(true),
+    body: JSON.stringify({ token }),
+  });
+  return handleResponse(response);
 }
 
 export async function getGoogleGeolocation(latitude: number, longitude: number) {

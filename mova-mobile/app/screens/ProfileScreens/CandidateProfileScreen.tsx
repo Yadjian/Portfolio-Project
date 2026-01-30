@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, Text, Dimensions, Image, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, Image, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -8,10 +8,9 @@ import type { AuthStackParamList } from '../../../lib/types';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import { getMyProfile } from '../../../services/api';
 import { getCandidateTabs } from '@/constants/tabsConfig';
+import { useNotifications } from '@/contexts/NotificationContext';
 import Colors from '../../../constants/Colors';
 import ProfileSection from '../../../components/ui/ProfileSection';
-
-const { width } = Dimensions.get('window');
 
 /**
  * CandidateProfileScreen
@@ -36,6 +35,10 @@ export default function CandidateProfileScreen() {
   // Get navigation and route objects
   const route = useRoute<RouteProp<AuthStackParamList, 'CandidateProfile'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const { width } = useWindowDimensions();
+  
+  // Get notification badges from context
+  const { matchBadgeCount, profileBadgeCount, refreshMatchBadge } = useNotifications();
 
   // State for candidate profile data
   const [candidate, setCandidate] = useState({
@@ -72,16 +75,21 @@ export default function CandidateProfileScreen() {
             }));
             setUserId(profileData.id);
           }
+          await refreshMatchBadge();
       } catch (error) {
-        console.error('Erreur chargement profil:', error);
       }
       };
       fetchUser();
-    }, [])
+    }, [refreshMatchBadge])
   );
 
-  // Get the tab configuration for the candidate
-  const tabs = getCandidateTabs(navigation, 0);
+  // Get the tab configuration for the candidate with badge counts
+  const tabs = getCandidateTabs(navigation, profileBadgeCount).map(tab => {
+    if (tab.id === 'matches') {
+      return { ...tab, badge: matchBadgeCount };
+    }
+    return tab;
+  });
 
   return (
     <View style={styles.container}>
@@ -99,6 +107,7 @@ export default function CandidateProfileScreen() {
             }}>
             <Feather name="edit-2" size={20} color="#4930a3" />
           </TouchableOpacity>
+          
           <Text style={styles.name}>{`${candidate.firstName} ${candidate.lastName}`.trim()}</Text>
 
           <View style={styles.locationContainer}>

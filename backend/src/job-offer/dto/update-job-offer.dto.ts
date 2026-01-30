@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { CreateJobOfferDto } from './create-job-offer.dto';
 
-// Cette classe hérite de toutes les propriétés de CreateJobOfferDto
-// mais les rend toutes optionnelles. C'est la méthode standard pour les DTO de mise à jour.
+// This class inherits all properties from CreateJobOfferDto
+// but makes them all optional. This is the standard approach for update DTOs in NestJS.
+// It allows partial updates of job offers, so only the fields to be changed need to be provided.
 export class UpdateJobOfferDto extends PartialType(CreateJobOfferDto) {}

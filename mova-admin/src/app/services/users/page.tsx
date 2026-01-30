@@ -7,7 +7,7 @@ import MovaLogo from '../../components/MovaLogo';
 interface User {
   id: string;
   email: string;
-  role: 'candidate' | 'recruiter' | 'admin';
+  role: string;
   createdAt: string;
   updatedAt: string;
   candidateProfile?: {
@@ -18,7 +18,7 @@ interface User {
     resumeUrl?: string;
     coverLetterText?: string;
     desiredJobTitle?: string;
-    experienceLevel?: 'DEBUTANT' | 'INTERMEDIAIRE' | 'CONFIRME';
+    experienceLevel?: string;
     desiredContractTypes?: string[];
     searchRadiusKm?: number;
   };
@@ -28,7 +28,7 @@ interface User {
     locationName?: string;
     photoUrl?: string;
     searchDescription?: string;
-    desiredExperienceLevel?: 'DEBUTANT' | 'INTERMEDIAIRE' | 'CONFIRME';
+    desiredExperienceLevel?: string;
     desiredContractTypes?: string[];
     memberships?: Array<{
       company: {
@@ -45,7 +45,7 @@ type State = {
   error: string | null;
   selectedService: 'list' | 'create' | 'findUser' | 'editUser' | null;
   foundUser: User | null;
-  roleFilter: 'all' | 'candidate' | 'recruiter' | 'admin';
+  roleFilter: string;
   roles: Array<{ value: string; label: string }>;
   contractTypes: Array<{ value: string; label: string }>;
   experienceLevels: Array<{ value: string; label: string }>;
@@ -78,7 +78,7 @@ type Action =
   | { type: 'SET_FOUND_USER'; payload: User | null }
   | { type: 'START_EDIT'; payload: User }
   | { type: 'UPDATE_FORM'; payload: { field: keyof State['form']; value: string } }
-  | { type: 'SET_ROLE_FILTER'; payload: State['roleFilter'] }
+  | { type: 'SET_ROLE_FILTER'; payload: string }
   | { type: 'SET_META_DATA'; payload: { 
       roles?: Array<{ value: string; label: string }>; 
       contractTypes?: Array<{ value: string; label: string }>; 
@@ -101,7 +101,7 @@ const initialState: State = {
   form: {
     email: '',
     password: '',
-    role: 'candidate',
+    role: '',
   },
 };
 
@@ -153,38 +153,34 @@ export default function UsersServices() {
   const [state, dispatch] = useReducer(reducer, initialState);
   const { users, error, selectedService, foundUser, form, roleFilter, roles, contractTypes, experienceLevels, jobCategories } = state;
 
-  // Filter users by role
+  // Filter users by selected role
   const filteredUsers = roleFilter === 'all' 
     ? users 
     : users.filter(user => user.role === roleFilter);
 
-  // Helper functions to get labels from meta data
+  // Helper function to get role label from metadata
   const getRoleLabel = (roleValue: string) => {
     const role = roles.find(r => r.value === roleValue);
     return role ? role.label : roleValue;
   };
 
+  // Helper function to get contract type label from metadata
   const getContractTypeLabel = (contractValue: string) => {
     const contract = contractTypes.find(c => c.value === contractValue);
     return contract ? contract.label : contractValue;
   };
 
+  // Helper function to get experience level label from metadata
   const getExperienceLevelLabel = (experienceValue: string) => {
     const experience = experienceLevels.find(e => e.value === experienceValue);
     return experience ? experience.label : experienceValue;
   };
 
-  const getJobCategoryName = (categoryId: string) => {
-    const category = jobCategories.find(c => c.id === categoryId);
-    return category ? category.name : categoryId;
-  };
-
-  // Fetch users from API on mount
+  // Fetch users from API on component mount
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const token = localStorage.getItem('accessToken');
-        console.log('🔍 Fetching users with token:', token ? 'Token présent' : 'Pas de token');
         
         const res = await fetch('/api/users', {
           headers: {
@@ -192,11 +188,8 @@ export default function UsersServices() {
           },
         });
         
-        console.log('📡 Response status:', res.status, res.statusText);
-        
         if (!res.ok) {
           const errorText = await res.text();
-          console.error('❌ Error response:', errorText);
           let errorData;
           try {
             errorData = JSON.parse(errorText);
@@ -207,17 +200,15 @@ export default function UsersServices() {
         }
         
         const data = await res.json();
-        console.log('✅ Users loaded:', data.length, 'users');
         dispatch({ type: 'SET_USERS', payload: data });
       } catch (err) {
-        console.error('💥 Fetch error:', err);
         dispatch({ type: 'SET_ERROR', payload: err instanceof Error ? err.message : 'Erreur de chargement' });
       }
     };
     fetchUsers();
   }, []);
 
-  // Fetch meta data (roles, contract types, experience levels, job categories)
+  // Fetch metadata (roles, contract types, experience levels, job categories) from backend
   useEffect(() => {
     const fetchMetaData = async () => {
       try {
@@ -238,13 +229,13 @@ export default function UsersServices() {
           payload: { roles, contractTypes, experienceLevels, jobCategories },
         });
       } catch (err) {
-        console.error('Erreur lors du chargement des méta-données:', err);
+        // Silently handle metadata loading errors
       }
     };
     fetchMetaData();
   }, []);
 
-  // Helper function to refresh users list after mutations
+  // Helper function to refresh users list after mutations (create, update, delete)
   const refetchUsers = () => {
     const token = localStorage.getItem('accessToken');
     fetch('/api/users', {
@@ -256,7 +247,7 @@ export default function UsersServices() {
       .then(data => dispatch({ type: 'SET_USERS', payload: data }));
   };
 
-  // Helper function to get user display name
+  // Helper function to get user display name from profile data or email fallback
   function getUserName(user: User): string {
     if (user.candidateProfile) {
       return `${user.candidateProfile.firstName} ${user.candidateProfile.lastName}`;
@@ -404,18 +395,18 @@ export default function UsersServices() {
         {/* Main content area */}
         <div style={{ padding: '48px' }}>
 
-        {/* List view: display all users in a table */}
+        {/* List view: display all users in a table with role filtering */}
         {selectedService === 'list' && (
           <div style={styles.section}>
             <div style={styles.title}>Lister les utilisateurs</div>
             {error && <div style={styles.error}>{error}</div>}
             
-            {/* Role filter */}
+            {/* Role filter dropdown using dynamic roles from backend */}
             <div style={{ marginBottom: 24, display: 'flex', gap: 12, alignItems: 'center' }}>
               <span style={{ fontWeight: 600, color: '#666', fontSize: 14 }}>Filtrer par rôle :</span>
               <select
                 value={roleFilter}
-                onChange={(e) => dispatch({ type: 'SET_ROLE_FILTER', payload: e.target.value as State['roleFilter'] })}
+                onChange={(e) => dispatch({ type: 'SET_ROLE_FILTER', payload: e.target.value })}
                 style={{
                   padding: '8px 16px',
                   borderRadius: 8,
@@ -428,9 +419,11 @@ export default function UsersServices() {
                 }}
               >
                 <option value="all">Tous les rôles ({users.length})</option>
-                <option value="candidate">Candidats ({users.filter(u => u.role === 'candidate').length})</option>
-                <option value="recruiter">Recruteurs ({users.filter(u => u.role === 'recruiter').length})</option>
-                <option value="admin">Admins ({users.filter(u => u.role === 'admin').length})</option>
+                {roles.map(role => (
+                  <option key={role.value} value={role.value}>
+                    {role.label} ({users.filter(u => u.role === role.value).length})
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -547,9 +540,12 @@ export default function UsersServices() {
                 onChange={e => dispatch({ type: 'UPDATE_FORM', payload: { field: 'role', value: e.target.value } })}
                 style={styles.input}
               >
-                <option value="candidate">Candidat</option>
-                <option value="recruiter">Recruteur</option>
-                <option value="admin">Admin</option>
+                <option value="">Sélectionner un rôle</option>
+                {roles.map(role => (
+                  <option key={role.value} value={role.value}>
+                    {role.label}
+                  </option>
+                ))}
               </select>
               
               <button type="submit" style={styles.smallButton}>
@@ -569,10 +565,6 @@ export default function UsersServices() {
                 e.preventDefault();
                 const id = e.currentTarget.userId.value;
                 const found = users.find(u => u.id === id);
-                console.log('📸 Photo URLs:', {
-                  candidatePhoto: found?.candidateProfile?.photoUrl,
-                  recruiterPhoto: found?.recruiterProfile?.photoUrl
-                });
                 dispatch({ type: 'SET_FOUND_USER', payload: found || null });
               }}
               style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
@@ -705,7 +697,7 @@ export default function UsersServices() {
                           <span style={detailStyles.value}>{foundUser.candidateProfile.desiredJobTitle || 'Non défini'}</span>
                         </div>
                         <div style={detailStyles.row}>
-                          <span style={detailStyles.label}>⭐ Niveau d'expérience</span>
+                          <span style={detailStyles.label}>⭐ Expérience</span>
                           <span style={detailStyles.value}>
                             {foundUser.candidateProfile.experienceLevel 
                               ? getExperienceLevelLabel(foundUser.candidateProfile.experienceLevel)

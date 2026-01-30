@@ -8,6 +8,7 @@ import type { AuthStackParamList } from '../../../lib/types';
 import BottomTabBar from '../../../components/ui/BottomTabBar';
 import { getMyProfile } from '../../../services/api';
 import { getRecruiterTabs } from '@/constants/tabsConfig';
+import { useNotifications } from '@/contexts/NotificationContext';
 import Colors from '../../../constants/Colors';
 import ProfileSection from '../../../components/ui/ProfileSection';
 
@@ -35,6 +36,9 @@ const { width } = Dimensions.get('window');
 export default function RecruiterProfileScreen() {
   const route = useRoute<RouteProp<AuthStackParamList, 'RecruiterProfile'>>();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  
+  // Get notification badges from context
+  const { matchBadgeCount, profileBadgeCount, refreshMatchBadge } = useNotifications();
 
   // State for recruiter profile information
   const [profile, setProfile] = useState({
@@ -97,17 +101,22 @@ export default function RecruiterProfileScreen() {
 
             setUserId(profileData.id);
           }
+          
+          await refreshMatchBadge();
         } catch (error) {
           // Error loading recruiter profile
-          console.error("Erreur lors du chargement du profil recruteur:", error);
         }
       };
       fetchRecruiterData();
-    }, [])
+    }, [refreshMatchBadge])
   );
 
-  const notificationCount = 0; // Example notification count
-  const tabs = getRecruiterTabs(navigation, notificationCount);
+  const tabs = getRecruiterTabs(navigation, profileBadgeCount).map(tab => {
+    if (tab.id === 'matches') {
+      return { ...tab, badge: matchBadgeCount };
+    }
+    return tab;
+  });
 
   return (
     <View style={styles.container}>

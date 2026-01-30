@@ -241,14 +241,3 @@ expo start
 - Add `.env` and `expo-env.d.ts` to your `.gitignore`.
 
 ---
-
-## 📝 License
-
-This project is licensed under the MIT License.
-
----
-
-**Contact:**  
-For any questions or suggestions, contact the Mova team.
-
----

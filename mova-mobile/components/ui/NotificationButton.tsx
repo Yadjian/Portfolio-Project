@@ -103,4 +103,3 @@ export default function NotificationButton({ notificationCount, onPress }: Notif
     </TouchableOpacity>
   );
 }
-

@@ -1,13 +1,11 @@
 import React, { useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, useWindowDimensions } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../lib/types';
 import MovaLogo from '../../components/ui/MovaLogo';
 import Colors from '../../constants/Colors';
-
-const { height, width } = Dimensions.get('window');
 
 /**
  * UserHomeScreen
@@ -29,11 +27,11 @@ const { height, width } = Dimensions.get('window');
 export default function UserHomeScreen() {
   const { logout, user, refreshUser } = useAuth();
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
+  const { height, width } = useWindowDimensions();
 
   // Refresh user data every time the screen is focused
   useFocusEffect(
     React.useCallback(() => {
-      console.log('🔄 [UserHomeScreen] Rafraîchissement des données utilisateur...');
       refreshUser();
     }, [])
   );
@@ -46,38 +44,37 @@ export default function UserHomeScreen() {
 
   // Handle navigation to the user's profile (candidate or recruiter)
   const handleGoToProfile = () => {
-    console.log('🔍 [UserHomeScreen] handleGoToProfile appelé');
-    console.log('🔍 [UserHomeScreen] user complet:', JSON.stringify(user, null, 2));
-    console.log('🔍 [UserHomeScreen] candidateProfile:', user?.candidateProfile);
-    console.log('🔍 [UserHomeScreen] recruiterProfile:', user?.recruiterProfile);
-    
     if (user?.candidateProfile) {
-      console.log('✅ [UserHomeScreen] Navigation vers CandidateProfile');
       navigation.navigate('CandidateProfile', { startEditing: false });
     } else if (user?.recruiterProfile) {
-      console.log('✅ [UserHomeScreen] Navigation vers RecruiterProfile');
       navigation.navigate('RecruiterProfile', { startEditing: false });
     } else {
-      console.log('❌ [UserHomeScreen] Aucun profil trouvé');
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <View style={styles.header}>
+      <View style={[styles.content, { paddingHorizontal: width * 0.05 }]}>
+        <View style={[styles.header, { marginBottom: height * 0.12 }]}>
           <MovaLogo />
-          <Text style={styles.slogan}>
+          <Text style={[styles.slogan, { 
+            fontSize: Math.min(width * 0.055, 24),
+            lineHeight: Math.min(width * 0.075, 32)
+          }]}>
             Votre prochain emploi commence par une rencontre !
           </Text>
         </View>
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.primaryButton} onPress={handleGoToProfile}>
-            <Text style={styles.primaryButtonText}>Retourner au profil</Text>
+            <Text style={[styles.primaryButtonText, { fontSize: Math.min(width * 0.045, 18) }]}>
+              Retourner au profil
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.secondaryButton} onPress={handleLogout}>
-            <Text style={styles.secondaryButtonText}>Déconnexion</Text>
+            <Text style={[styles.secondaryButtonText, { fontSize: Math.min(width * 0.045, 18) }]}>
+              Déconnexion
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -93,25 +90,21 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: width * 0.05,
   },
   header: {
     alignItems: 'center',
-    marginBottom: height * 0.12, // Crée un espace volontaire avec les boutons
   },
   slogan: {
-    fontSize: width * 0.06,
     color: Colors.light.text,
     fontWeight: '600',
     textAlign: 'center',
     marginTop: 24,
-    lineHeight: width * 0.08,
   },
   buttonContainer: {
     alignItems: 'center',
   },
   primaryButton: {
-    backgroundColor: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
+    backgroundColor: '#4930a3',
     borderRadius: 30,
     width: '100%',
     paddingVertical: 18,
@@ -125,14 +118,13 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: '#FFFFFF',
-    fontSize: width * 0.045,
     fontWeight: 'bold',
   },
   secondaryButton: {
     backgroundColor: 'transparent',
     borderRadius: 30,
     borderWidth: 1.5,
-    borderColor: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
+    borderColor: '#4930a3',
     width: '100%',
     paddingVertical: 18,
     justifyContent: 'center',
@@ -140,8 +132,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   secondaryButtonText: {
-    color: '#4930a3', // Un violet-bleu nuit, plus sobre et pro
-    fontSize: width * 0.045,
+    color: '#4930a3',
     fontWeight: 'bold',
   },
 });
