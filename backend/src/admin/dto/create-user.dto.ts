@@ -1,4 +1,10 @@
-import { IsEmail, IsString, IsOptional, IsEnum, IsObject } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsObject,
+} from 'class-validator';
 
 // CreateUserDto is used to validate the data when creating a new user from the admin panel.
 // It ensures the email and password are valid, the role is one of the allowed values,

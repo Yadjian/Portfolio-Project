@@ -10,10 +10,10 @@ export class RolesGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     // Retrieve required roles from metadata set by the Roles decorator
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     // If no roles are required, allow access
     if (!requiredRoles) {

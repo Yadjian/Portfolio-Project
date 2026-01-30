@@ -12,6 +12,6 @@ import { AuthModule } from '../auth/auth.module';
   // Register the JobOffersController to handle job offer related routes
   controllers: [JobOffersController],
   // Register the JobOfferService to provide business logic for job offers
-  providers: [JobOfferService]
+  providers: [JobOfferService],
 })
 export class JobOfferModule {}

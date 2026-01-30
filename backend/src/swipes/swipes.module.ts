@@ -7,7 +7,7 @@ import { AuthModule } from 'src/auth/auth.module'; // Ou PassportModule si tu l'
 import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, NotificationsModule,], // Donne l'accès à Prisma et à l'AuthGuard
+  imports: [PrismaModule, AuthModule, NotificationsModule], // Donne l'accès à Prisma et à l'AuthGuard
   controllers: [SwipesController],
   providers: [SwipesService],
 })

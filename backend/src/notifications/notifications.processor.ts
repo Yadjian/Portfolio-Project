@@ -5,7 +5,7 @@ import { Processor } from '@nestjs/bullmq';
 import { Job } from 'bullmq';
 import { WorkerHost } from '@nestjs/bullmq';
 import { FirebaseService } from 'src/firebase/firebase.service'; // Service for sending push notifications
-import { PrismaService } from 'src/prisma/prisma.service';   // Service for database access
+import { PrismaService } from 'src/prisma/prisma.service'; // Service for database access
 import {
   SWIPE_NOTIFICATION_QUEUE,
   MATCH_NOTIFICATION_QUEUE,
@@ -16,7 +16,7 @@ import {
 export class SwipeNotificationsProcessor extends WorkerHost {
   constructor(
     private readonly firebaseService: FirebaseService, // Injected Firebase service
-    private readonly prisma: PrismaService           // Injected Prisma service
+    private readonly prisma: PrismaService, // Injected Prisma service
   ) {
     super();
   }
@@ -27,7 +27,9 @@ export class SwipeNotificationsProcessor extends WorkerHost {
       case 'candidate-swipe-right':
         return this.handleCandidateSwipe(job); // Handle candidate swipe right event
       default:
-        console.warn(`[${SWIPE_NOTIFICATION_QUEUE}] Unhandled job name: ${job.name}`);
+        console.warn(
+          `[${SWIPE_NOTIFICATION_QUEUE}] Unhandled job name: ${job.name}`,
+        );
         break;
     }
   }
@@ -40,12 +42,12 @@ export class SwipeNotificationsProcessor extends WorkerHost {
       // Find the recruiter's push token
       const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
         where: { id: recruiterId },
-        select: { pushToken: true } // Only need the push token
+        select: { pushToken: true }, // Only need the push token
       });
       // Find the candidate's first name for the notification message
       const candidateProfile = await this.prisma.candidateProfile.findUnique({
-          where: { id: candidateId },
-          select: { firstName: true }
+        where: { id: candidateId },
+        select: { firstName: true },
       });
 
       if (recruiterProfile?.pushToken && candidateProfile) {
@@ -54,13 +56,18 @@ export class SwipeNotificationsProcessor extends WorkerHost {
           recruiterProfile.pushToken,
           'Nouveau Swipe !', // Notification title
           `${candidateProfile.firstName} est intéressé(e) par votre profil !`, // Notification body
-          { type: 'new_swipe', candidateId: candidateId } // Optional data for the frontend
+          { type: 'new_swipe', candidateId: candidateId }, // Optional data for the frontend
         );
       } else {
-        console.warn(`Recruiter ${recruiterId} has no push token or candidate ${candidateId} not found.`);
+        console.warn(
+          `Recruiter ${recruiterId} has no push token or candidate ${candidateId} not found.`,
+        );
       }
     } catch (error) {
-      console.error(`Error processing job ${job.id} (candidate-swipe-right):`, error);
+      console.error(
+        `Error processing job ${job.id} (candidate-swipe-right):`,
+        error,
+      );
       // Handle the error (e.g., retry the job later)
     }
   }
@@ -69,9 +76,9 @@ export class SwipeNotificationsProcessor extends WorkerHost {
 @Processor('match-notification')
 // Processor for handling match notification jobs (e.g., when a match occurs between candidate and recruiter)
 export class MatchNotificationsProcessor extends WorkerHost {
-   constructor(
+  constructor(
     private readonly firebaseService: FirebaseService, // Injected Firebase service
-    private readonly prisma: PrismaService           // Injected Prisma service
+    private readonly prisma: PrismaService, // Injected Prisma service
   ) {
     super();
   }
@@ -84,40 +91,47 @@ export class MatchNotificationsProcessor extends WorkerHost {
       case 'new-match-recruiter':
         return this.handleMatchRecruiter(job); // Notify recruiter of a new match
       default:
-        console.warn(`[${MATCH_NOTIFICATION_QUEUE}] Unhandled job name: ${job.name}`);
+        console.warn(
+          `[${MATCH_NOTIFICATION_QUEUE}] Unhandled job name: ${job.name}`,
+        );
         break;
     }
   }
 
   // Sends a push notification to the candidate when a new match occurs
   async handleMatchCandidate(job: Job<any>) {
-  const { candidateId, recruiterId } = job.data;
+    const { candidateId, recruiterId } = job.data;
 
-  try {
-    // Find the candidate's push token
-    const candidateProfile = await this.prisma.candidateProfile.findUnique({
-      where: { id: candidateId },
-      select: { pushToken: true }
-    });
-    // Find the recruiter's first name for the notification message
-    const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
-      where: { id: recruiterId },
-      select: { firstName: true }
-    });
+    try {
+      // Find the candidate's push token
+      const candidateProfile = await this.prisma.candidateProfile.findUnique({
+        where: { id: candidateId },
+        select: { pushToken: true },
+      });
+      // Find the recruiter's first name for the notification message
+      const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
+        where: { id: recruiterId },
+        select: { firstName: true },
+      });
 
-    if (candidateProfile?.pushToken && recruiterProfile) {
-      await this.firebaseService.sendPushNotification(
-        candidateProfile.pushToken,
-        'Nouveau Match !', // Notification title
-        `Vous avez matché avec ${recruiterProfile.firstName} ! Consultez vos matchs.`, // Notification body
-        { type: 'new_match', recruiterId: recruiterId } // Optional data for the frontend
+      if (candidateProfile?.pushToken && recruiterProfile) {
+        await this.firebaseService.sendPushNotification(
+          candidateProfile.pushToken,
+          'Nouveau Match !', // Notification title
+          `Vous avez matché avec ${recruiterProfile.firstName} ! Consultez vos matchs.`, // Notification body
+          { type: 'new_match', recruiterId: recruiterId }, // Optional data for the frontend
+        );
+      } else {
+        console.warn(
+          `Candidate ${candidateId} has no push token or recruiter ${recruiterId} not found.`,
+        );
+      }
+    } catch (error) {
+      console.error(
+        `Error processing job ${job.id} (new-match-candidate):`,
+        error,
       );
-    } else {
-      console.warn(`Candidate ${candidateId} has no push token or recruiter ${recruiterId} not found.`);
     }
-  } catch (error) {
-    console.error(`Error processing job ${job.id} (new-match-candidate):`, error);
-  }
   }
 
   // Sends a push notification to the recruiter when a new match occurs
@@ -128,26 +142,31 @@ export class MatchNotificationsProcessor extends WorkerHost {
       // Find the recruiter's push token
       const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
         where: { id: recruiterId },
-        select: { pushToken: true }
+        select: { pushToken: true },
       });
       // Find the candidate's first name for the notification message
       const candidateProfile = await this.prisma.candidateProfile.findUnique({
         where: { id: candidateId },
-        select: { firstName: true }
+        select: { firstName: true },
       });
 
       if (recruiterProfile?.pushToken && candidateProfile) {
-          await this.firebaseService.sendPushNotification(
-            recruiterProfile.pushToken,
-            'Nouveau Match !', // Notification title
-            `Vous avez matché avec ${candidateProfile.firstName} ! Consultez vos matchs.`, // Notification body
-            { type: 'new_match', candidateId: candidateId } // Optional data for the frontend
-          );
+        await this.firebaseService.sendPushNotification(
+          recruiterProfile.pushToken,
+          'Nouveau Match !', // Notification title
+          `Vous avez matché avec ${candidateProfile.firstName} ! Consultez vos matchs.`, // Notification body
+          { type: 'new_match', candidateId: candidateId }, // Optional data for the frontend
+        );
       } else {
-         console.warn(`Recruiter ${recruiterId} has no push token or candidate ${candidateId} not found.`);
+        console.warn(
+          `Recruiter ${recruiterId} has no push token or candidate ${candidateId} not found.`,
+        );
       }
     } catch (error) {
-      console.error(`Error processing job ${job.id} (new-match-recruiter):`, error);
+      console.error(
+        `Error processing job ${job.id} (new-match-recruiter):`,
+        error,
+      );
     }
   }
 }

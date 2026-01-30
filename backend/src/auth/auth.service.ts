@@ -1,6 +1,11 @@
 // src/auth/auth.service.ts
 
-import { Injectable, UnauthorizedException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -16,11 +21,13 @@ export class AuthService {
   ) {}
 
   // 🔒 INSCRIPTION SÉCURISÉE - Base sur votre logique existante
-  async signup(dto: SignupDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async signup(
+    dto: SignupDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const { email, password, role } = dto;
 
     // 🔒 L'email est déjà normalisé par le Transform dans le DTO
-    
+
     // ✅ VOTRE LOGIQUE EXISTANTE - Vérifier si l'utilisateur existe
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
@@ -70,7 +77,9 @@ export class AuthService {
   }
 
   // 🔒 CONNEXION SÉCURISÉE - Base sur votre logique
-  async login(dto: AuthDto): Promise<{ accessToken: string; refreshToken: string }> {
+  async login(
+    dto: AuthDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const { email, password } = dto;
 
     // 🔒 L'email est déjà normalisé par le Transform dans le DTO
@@ -110,9 +119,13 @@ export class AuthService {
 
   async refreshTokens(userId: string, refreshToken: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.hashedRefreshToken) throw new ForbiddenException('Access Denied');
+    if (!user || !user.hashedRefreshToken)
+      throw new ForbiddenException('Access Denied');
 
-    const tokensMatch = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+    const tokensMatch = await bcrypt.compare(
+      refreshToken,
+      user.hashedRefreshToken,
+    );
     if (!tokensMatch) throw new ForbiddenException('Access Denied');
 
     const newTokens = await this.getTokens(user.id, user.email);

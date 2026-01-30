@@ -1,5 +1,10 @@
 // src/swipes/swipes.service.ts
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq'; // <-- COMMENTE
 import { Queue } from 'bullmq';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -26,7 +31,7 @@ export class SwipesService {
     if (!userId) {
       throw new BadRequestException('Utilisateur requis pour swiper.');
     }
-    
+
     if (!dto?.profileId?.trim() || !dto?.direction) {
       throw new BadRequestException('ID de profil et direction requis.');
     }
@@ -35,7 +40,9 @@ export class SwipesService {
 
     // 🛡️ SÉCURITÉ : Empêcher l'auto-swipe
     if (swipedProfileId === userId) {
-      throw new ForbiddenException('Vous ne pouvez pas swiper sur votre propre profil.');
+      throw new ForbiddenException(
+        'Vous ne pouvez pas swiper sur votre propre profil.',
+      );
     }
 
     // 1. Identifier qui est le swiper (Candidat ou Recruteur)
@@ -67,13 +74,14 @@ export class SwipesService {
       // 🛡️ SÉCURITÉ : Vérifier que le profil swipé est bien un recruteur
       const targetRecruiter = await this.prisma.recruiterProfile.findUnique({
         where: { id: swipedProfileId },
-        select: { id: true }
+        select: { id: true },
       });
       if (!targetRecruiter) {
-        console.warn(`🚨 SWIPE SECURITY: Candidate ${userId} tried to swipe on invalid recruiter ${swipedProfileId}`);
+        console.warn(
+          `🚨 SWIPE SECURITY: Candidate ${userId} tried to swipe on invalid recruiter ${swipedProfileId}`,
+        );
         throw new NotFoundException('Profil recruteur introuvable.');
       }
-
     } else if (swiperUser.recruiterProfile) {
       // C'est un RECRUTEUR qui swipe
       candidateId = swipedProfileId; // L'ID reçu est celui d'un candidat
@@ -84,13 +92,14 @@ export class SwipesService {
       // 🛡️ SÉCURITÉ : Vérifier que le profil swipé est bien un candidat
       const targetCandidate = await this.prisma.candidateProfile.findUnique({
         where: { id: swipedProfileId },
-        select: { id: true }
+        select: { id: true },
       });
       if (!targetCandidate) {
-        console.warn(`🚨 SWIPE SECURITY: Recruiter ${userId} tried to swipe on invalid candidate ${swipedProfileId}`);
+        console.warn(
+          `🚨 SWIPE SECURITY: Recruiter ${userId} tried to swipe on invalid candidate ${swipedProfileId}`,
+        );
         throw new NotFoundException('Profil candidat introuvable.');
       }
-
     } else {
       throw new ForbiddenException("L'utilisateur n'a pas de profil actif.");
     }
@@ -135,11 +144,13 @@ export class SwipesService {
       updatedSwipe.recruiterDirection !== 'RIGHT' // Pas encore de match
     ) {
       await this.swipeQueue.add('candidate-swipe-right', {
-      candidateId: candidateId,
-      recruiterId: recruiterId,
-      swipeId: updatedSwipe.id,
+        candidateId: candidateId,
+        recruiterId: recruiterId,
+        swipeId: updatedSwipe.id,
       }); // <-- COMMENTE
-      console.log(`Job ajouté à ${SWIPE_NOTIFICATION_QUEUE}: candidate-swipe-right`); // <-- COMMENTE
+      console.log(
+        `Job ajouté à ${SWIPE_NOTIFICATION_QUEUE}: candidate-swipe-right`,
+      ); // <-- COMMENTE
     }
 
     // 2. Si un MATCH vient de se produire
@@ -155,26 +166,32 @@ export class SwipesService {
       });
 
       await this.matchQueue.add('new-match-candidate', {
-      candidateId: candidateId,
-      recruiterId: recruiterId,
-      matchId: matchData.id,
-      matchedAt: matchData.matchedAt,
+        candidateId: candidateId,
+        recruiterId: recruiterId,
+        matchId: matchData.id,
+        matchedAt: matchData.matchedAt,
       }); // <-- COMMENTE
-      console.log(`Job ajouté à ${MATCH_NOTIFICATION_QUEUE}: new-match-candidate`); // <-- COMMENTE
+      console.log(
+        `Job ajouté à ${MATCH_NOTIFICATION_QUEUE}: new-match-candidate`,
+      ); // <-- COMMENTE
 
       await this.matchQueue.add('new-match-recruiter', {
-      candidateId: candidateId,
-      recruiterId: recruiterId,
-      matchId: matchData.id,
-      matchedAt: matchData.matchedAt,
+        candidateId: candidateId,
+        recruiterId: recruiterId,
+        matchId: matchData.id,
+        matchedAt: matchData.matchedAt,
       }); // <-- COMMENTE
-      console.log(`Job ajouté à ${MATCH_NOTIFICATION_QUEUE}: new-match-recruiter`); // <-- COMMENTE
+      console.log(
+        `Job ajouté à ${MATCH_NOTIFICATION_QUEUE}: new-match-recruiter`,
+      ); // <-- COMMENTE
 
       return { match: true, matchedAt: matchData.matchedAt };
     }
 
     // 🔒 Log de sécurité pour audit
-    console.log(`✅ Swipe authorized: ${direction} by user ${userId} on profile ${swipedProfileId}`);
+    console.log(
+      `✅ Swipe authorized: ${direction} by user ${userId} on profile ${swipedProfileId}`,
+    );
 
     // Si pas de match
     return { match: false };
@@ -186,7 +203,9 @@ export class SwipesService {
   async undoLastSwipe(userId: string) {
     // 🔒 Validation sécurisée des entrées
     if (!userId) {
-      throw new BadRequestException('Utilisateur requis pour annuler un swipe.');
+      throw new BadRequestException(
+        'Utilisateur requis pour annuler un swipe.',
+      );
     }
 
     // 1. Trouver le profil de l'utilisateur

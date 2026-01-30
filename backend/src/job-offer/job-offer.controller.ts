@@ -1,6 +1,20 @@
 // This file defines the JobOffersController, which handles endpoints related to job offer management.
 
-import { Controller, Post, Body, UseGuards, Req, Get, Put, Delete, Param, ParseUUIDPipe, Query, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  UseGuards,
+  Req,
+  Get,
+  Put,
+  Delete,
+  Param,
+  ParseUUIDPipe,
+  Query,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import type { Request } from 'express';
 import { JobOfferService } from './job-offer.service';
 import { CreateJobOfferDto } from './dto/create-job-offer.dto';

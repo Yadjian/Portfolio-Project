@@ -11,33 +11,34 @@ import * as path from 'path';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const port = process.env.PORT ?? 3000;
-  
+
   // 🌐 CORS - Votre config existante maintenue
   app.enableCors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? process.env.ALLOWED_ORIGINS?.split(',') || []
-      : true,
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? process.env.ALLOWED_ORIGINS?.split(',') || []
+        : true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   });
-  
+
   // 🔒 VALIDATION PROGRESSIVE - Sécurisée mais NON-CASSANTE
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,                    // ✅ Supprime les champs malveillants
-      forbidNonWhitelisted: false,        // 🔄 Ignore les champs inconnus (COMPATIBLE FRONTEND)
-      transform: true,                    // ✅ Transformations automatiques
-      skipUndefinedProperties: true,      // ✅ Ignore les undefined
-      skipNullProperties: false,          // ✅ Valide les null
-      skipMissingProperties: false,       // ✅ Valide les champs requis
-      disableErrorMessages: false,        // ✅ Messages d'erreur détaillés
-      validateCustomDecorators: true,     // ✅ Validation avancée
+      whitelist: true, // ✅ Supprime les champs malveillants
+      forbidNonWhitelisted: false, // 🔄 Ignore les champs inconnus (COMPATIBLE FRONTEND)
+      transform: true, // ✅ Transformations automatiques
+      skipUndefinedProperties: true, // ✅ Ignore les undefined
+      skipNullProperties: false, // ✅ Valide les null
+      skipMissingProperties: false, // ✅ Valide les champs requis
+      disableErrorMessages: false, // ✅ Messages d'erreur détaillés
+      validateCustomDecorators: true, // ✅ Validation avancée
       transformOptions: {
-        enableImplicitConversion: true,   // ✅ Conversion automatique des types
+        enableImplicitConversion: true, // ✅ Conversion automatique des types
       },
-    })
+    }),
   );
-  
+
   // 📊 VOS LOGS EXISTANTS - inchangés
   console.log('Database URL:', process.env.DATABASE_URL);
   console.log('Redis URL:', process.env.REDIS_URL);
@@ -47,7 +48,7 @@ async function bootstrap() {
 
   // 📚 VOTRE CONFIG SWAGGER EXISTANTE - inchangée
   const yamlPath = path.join(__dirname, '..', 'openapi.yml');
-  
+
   if (fs.existsSync(yamlPath)) {
     const fileContents = fs.readFileSync(yamlPath, 'utf8');
     const document = yaml.load(fileContents) as OpenAPIObject;

@@ -1,6 +1,14 @@
 // This file defines the DiscoveryController, which handles endpoints related to user discovery features.
 
-import { Controller, Get, UseGuards, Query, DefaultValuePipe, ParseIntPipe, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
+  Req,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { DiscoveryService } from './discovery.service';
@@ -27,15 +35,22 @@ export class DiscoveryController {
     const userId = user.sub;
 
     // Parse coordinates if provided
-    const coords = latitude && longitude ? {
-      latitude: parseFloat(latitude),
-      longitude: parseFloat(longitude),
-    } : undefined;
+    const coords =
+      latitude && longitude
+        ? {
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+          }
+        : undefined;
 
     // Call the service to get recruiters for the candidate
-    return this.discoveryService.getRecruitersForCandidate(userId, radius, coords);
+    return this.discoveryService.getRecruitersForCandidate(
+      userId,
+      radius,
+      coords,
+    );
   }
-  
+
   // === RECRUITER ENDPOINT ===
   // GET /discovery/candidates
   // Returns a list of candidates for the recruiter to discover.
@@ -54,15 +69,22 @@ export class DiscoveryController {
     const userId = user.sub;
 
     // Parse coordinates if provided
-    const coords = latitude && longitude ? {
-      latitude: parseFloat(latitude),
-      longitude: parseFloat(longitude),
-    } : undefined;
+    const coords =
+      latitude && longitude
+        ? {
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+          }
+        : undefined;
 
     // Call the service to get candidates for the recruiter
-    return this.discoveryService.getCandidatesForRecruiter(userId, radius, coords);
+    return this.discoveryService.getCandidatesForRecruiter(
+      userId,
+      radius,
+      coords,
+    );
   }
-  
+
   // === RECRUITER NOTIFICATIONS ENDPOINT ===
   // GET /discovery/pending-candidates
   // Returns a list of candidates who are pending for the recruiter (e.g., waiting for a response).

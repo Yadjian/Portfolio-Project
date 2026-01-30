@@ -1,22 +1,22 @@
 // Fichier: backend/src/profile/profile.controller.ts
 
-import { 
-  Controller, 
-  Get, 
-  Put, 
-  Post, 
-  Delete, 
-  UseGuards, 
-  Req, 
-  Body, 
-  UseInterceptors, 
-  UploadedFile, 
-  ParseFilePipe, 
-  MaxFileSizeValidator, 
+import {
+  Controller,
+  Get,
+  Put,
+  Post,
+  Delete,
+  UseGuards,
+  Req,
+  Body,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
   FileTypeValidator,
   HttpCode,
   HttpStatus,
-  BadRequestException
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
@@ -47,17 +47,27 @@ export class ProfileController {
         fileIsRequired: false,
         validators: [
           new MaxFileSizeValidator({ maxSize: 3 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i }), // ✅ Message supprimé
+          new FileTypeValidator({
+            fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i,
+          }), // ✅ Message supprimé
         ],
       }),
-    ) photoFile?: Express.Multer.File,
+    )
+    photoFile?: Express.Multer.File,
   ) {
     try {
       const userId = req.user.sub;
-      return await this.profileService.updateProfile(userId, updateProfileDto, photoFile);
+      return await this.profileService.updateProfile(
+        userId,
+        updateProfileDto,
+        photoFile,
+      );
     } catch (error) {
       if (error.response?.statusCode === 400) {
-        console.warn('Validation error in updateProfile:', error.response.message);
+        console.warn(
+          'Validation error in updateProfile:',
+          error.response.message,
+        );
       }
       throw error;
     }
@@ -66,13 +76,21 @@ export class ProfileController {
   @Put('location')
   @UseGuards(AuthGuard('jwt'))
   @HttpCode(HttpStatus.OK)
-  async updateLocation(@Req() req: Request, @Body() updateLocationDto: UpdateLocationDto) {
+  async updateLocation(
+    @Req() req: Request,
+    @Body() updateLocationDto: UpdateLocationDto,
+  ) {
     try {
       const userId = req.user.sub;
-      return await this.profileService.updateUserLocation(userId, updateLocationDto);
+      return await this.profileService.updateUserLocation(
+        userId,
+        updateLocationDto,
+      );
     } catch (error) {
       if (error.message?.includes('ST_GeomFromText')) {
-        throw new BadRequestException('Coordonnées GPS invalides. Vérifiez le format.');
+        throw new BadRequestException(
+          'Coordonnées GPS invalides. Vérifiez le format.',
+        );
       }
       throw error;
     }
@@ -93,10 +111,13 @@ export class ProfileController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 3 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i }), // ✅ Message supprimé
+          new FileTypeValidator({
+            fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i,
+          }), // ✅ Message supprimé
         ],
       }),
-    ) photoFile: Express.Multer.File,
+    )
+    photoFile: Express.Multer.File,
   ) {
     try {
       const userId = req.user.sub;
@@ -120,7 +141,8 @@ export class ProfileController {
           new FileTypeValidator({ fileType: /^application\/pdf$/i }), // ✅ Message supprimé
         ],
       }),
-    ) file: Express.Multer.File,
+    )
+    file: Express.Multer.File,
   ) {
     try {
       const user = req.user as { sub: string };

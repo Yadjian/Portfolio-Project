@@ -1,6 +1,10 @@
 // src/file-storage/file-storage.service.ts
 import { Injectable } from '@nestjs/common';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from '@aws-sdk/client-s3';
 import { v4 as uuidv4 } from 'uuid'; // Pour générer des noms de fichiers uniques
 
 @Injectable()
@@ -27,10 +31,7 @@ export class FileStorageService {
    * @param folder Le dossier de destination (ex: 'resumes')
    * @returns L'URL publique du fichier
    */
-  async uploadFile(
-    file: Express.Multer.File,
-    folder: string,
-  ): Promise<string> {
+  async uploadFile(file: Express.Multer.File, folder: string): Promise<string> {
     // Crée un nom de fichier unique pour éviter les conflits
     const fileExtension = file.originalname.split('.').pop();
     const fileName = `${folder}/${uuidv4()}.${fileExtension}`;
@@ -48,7 +49,9 @@ export class FileStorageService {
     await this.s3Client.send(command);
 
     // Construit l'URL publique à partir de la variable d'environnement ou utilise la valeur par défaut
-    const publicUrl = process.env.R2_PUBLIC_URL || 'https://pub-b9b7f6ccf2824f88b6a79de85bf5c55c.r2.dev';
+    const publicUrl =
+      process.env.R2_PUBLIC_URL ||
+      'https://pub-b9b7f6ccf2824f88b6a79de85bf5c55c.r2.dev';
     return `${publicUrl}/${fileName}`;
   }
 
@@ -61,7 +64,9 @@ export class FileStorageService {
 
     try {
       // Extrait le nom du fichier (key) à partir de l'URL
-      const publicUrl = process.env.R2_PUBLIC_URL || 'https://pub-b9b7f6ccf2824f88b6a79de85bf5c55c.r2.dev';
+      const publicUrl =
+        process.env.R2_PUBLIC_URL ||
+        'https://pub-b9b7f6ccf2824f88b6a79de85bf5c55c.r2.dev';
       const fileName = fileUrl.replace(`${publicUrl}/`, '');
 
       const command = new DeleteObjectCommand({

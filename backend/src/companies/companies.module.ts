@@ -11,6 +11,6 @@ import { PrismaModule } from '../prisma/prisma.module';
   // Register the CompaniesController to handle company-related routes
   controllers: [CompaniesController],
   // Register the CompaniesService to provide business logic for companies
-  providers: [CompaniesService]
+  providers: [CompaniesService],
 })
 export class CompaniesModule {}

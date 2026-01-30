@@ -15,14 +15,14 @@ export class MetaService {
   }
 
   getContractTypes() {
-    return Object.values(ContractType).map(value => ({
+    return Object.values(ContractType).map((value) => ({
       value,
       label: this.getContractTypeLabel(value),
     }));
   }
 
   getExperienceLevels() {
-    return Object.values(ExperienceLevel).map(value => ({
+    return Object.values(ExperienceLevel).map((value) => ({
       value,
       label: this.getExperienceLevelLabel(value),
     }));

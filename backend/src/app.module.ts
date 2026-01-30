@@ -35,7 +35,7 @@ import { APP_GUARD } from '@nestjs/core';
     // ✅ 2. MODULES DE BASE
     AuthModule,
     PrismaModule,
-    
+
     // ✅ 3. MODULES MÉTIER
     ProfileModule,
     SwipesModule,
@@ -46,35 +46,38 @@ import { APP_GUARD } from '@nestjs/core';
     MatchesModule,
     FileStorageModule,
     AdminModule,
-    
+
     // ✅ 4. NOTIFICATIONS MODULE (APRÈS BullModule.forRoot)
     NotificationsModule,
-    
+
     // ✅ 5. MODULES TECHNIQUES
     MulterModule.register({
       dest: './uploads',
     }),
-    
+
     FirebaseModule,
-    
+
     // ✅ 6. THROTTLE MODULE
     ThrottlerModule.forRoot([
       {
         name: 'default',
         ttl: 60000, // 1 minute
-        limit: 10,  // 10 requêtes par minute
+        limit: 10, // 10 requêtes par minute
       },
       {
         name: 'auth',
-        ttl: 900000, // 15 minutes  
-        limit: 5,    // 5 tentatives de connexion par 15min
+        ttl: 900000, // 15 minutes
+        limit: 5, // 5 tentatives de connexion par 15min
       },
     ]),
   ],
   controllers: [AppController, HealthController],
-  providers: [AppService, {
-    provide: APP_GUARD,
-    useClass: ThrottlerGuard, // 🔒 Protection globale
-  }],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard, // 🔒 Protection globale
+    },
+  ],
 })
 export class AppModule {}

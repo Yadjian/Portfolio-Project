@@ -1,5 +1,10 @@
 // src/matches/matches.service.ts
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -9,7 +14,9 @@ export class MatchesService {
   async findAllMatches(userId: string) {
     // 🔒 Validation sécurisée des entrées
     if (!userId) {
-      throw new BadRequestException('Utilisateur requis pour voir les matches.');
+      throw new BadRequestException(
+        'Utilisateur requis pour voir les matches.',
+      );
     }
 
     const user = await this.prisma.user.findUnique({
@@ -47,19 +54,19 @@ export class MatchesService {
       include: {
         // Inclure le profil de l'AUTRE personne pour l'affichage
         candidate: {
-          select: { 
-            id: true, 
-            firstName: true, 
-            lastName: true, 
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
             photoUrl: true,
             desiredJobTitle: true,
             desiredContractTypes: true,
           },
         },
         recruiter: {
-          select: { 
-            id: true, 
-            firstName: true, 
+          select: {
+            id: true,
+            firstName: true,
             lastName: true,
             searchedCategories: {
               select: { name: true },
@@ -80,10 +87,12 @@ export class MatchesService {
     });
 
     // 🔒 Log de sécurité pour audit
-    console.log(`✅ Matches list accessed by user ${userId}: ${matches.length} matches found`);
+    console.log(
+      `✅ Matches list accessed by user ${userId}: ${matches.length} matches found`,
+    );
 
     // On formate la réponse pour le front
-    return matches.map(match => {
+    return matches.map((match) => {
       if (user.candidateProfile) {
         // Candidat voit les recruteurs
         const recruiter = match.recruiter;
@@ -139,12 +148,16 @@ export class MatchesService {
     const isUserRecruiter = swipe.recruiter.userId === userId;
 
     if (!isUserCandidate && !isUserRecruiter) {
-      console.warn(`🚨 MATCH IDOR BLOCKED: User ${userId} tried to access match ${swipeId} without authorization`);
+      console.warn(
+        `🚨 MATCH IDOR BLOCKED: User ${userId} tried to access match ${swipeId} without authorization`,
+      );
       throw new ForbiddenException('Accès non autorisé à ce match.');
     }
 
     // 🔒 Log de sécurité pour audit
-    console.log(`✅ Match details accessed: ${swipeId} by user ${userId} (candidate: ${isUserCandidate}, recruiter: ${isUserRecruiter})`);
+    console.log(
+      `✅ Match details accessed: ${swipeId} by user ${userId} (candidate: ${isUserCandidate}, recruiter: ${isUserRecruiter})`,
+    );
 
     // 4. Renvoyer le "contenu" en fonction du rôle
     if (isUserCandidate) {
@@ -161,7 +174,9 @@ export class MatchesService {
       });
 
       // 🔒 Log pour audit
-      console.log(`✅ Candidate ${userId} accessed ${jobOffers.length} job offers from match ${swipeId}`);
+      console.log(
+        `✅ Candidate ${userId} accessed ${jobOffers.length} job offers from match ${swipeId}`,
+      );
       return jobOffers;
     }
 
@@ -178,7 +193,9 @@ export class MatchesService {
       });
 
       // 🔒 Log pour audit
-      console.log(`✅ Recruiter ${userId} accessed candidate profile from match ${swipeId}`);
+      console.log(
+        `✅ Recruiter ${userId} accessed candidate profile from match ${swipeId}`,
+      );
       return candidateProfile;
     }
   }

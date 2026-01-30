@@ -6,7 +6,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 // The payload structure of the JWT we generate
 type JwtPayload = {
-  sub: string;   // User ID
+  sub: string; // User ID
   email: string; // User email
 };
 

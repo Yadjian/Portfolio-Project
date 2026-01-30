@@ -4,7 +4,7 @@
 describe('🔒 IDOR Security Tests - Job Offers', () => {
   let app: any;
   let prisma: any;
-  
+
   // Tokens et IDs de test
   let recruiterA_token: string;
   let recruiterB_token: string;
@@ -23,7 +23,7 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
       // Arrange: Recruteur B essaie de modifier l'offre de A
       const maliciousUpdate = {
         title: 'OFFRE PIRATÉE PAR B !',
-        description: 'Cette offre a été hackée !'
+        description: 'Cette offre a été hackée !',
       };
 
       // Act: Tentative d'attaque IDOR
@@ -34,13 +34,15 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
         .expect(403); // Forbidden
 
       // Assert: L'attaque a été bloquée
-      expect(response.body.message).toContain('Vous ne pouvez modifier que les offres de votre entreprise');
-      
+      expect(response.body.message).toContain(
+        'Vous ne pouvez modifier que les offres de votre entreprise',
+      );
+
       // Vérifier que l'offre originale n'a PAS été modifiée
       const originalOffer = await request(app.getHttpServer())
         .get(`/job-offers/${jobOfferA_id}`)
         .expect(200);
-      
+
       expect(originalOffer.body.title).not.toBe('OFFRE PIRATÉE PAR B !');
     });
 
@@ -48,7 +50,7 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
       // Arrange: Mise à jour légitime
       const legitimateUpdate = {
         title: 'Offre mise à jour par le propriétaire',
-        description: 'Description mise à jour légitimement'
+        description: 'Description mise à jour légitimement',
       };
 
       // Act: Modification légitime
@@ -77,15 +79,17 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
         .expect(403); // Forbidden
 
       // Assert: La suppression a été bloquée
-      expect(response.body.message).toContain('Vous n\'êtes pas autorisé à supprimer cette offre');
-      
+      expect(response.body.message).toContain(
+        "Vous n'êtes pas autorisé à supprimer cette offre",
+      );
+
       // Vérifier que l'offre existe toujours
       await request(app.getHttpServer())
         .get(`/job-offers/${jobOfferA_id}`)
         .expect(200);
     });
 
-    test('✅ Admin de l\'entreprise peut supprimer toutes les offres de son entreprise', async () => {
+    test("✅ Admin de l'entreprise peut supprimer toutes les offres de son entreprise", async () => {
       // TODO: Tester avec un admin d'entreprise
     });
 
@@ -98,7 +102,7 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
           title: 'Offre temporaire à supprimer',
           description: 'Cette offre sera supprimée',
           locationWKT: 'POINT(2.3522 48.8566)',
-          locationName: 'Paris'
+          locationName: 'Paris',
         })
         .expect(201);
 
@@ -115,8 +119,8 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
     });
   });
 
-  describe('🔍 Test Logs d\'Audit de Sécurité', () => {
-    test('🚨 Les tentatives d\'attaque IDOR sont loggées', async () => {
+  describe("🔍 Test Logs d'Audit de Sécurité", () => {
+    test("🚨 Les tentatives d'attaque IDOR sont loggées", async () => {
       // Mock du système de logs pour capturer les warnings
       const consoleSpy = jest.spyOn(console, 'warn');
 
@@ -129,7 +133,7 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
 
       // Vérifier que l'attaque a été loggée
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('🚨 IDOR ATTACK BLOCKED')
+        expect.stringContaining('🚨 IDOR ATTACK BLOCKED'),
       );
 
       consoleSpy.mockRestore();
@@ -148,7 +152,7 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
 
       // Vérifier que l'accès légitime a été loggué
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining('✅ Job offer update authorized')
+        expect.stringContaining('✅ Job offer update authorized'),
       );
 
       consoleSpy.mockRestore();
@@ -164,7 +168,7 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
         .expect(401); // Unauthorized
     });
 
-    test('❌ ID d\'offre inexistant retourne 404', async () => {
+    test("❌ ID d'offre inexistant retourne 404", async () => {
       await request(app.getHttpServer())
         .put('/job-offers/non-existent-id')
         .set('Authorization', `Bearer ${recruiterA_token}`)
@@ -185,13 +189,13 @@ describe('🔒 IDOR Security Tests - Job Offers', () => {
 
 /**
  * 🚀 COMMANDES DE TEST
- * 
+ *
  * # Lancer tous les tests de sécurité IDOR
  * npm test -- --testNamePattern="IDOR Security"
- * 
+ *
  * # Lancer avec verbose pour voir les logs
  * npm test -- --testNamePattern="IDOR Security" --verbose
- * 
+ *
  * # Test de couverture de sécurité
  * npm run test:cov -- --testNamePattern="IDOR Security"
  */

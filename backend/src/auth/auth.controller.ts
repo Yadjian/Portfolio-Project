@@ -1,6 +1,14 @@
 // This file defines the authentication controller with routes for signup, login, logout, and token refresh.
 
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
@@ -17,7 +25,9 @@ export class AuthController {
   @Post('signup')
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 🔒 3 inscriptions par minute
   @HttpCode(HttpStatus.CREATED)
-  signup(@Body() dto: SignupDto): Promise<{ accessToken: string; refreshToken: string }> {
+  signup(
+    @Body() dto: SignupDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     return this.authService.signup(dto);
   }
 
@@ -26,7 +36,9 @@ export class AuthController {
   @Post('login')
   @Throttle({ auth: { limit: 5, ttl: 900000 } }) // 🔒 5 tentatives par 15min
   @HttpCode(HttpStatus.OK)
-  login(@Body() dto: AuthDto): Promise<{ accessToken: string; refreshToken: string }> {
+  login(
+    @Body() dto: AuthDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     return this.authService.login(dto);
   }
 

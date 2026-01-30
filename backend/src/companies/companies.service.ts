@@ -1,6 +1,11 @@
 // Fichier: backend/src/companies/companies.service.ts
 
-import { Injectable, NotFoundException, ConflictException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 // Assurez-vous que le nom du DTO correspond à ce que vous avez créé
 import { CreateCompanyOnboardingDto } from './dto/create-company-onboarding.dto';
@@ -15,14 +20,19 @@ export class CompaniesService {
    * @param dto Les informations sur l'entreprise (nom, SIRET)
    * @param userId L'ID de l'utilisateur (recruteur) qui effectue l'action
    */
-  async createCompanyForRecruiter(dto: CreateCompanyOnboardingDto, userId: string) {
+  async createCompanyForRecruiter(
+    dto: CreateCompanyOnboardingDto,
+    userId: string,
+  ) {
     // 🔒 Validation sécurisée des entrées
     if (!userId) {
-      throw new BadRequestException('Utilisateur requis pour créer une entreprise.');
+      throw new BadRequestException(
+        'Utilisateur requis pour créer une entreprise.',
+      );
     }
 
     if (!dto.companyName?.trim() || !dto.siret?.trim()) {
-      throw new BadRequestException('Nom d\'entreprise et SIRET requis.');
+      throw new BadRequestException("Nom d'entreprise et SIRET requis.");
     }
 
     // 1. Trouver le profil du recruteur qui fait la demande
@@ -33,12 +43,16 @@ export class CompaniesService {
 
     // Erreur si l'utilisateur n'a pas de profil recruteur
     if (!recruiterProfile) {
-      throw new NotFoundException('Profil recruteur introuvable pour cet utilisateur.');
+      throw new NotFoundException(
+        'Profil recruteur introuvable pour cet utilisateur.',
+      );
     }
 
     // Erreur si le recruteur est déjà membre d'une entreprise
     if (recruiterProfile.memberships.length > 0) {
-      throw new ConflictException('Ce recruteur est déjà associé à une entreprise.');
+      throw new ConflictException(
+        'Ce recruteur est déjà associé à une entreprise.',
+      );
     }
 
     // 2. Vérifier que l'entreprise n'existe pas déjà avec ce SIRET
@@ -47,7 +61,9 @@ export class CompaniesService {
     });
 
     if (existingCompany) {
-      throw new ConflictException('Une entreprise avec ce numéro SIRET existe déjà.');
+      throw new ConflictException(
+        'Une entreprise avec ce numéro SIRET existe déjà.',
+      );
     }
 
     // 3. Utiliser une transaction pour créer l'entreprise ET l'adhésion
@@ -71,8 +87,12 @@ export class CompaniesService {
       });
 
       // 🔒 Log sécurisé de création d'entreprise
-      console.log(`✅ Company created: ${company.id} (${company.name}) by user ${userId}`);
-      console.log(`✅ Membership created: ${membership.id} for recruiter ${recruiterProfile.id}`);
+      console.log(
+        `✅ Company created: ${company.id} (${company.name}) by user ${userId}`,
+      );
+      console.log(
+        `✅ Membership created: ${membership.id} for recruiter ${recruiterProfile.id}`,
+      );
 
       // On retourne l'entreprise et l'adhésion créées
       return { company, membership };

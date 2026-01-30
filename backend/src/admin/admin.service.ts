@@ -63,13 +63,13 @@ export class AdminService {
     });
 
     // Add a role property based on the user's profile
-    return users.map(user => ({
+    return users.map((user) => ({
       ...user,
-      role: user.candidateProfile 
-        ? 'candidate' 
-        : user.recruiterProfile 
-        ? 'recruiter' 
-        : 'admin',
+      role: user.candidateProfile
+        ? 'candidate'
+        : user.recruiterProfile
+          ? 'recruiter'
+          : 'admin',
     }));
   }
 
@@ -101,11 +101,11 @@ export class AdminService {
 
     return {
       ...user,
-      role: user.candidateProfile 
-        ? 'candidate' 
-        : user.recruiterProfile 
-        ? 'recruiter' 
-        : 'admin',
+      role: user.candidateProfile
+        ? 'candidate'
+        : user.recruiterProfile
+          ? 'recruiter'
+          : 'admin',
     };
   }
 
@@ -165,7 +165,9 @@ export class AdminService {
 
     // Update candidate profile if candidateData is provided
     if (dto.candidateData) {
-      const existing = await this.prisma.candidateProfile.findUnique({ where: { userId: id } });
+      const existing = await this.prisma.candidateProfile.findUnique({
+        where: { userId: id },
+      });
       if (existing) {
         await this.prisma.candidateProfile.update({
           where: { userId: id },
@@ -176,7 +178,9 @@ export class AdminService {
 
     // Update recruiter profile if recruiterData is provided
     if (dto.recruiterData) {
-      const existing = await this.prisma.recruiterProfile.findUnique({ where: { userId: id } });
+      const existing = await this.prisma.recruiterProfile.findUnique({
+        where: { userId: id },
+      });
       if (existing) {
         await this.prisma.recruiterProfile.update({
           where: { userId: id },

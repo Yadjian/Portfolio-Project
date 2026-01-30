@@ -4,7 +4,10 @@ import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { PrismaModule } from '../prisma/prisma.module';
 import { FirebaseModule } from 'src/firebase/firebase.module';
-import { SwipeNotificationsProcessor, MatchNotificationsProcessor } from './notifications.processor'; // Import both processors
+import {
+  SwipeNotificationsProcessor,
+  MatchNotificationsProcessor,
+} from './notifications.processor'; // Import both processors
 
 export const SWIPE_NOTIFICATION_QUEUE = 'swipe-notification';
 export const MATCH_NOTIFICATION_QUEUE = 'match-notification';
@@ -29,10 +32,7 @@ const redisOptions = {
     }),
   ],
   // Register notification processors as providers
-  providers: [
-    SwipeNotificationsProcessor,
-    MatchNotificationsProcessor,
-  ],
+  providers: [SwipeNotificationsProcessor, MatchNotificationsProcessor],
   // Export BullModule so other modules can use the queues
   exports: [BullModule],
 })

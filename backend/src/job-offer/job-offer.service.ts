@@ -1,7 +1,12 @@
 // Fichier: backend/src/job-offer/job-offer.service.ts
 
 import { Prisma } from '@prisma/client';
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateJobOfferDto } from './dto/create-job-offer.dto';
 import { UpdateJobOfferDto } from './dto/update-job-offer.dto';
@@ -24,20 +29,28 @@ export class JobOfferService {
       },
     });
 
-    if (!recruiterProfile) { 
-      throw new NotFoundException('Profil recruteur introuvable.'); 
+    if (!recruiterProfile) {
+      throw new NotFoundException('Profil recruteur introuvable.');
     }
 
-    if (!recruiterProfile.memberships?.length) { 
-      throw new ForbiddenException('Vous devez être associé à une entreprise.'); 
+    if (!recruiterProfile.memberships?.length) {
+      throw new ForbiddenException('Vous devez être associé à une entreprise.');
     }
 
-    if (!recruiterProfile.searchedCategories?.length || !recruiterProfile.desiredContractTypes?.length || !recruiterProfile.desiredExperienceLevel) {
-      throw new ForbiddenException("Veuillez finaliser votre profil (contrats, expérience, catégories) avant de poster une offre.");
+    if (
+      !recruiterProfile.searchedCategories?.length ||
+      !recruiterProfile.desiredContractTypes?.length ||
+      !recruiterProfile.desiredExperienceLevel
+    ) {
+      throw new ForbiddenException(
+        'Veuillez finaliser votre profil (contrats, expérience, catégories) avant de poster une offre.',
+      );
     }
 
     const companyId = recruiterProfile.memberships[0].company.id;
-    const categoryIds = recruiterProfile.searchedCategories.map(cat => ({ id: cat.id }));
+    const categoryIds = recruiterProfile.searchedCategories.map((cat) => ({
+      id: cat.id,
+    }));
 
     const jobOffer = await this.prisma.jobOffer.create({
       data: {
@@ -74,7 +87,7 @@ export class JobOfferService {
 
     // 🔒 Log sécurisé de création
     console.log(`✅ Job offer created: ${jobOffer.id} by user ${userId}`);
-    
+
     return jobOffer;
   }
 
@@ -134,7 +147,11 @@ export class JobOfferService {
     return jobOffer;
   }
 
-  async update(id: string, userId: string, updateJobOfferDto: UpdateJobOfferDto) {
+  async update(
+    id: string,
+    userId: string,
+    updateJobOfferDto: UpdateJobOfferDto,
+  ) {
     // 🔒 Validation sécurisée des entrées
     if (!id || !userId) {
       throw new BadRequestException('ID offre et utilisateur requis.');
@@ -150,31 +167,37 @@ export class JobOfferService {
     });
 
     if (!jobOffer) {
-      throw new NotFoundException('Offre d\'emploi introuvable.');
+      throw new NotFoundException("Offre d'emploi introuvable.");
     }
 
     // 🛡️ SÉCURITÉ IDOR : Vérification du créateur OU membre d'entreprise
     const isCreator = jobOffer.createdBy.userId === userId;
-    
+
     // Si pas créateur, vérifier si membre de l'entreprise
     let isMemberOfCompany = false;
     if (!isCreator) {
       const membership = await this.prisma.recruiterMembership.findFirst({
         where: {
           companyId: jobOffer.companyId,
-          recruiter: { userId: userId }
-        }
+          recruiter: { userId: userId },
+        },
       });
       isMemberOfCompany = !!membership;
     }
 
     if (!isCreator && !isMemberOfCompany) {
-      console.warn(`🚨 IDOR blocked: User ${userId} tried to update job offer ${id}`);
-      throw new ForbiddenException('Vous ne pouvez modifier que les offres de votre entreprise.');
+      console.warn(
+        `🚨 IDOR blocked: User ${userId} tried to update job offer ${id}`,
+      );
+      throw new ForbiddenException(
+        'Vous ne pouvez modifier que les offres de votre entreprise.',
+      );
     }
 
     // 🔒 Log autorisation
-    console.log(`✅ Job offer update authorized: ${id} by user ${userId} (creator: ${isCreator}, member: ${isMemberOfCompany})`);
+    console.log(
+      `✅ Job offer update authorized: ${id} by user ${userId} (creator: ${isCreator}, member: ${isMemberOfCompany})`,
+    );
 
     return this.prisma.jobOffer.update({
       where: { id },
@@ -212,31 +235,39 @@ export class JobOfferService {
 
     // 2. Si l'offre n'existe pas, on renvoie une erreur "Non trouvé" (404)
     if (!jobOffer) {
-      throw new NotFoundException(`Offre d'emploi avec l'ID "${id}" introuvable.`);
+      throw new NotFoundException(
+        `Offre d'emploi avec l'ID "${id}" introuvable.`,
+      );
     }
 
     // 🛡️ SÉCURITÉ IDOR : Vérification créateur OU membre d'entreprise
     const isCreator = jobOffer.createdBy.userId === userId;
-    
+
     // Si pas créateur, vérifier si membre de l'entreprise
     let isMemberOfCompany = false;
     if (!isCreator) {
       const membership = await this.prisma.recruiterMembership.findFirst({
         where: {
           companyId: jobOffer.companyId,
-          recruiter: { userId: userId }
-        }
+          recruiter: { userId: userId },
+        },
       });
       isMemberOfCompany = !!membership;
     }
 
     if (!isCreator && !isMemberOfCompany) {
-      console.warn(`🚨 IDOR deletion blocked: User ${userId} tried to delete job offer ${id}`);
-      throw new ForbiddenException('Vous n\'êtes pas autorisé à supprimer cette offre.');
+      console.warn(
+        `🚨 IDOR deletion blocked: User ${userId} tried to delete job offer ${id}`,
+      );
+      throw new ForbiddenException(
+        "Vous n'êtes pas autorisé à supprimer cette offre.",
+      );
     }
 
     // 🔒 Log autorisation suppression
-    console.log(`✅ Job offer deletion authorized: ${id} by user ${userId} (creator: ${isCreator}, member: ${isMemberOfCompany})`);
+    console.log(
+      `✅ Job offer deletion authorized: ${id} by user ${userId} (creator: ${isCreator}, member: ${isMemberOfCompany})`,
+    );
 
     // 4. Si tout est bon, on supprime l'offre de la base de données
     await this.prisma.jobOffer.delete({ where: { id } });
@@ -270,7 +301,10 @@ export class JobOfferService {
     });
   }
 
-  async updateOffersForRecruiter(recruiterProfileId: string, data: Prisma.JobOfferUpdateInput) {
+  async updateOffersForRecruiter(
+    recruiterProfileId: string,
+    data: Prisma.JobOfferUpdateInput,
+  ) {
     // Cette fonction met à jour TOUTES les offres d'un recruteur.
     // C'est la magie de la mise à jour en cascade.
     await this.prisma.jobOffer.updateMany({

@@ -18,7 +18,7 @@ export class DiscoveryService {
   async getRecruitersForCandidate(
     userId: string,
     radiusInMeters: number = 20000,
-    coords?: { latitude: number; longitude: number }
+    coords?: { latitude: number; longitude: number },
   ) {
     // 1. Find the candidate profile and its location
     const candidateProfile = await this.prisma.candidateProfile.findUnique({
@@ -35,7 +35,9 @@ export class DiscoveryService {
       searchLocation = `POINT(${coords.longitude} ${coords.latitude})`;
     } else {
       if (!candidateProfile.locationWKT) {
-        throw new NotFoundException('Votre localisation est requise pour la découverte.');
+        throw new NotFoundException(
+          'Votre localisation est requise pour la découverte.',
+        );
       }
       searchLocation = candidateProfile.locationWKT;
     }
@@ -47,10 +49,12 @@ export class DiscoveryService {
       where: { candidateId: candidateId },
       select: { recruiterId: true },
     });
-    const swipedRecruiterIds = swipedRecruiters.map(s => s.recruiterId);
+    const swipedRecruiterIds = swipedRecruiters.map((s) => s.recruiterId);
 
     // 3. Find nearby recruiters using PostGIS spatial query
-    const nearbyRecruiterResults = await this.prisma.$queryRaw<Array<{ id: string }>>`
+    const nearbyRecruiterResults = await this.prisma.$queryRaw<
+      Array<{ id: string }>
+    >`
       SELECT "id"
       FROM "RecruiterProfile"
       WHERE "locationWKT" IS NOT NULL
@@ -60,7 +64,7 @@ export class DiscoveryService {
         ${radiusInMeters}
       )
     `;
-    const nearbyRecruiterIds = nearbyRecruiterResults.map(r => r.id);
+    const nearbyRecruiterIds = nearbyRecruiterResults.map((r) => r.id);
 
     // 4. Final query: recruiters who are nearby and not already swiped
     const finalRecruiters = await this.prisma.recruiterProfile.findMany({
@@ -80,7 +84,7 @@ export class DiscoveryService {
       },
     });
     // Map recruiters to include company name at the root level
-    const recruitersWithCompany = finalRecruiters.map(recruiter => ({
+    const recruitersWithCompany = finalRecruiters.map((recruiter) => ({
       ...recruiter,
       companyName: recruiter.memberships?.[0]?.company?.name || null,
     }));
@@ -98,7 +102,7 @@ export class DiscoveryService {
   async getCandidatesForRecruiter(
     userId: string,
     radiusInMeters: number = 20000,
-    coords?: { latitude: number; longitude: number }
+    coords?: { latitude: number; longitude: number },
   ) {
     // 1. Find the recruiter profile and its location
     const recruiterProfile = await this.prisma.recruiterProfile.findUnique({
@@ -115,7 +119,9 @@ export class DiscoveryService {
       searchLocation = `POINT(${coords.longitude} ${coords.latitude})`;
     } else {
       if (!recruiterProfile.locationWKT) {
-        throw new NotFoundException('Votre localisation est requise pour la découverte.');
+        throw new NotFoundException(
+          'Votre localisation est requise pour la découverte.',
+        );
       }
       searchLocation = recruiterProfile.locationWKT;
     }
@@ -127,10 +133,12 @@ export class DiscoveryService {
       where: { recruiterId: recruiterId },
       select: { candidateId: true },
     });
-    const swipedCandidateIds = swipedCandidates.map(s => s.candidateId);
+    const swipedCandidateIds = swipedCandidates.map((s) => s.candidateId);
 
     // 3. Find nearby candidates using PostGIS spatial query
-    const nearbyCandidateResults = await this.prisma.$queryRaw<Array<{ id: string }>>`
+    const nearbyCandidateResults = await this.prisma.$queryRaw<
+      Array<{ id: string }>
+    >`
       SELECT "id"
       FROM "CandidateProfile"
       WHERE "locationWKT" IS NOT NULL
@@ -140,7 +148,7 @@ export class DiscoveryService {
         ${radiusInMeters}
       )
     `;
-    const nearbyCandidateIds = nearbyCandidateResults.map(r => r.id);
+    const nearbyCandidateIds = nearbyCandidateResults.map((r) => r.id);
 
     // 4. Final query: candidates who are nearby and not already swiped
     const finalCandidates = await this.prisma.candidateProfile.findMany({
@@ -191,6 +199,6 @@ export class DiscoveryService {
     });
 
     // 3. Return the list of candidate profiles
-    return pendingSwipes.map(swipe => swipe.candidate);
+    return pendingSwipes.map((swipe) => swipe.candidate);
   }
 }
