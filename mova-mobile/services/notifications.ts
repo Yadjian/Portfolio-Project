@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
-import Constants from 'expo-constants';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 
 /**
  * notifications.ts
@@ -11,44 +12,20 @@ import Constants from 'expo-constants';
  * - Obtain Expo Push token for sending notifications
  * - Configure notification behavior (sound, badge, alert)
  * 
- * Note: Push notifications do NOT work in Expo Go (SDK 53+).
- * Use a development build to test notifications.
- * 
- * IMPORTANT: Conditional imports to avoid errors in Expo Go
+ * Note: Requires a development build (EAS Build or standalone).
+ * Does NOT work in Expo Go (SDK 53+).
  */
 
-// Check if running in Expo Go
-const isExpoGo = Constants.appOwnership === 'expo';
-
-// Conditional import to avoid errors in Expo Go
-let Notifications: any = null;
-let Device: any = null;
-
-if (!isExpoGo) {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    Notifications = require('expo-notifications');
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    Device = require('expo-device');
-    
-    // Configure how notifications are displayed when app is in foreground
-    Notifications.setNotificationHandler({
-      handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: true,
-        shouldShowBanner: true,
-        shouldShowList: true,
-      }),
-    });
-    
-  // expo-notifications module loaded
-  } catch (error) {
-    // Unable to load expo-notifications
-  }
-} else {
-  // Expo Go detected - Simulation mode without notifications
-}
+// Configure how notifications are displayed when app is in foreground
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 /**
  * Register device for push notifications
@@ -62,11 +39,6 @@ if (!isExpoGo) {
  * @returns Expo Push token (string) or undefined if failed or unavailable
  */
 export async function registerForPushNotificationsAsync() {
-  // If running in Expo Go or modules not loaded, return undefined
-  if (isExpoGo || !Notifications || !Device) {
-    return undefined;
-  }
-
   let token: string | undefined;
 
   // Android configuration: Create notification channel
@@ -75,7 +47,7 @@ export async function registerForPushNotificationsAsync() {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#FF6347', // Mova brand color
+      lightColor: '#4930a3', // Mova brand color
     });
   }
 
@@ -93,6 +65,7 @@ export async function registerForPushNotificationsAsync() {
     
     // If permissions denied, inform user
     if (finalStatus !== 'granted') {
+      console.warn('Push notification permissions not granted');
       return;
     }
     
@@ -100,10 +73,10 @@ export async function registerForPushNotificationsAsync() {
     try {
       token = (await Notifications.getExpoPushTokenAsync()).data;
     } catch (error) {
-      // Error obtaining push token
+      console.error('Error obtaining push token:', error);
     }
   } else {
-    // Push notifications require a physical device
+    console.warn('Push notifications require a physical device');
   }
 
   return token;

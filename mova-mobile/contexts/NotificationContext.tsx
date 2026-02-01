@@ -135,11 +135,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const initBadges = async () => {
         await refreshMatchBadge();
         await refreshProfileBadge();
-        
-        // TODO: Real push notifications are ready (backend + frontend) but require a development build
-        // Expo Go does NOT support push notifications (SDK 53+)
-        // Simulation: Add +2 to profile badge for demo purposes (one time only)
-        setProfileBadgeCount(prev => prev + 2);
+        // Badges are based purely on real backend data and Firebase notifications
       };
       
       void initBadges();

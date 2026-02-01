@@ -2,11 +2,13 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { View, StyleSheet, Animated, PanResponder, TouchableOpacity, Text, Alert, useWindowDimensions } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import * as Location from 'expo-location';
+import { updateProfileCount } from '@/lib/notificationStorage';
 import SwipeCard from '@/components/ui/SwipeCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
 import { UserType } from '@/lib/types';
 import { getProfilesToSwipe, sendSwipeAction, undoPreviousSwipe } from '../../services/api';
+import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import Colors from '@/constants/Colors';
 import { useNotifications } from '@/contexts/NotificationContext';
 
@@ -98,6 +100,18 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const position = useRef(new Animated.ValueXY()).current;
   // panResponderRef: PanResponder for swipe gestures
   const panResponderRef = useRef<any>(null);
+
+  // Reset profile badge when visiting this screen
+  useFocusEffect(
+    React.useCallback(() => {
+      // We're on the swipe screen, so reset the profile badge to 0
+      setProfileBadgeCount(0);
+      // Save the current profile count for next time
+      if (profiles.length > 0) {
+        updateProfileCount(profiles.length);
+      }
+    }, [setProfileBadgeCount, profiles.length])
+  );
 
   // Fetch profiles to swipe on mount
   useEffect(() => {
