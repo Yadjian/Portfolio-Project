@@ -8,7 +8,6 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 import { NotificationProvider, useNotifications } from '../contexts/NotificationContext';
 import AuthStack from './navigation/AuthStack';
-import { DancingScript_700Bold } from '@expo-google-fonts/dancing-script';
 import * as ExpoCrypto from 'expo-crypto';
 import Constants from 'expo-constants';
 
@@ -77,7 +76,6 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    DancingScript_700Bold,
     ...FontAwesome.font,
   });
 
