@@ -48,11 +48,18 @@ enum SwipeDirection {
   RIGHT
 }
 
+enum UserRole {
+  CANDIDATE
+  RECRUITER
+  ADMIN
+}
+
 // --- NOUVEAU MODÈLE CENTRAL POUR L'IDENTITÉ ---
 model User {
   id        String    @id @default(uuid())
   email     String    @unique
   password           String
+  role      UserRole  @default(CANDIDATE) // 🔒 Rôle de l'utilisateur
   hashedRefreshToken String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

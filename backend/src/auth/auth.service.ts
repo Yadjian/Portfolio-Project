@@ -47,6 +47,11 @@ export class AuthService {
           email,
           password: hashedPassword,
         },
+        select: {
+          id: true,
+          email: true,
+          role: true, // 🔒 Inclure le rôle
+        },
       });
 
       if (role === UserRole.CANDIDATE) {
@@ -71,7 +76,7 @@ export class AuthService {
     });
 
     // ✅ VOTRE GÉNÉRATION DE TOKENS - inchangée
-    const tokens = await this.getTokens(newUser.id, newUser.email);
+    const tokens = await this.getTokens(newUser.id, newUser.email, newUser.role);
     await this.updateRefreshTokenHash(newUser.id, tokens.refreshToken);
     return tokens;
   }
@@ -86,6 +91,12 @@ export class AuthService {
 
     const user = await this.prisma.user.findUnique({
       where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        role: true, // 🔒 Inclure le rôle
+      },
     });
 
     if (!user) {
@@ -99,7 +110,7 @@ export class AuthService {
     }
 
     // ✅ VOTRE GÉNÉRATION DE TOKENS - inchangée
-    const tokens = await this.getTokens(user.id, user.email);
+    const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
     return tokens;
   }
@@ -118,7 +129,15 @@ export class AuthService {
   }
 
   async refreshTokens(userId: string, refreshToken: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    const user = await this.prisma.user.findUnique({ 
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        hashedRefreshToken: true,
+        role: true, // 🔒 Inclure le rôle
+      },
+    });
     if (!user || !user.hashedRefreshToken)
       throw new ForbiddenException('Access Denied');
 
@@ -128,7 +147,7 @@ export class AuthService {
     );
     if (!tokensMatch) throw new ForbiddenException('Access Denied');
 
-    const newTokens = await this.getTokens(user.id, user.email);
+    const newTokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshTokenHash(user.id, newTokens.refreshToken);
     return newTokens;
   }
@@ -141,10 +160,11 @@ export class AuthService {
     });
   }
 
-  private async getTokens(userId: string, email: string) {
+  private async getTokens(userId: string, email: string, role: string) {
     const payload = {
       sub: userId,
       email,
+      role, // 🔒 Inclure le rôle dans le JWT
       jti: crypto.randomUUID(), // 🔒 ID unique pour le token
     };
 

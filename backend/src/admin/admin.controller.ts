@@ -9,13 +9,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles/roles.guard';
+import { Roles } from '../auth/roles/roles.decorator';
 import { AdminService } from './admin.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('admin')
-// Apply JwtAuthGuard to all routes in this controller to require authentication
-@UseGuards(JwtAuthGuard)
+// 🔒 SÉCURITÉ CRITIQUE : Seuls les admins peuvent accéder
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles('ADMIN')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
