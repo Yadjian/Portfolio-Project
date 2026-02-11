@@ -69,7 +69,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const { width } = useWindowDimensions();
   
   // Get notification context
-  const { matchBadgeCount, profileBadgeCount, setProfileBadgeCount, refreshMatchBadge, refreshProfileBadge, simulateMatchNotification } = useNotifications();
+  const { matchBadgeCount, profileBadgeCount, setProfileBadgeCount, refreshMatchBadge, refreshProfileBadge } = useNotifications();
 
   const dynamicStyles = StyleSheet.create({
     card: {
@@ -234,9 +234,8 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
         .then(response => {
           if (response && response.match) {
             Alert.alert("C'est un Match !");
-            // Simulate match notification when a real match occurs
-            // TODO: This will be replaced by real push notifications in development build
-            simulateMatchNotification();
+            // Refresh match badge to reflect the new match
+            refreshMatchBadge();
           }
         })
         .catch(() => {

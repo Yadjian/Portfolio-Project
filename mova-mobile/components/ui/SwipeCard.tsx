@@ -48,7 +48,10 @@ interface SwipeCardProps {
   contractType?: string;
 }
 
-// Redesigned InfoTag
+/**
+ * InfoTag component displaying metadata with icons
+ * Applies Mova violet background with rounded corners
+ */
 const InfoTag = ({ icon, text }: { icon: keyof typeof Feather.glyphMap; text: string }) => (
   <View style={styles.tag}>
     <Feather name={icon} size={16} color={Colors.light.text} />
@@ -58,7 +61,7 @@ const InfoTag = ({ icon, text }: { icon: keyof typeof Feather.glyphMap; text: st
 
 export default function SwipeCard(props: SwipeCardProps) {
   const { width } = useWindowDimensions();
-  // Carte qui prend toute la hauteur disponible
+  // Card takes full available height for swipe gesture area
   const cardHeight = '100%';
 
   const { userType, avatarUrl, firstName, lastName, companyName, location, job, jobSeeking, experience, experienceRequired, presentation, contractType } = props;
@@ -69,12 +72,12 @@ export default function SwipeCard(props: SwipeCardProps) {
 
   return (
     <View style={[styles.card, { height: cardHeight }]} pointerEvents="box-none">
-      {/* Header Section */}
+      {/* Header Section: Violet band with overlapping avatar */}
       <View style={styles.header} pointerEvents="none">
-        {/* Bande violette en arrière-plan */}
+        {/* Violet background band */}
         <View style={styles.headerBackground} />
         
-        {/* Avatar qui chevauche la bande */}
+        {/* Avatar overlapping the band */}
         <View style={styles.avatarContainer}>
           <Image
             source={avatarUrl ? { uri: avatarUrl } : require('../../assets/images/icon.png')}
@@ -91,7 +94,7 @@ export default function SwipeCard(props: SwipeCardProps) {
         )}
       </View>
 
-      {/* Info Section */}
+      {/* Info Section: Role, experience tags, and presentation */}
       <View style={styles.infoSection} pointerEvents="none">
         <View style={styles.roleContainer}>
           <Feather name="briefcase" size={20} color="#4930a3" />
