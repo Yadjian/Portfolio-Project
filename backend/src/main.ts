@@ -39,11 +39,13 @@ async function bootstrap() {
     }),
   );
 
-  // 📊 VOS LOGS EXISTANTS - inchangés
-  console.log('Database URL:', process.env.DATABASE_URL);
-  console.log('Redis URL:', process.env.REDIS_URL);
-  console.log('JWT Access Secret Loaded:', !!process.env.JWT_ACCESS_SECRET);
-  console.log('JWT Refresh Secret Loaded:', !!process.env.JWT_REFRESH_SECRET);
+  // 📊 LOGS SÉCURISÉS - credentials masqués
+  const dbUrl = process.env.DATABASE_URL;
+  const dbUrlSafe = dbUrl ? dbUrl.replace(/:\/\/([^:]+):([^@]+)@/, '://***:***@') : 'not set';
+  console.log('Database:', dbUrlSafe);
+  console.log('Redis:', process.env.REDIS_HOST ? `${process.env.REDIS_HOST}:${process.env.REDIS_PORT}` : 'not set');
+  console.log('JWT Access Secret:', !!process.env.JWT_ACCESS_SECRET ? '✓ loaded' : '✗ missing');
+  console.log('JWT Refresh Secret:', !!process.env.JWT_REFRESH_SECRET ? '✓ loaded' : '✗ missing');
   console.log('Port:', process.env.PORT);
 
   // 📚 VOTRE CONFIG SWAGGER EXISTANTE - inchangée

@@ -112,7 +112,7 @@ export class AdminService {
   // Create a new user and their profile based on the role
   async createUser(dto: CreateUserDto) {
     // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await bcrypt.hash(dto.password, 12); // 🔒 12 rounds pour sécurité renforcée
 
     // Create the user in the database
     const user = await this.prisma.user.create({
@@ -153,7 +153,7 @@ export class AdminService {
     // Prepare update data for user fields
     const updateData: any = {};
     if (dto.email) updateData.email = dto.email;
-    if (dto.password) updateData.password = await bcrypt.hash(dto.password, 10);
+    if (dto.password) updateData.password = await bcrypt.hash(dto.password, 12); // 🔒 12 rounds pour sécurité renforcée
 
     // Update user fields if any are provided
     if (Object.keys(updateData).length > 0) {

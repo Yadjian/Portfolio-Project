@@ -1,7 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { MetaService } from './meta.service';
 
 @Controller('meta')
+@Throttle({ default: { limit: 20, ttl: 60000 } }) // 🔒 20 req/min sur endpoints publics
 export class MetaController {
   constructor(private readonly metaService: MetaService) {}
 
