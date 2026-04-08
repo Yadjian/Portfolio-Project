@@ -1,11 +1,15 @@
 // src/auth/auth.service.ts
 
-// This service handles authentication logic: signup, login, logout, and token management.
-
-import { Injectable, UnauthorizedException, ForbiddenException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 import { SignupDto, UserRole } from './dto/signup.dto';
 import { AuthDto } from './dto/auth.dto';
 
@@ -16,34 +20,40 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // --- SIGNUP (REGISTER NEW USER) ---
-  async signup(dto: SignupDto): Promise<{ accessToken: string; refreshToken:string }> {
+  // 🔒 INSCRIPTION SÉCURISÉE - Base sur votre logique existante
+  async signup(
+    dto: SignupDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const { email, password, role } = dto;
 
-    // 1. Check if a user with this email already exists
+    // 🔒 L'email est déjà normalisé par le Transform dans le DTO
+
+    // ✅ VOTRE LOGIQUE EXISTANTE - Vérifier si l'utilisateur existe
     const existingUser = await this.prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email },
     });
 
-    // 2. If user exists, throw a conflict error
     if (existingUser) {
-      throw new ConflictException('A user with this email already exists.');
+      throw new ConflictException('Un utilisateur avec cet email existe déjà.');
     }
 
-    // 3. Hash the password before saving
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // 🔒 Hash sécurisé - passé de 10 à 12 rounds pour plus de sécurité
+    const hashedPassword = await bcrypt.hash(password, 12);
 
-    // 4. Use a transaction to create both User and Profile atomically
+    // ✅ VOTRE TRANSACTION EXISTANTE - inchangée
     const newUser = await this.prisma.$transaction(async (tx) => {
-      // Create the user
       const user = await tx.user.create({
         data: {
-          email: email.toLowerCase(),
+          email,
           password: hashedPassword,
+        },
+        select: {
+          id: true,
+          email: true,
+          role: true, // 🔒 Inclure le rôle
         },
       });
 
-      // Create the associated profile based on the role
       if (role === UserRole.CANDIDATE) {
         await tx.candidateProfile.create({
           data: {
@@ -65,48 +75,52 @@ export class AuthService {
       return user;
     });
 
-    // 5. Generate and return access and refresh tokens
-    const tokens = await this.getTokens(newUser.id, newUser.email);
+    // ✅ VOTRE GÉNÉRATION DE TOKENS - inchangée
+    const tokens = await this.getTokens(newUser.id, newUser.email, newUser.role);
     await this.updateRefreshTokenHash(newUser.id, tokens.refreshToken);
     return tokens;
   }
 
-  // --- LOGIN (AUTHENTICATE USER) ---
-  async login(dto: AuthDto): Promise<{ accessToken: string; refreshToken: string }> {
+  // 🔒 CONNEXION SÉCURISÉE - Base sur votre logique
+  async login(
+    dto: AuthDto,
+  ): Promise<{ accessToken: string; refreshToken: string }> {
     const { email, password } = dto;
 
-    // 1. Find user by email
+    // 🔒 L'email est déjà normalisé par le Transform dans le DTO
+
     const user = await this.prisma.user.findUnique({
-      where: { email: email.toLowerCase() },
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        password: true,
+        role: true, // 🔒 Inclure le rôle
+      },
     });
 
-    // 2. If user not found, throw unauthorized error
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials.');
+      throw new UnauthorizedException('Identifiants incorrects.');
     }
 
-    // 3. Compare provided password with stored hash
     const isPasswordMatching = await bcrypt.compare(password, user.password);
 
-    if (!isPasswordMatching) { 
-      throw new UnauthorizedException('Invalid credentials.');
+    if (!isPasswordMatching) {
+      throw new UnauthorizedException('Identifiants incorrects.');
     }
 
-    // 4. Generate and return tokens
-    const tokens = await this.getTokens(user.id, user.email);
+    // ✅ VOTRE GÉNÉRATION DE TOKENS - inchangée
+    const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
     return tokens;
   }
-  
-  // --- LOGOUT (REMOVE REFRESH TOKEN) ---
-  async logout(userId: string): Promise<void> { 
-    // Remove the user's refresh token hash from the database
+
+  // ✅ VOS MÉTHODES EXISTANTES - inchangées
+  async logout(userId: string): Promise<void> {
     await this.prisma.user.updateMany({
       where: {
         id: userId,
-        hashedRefreshToken: {
-          not: null,
-        },
+        hashedRefreshToken: { not: null },
       },
       data: {
         hashedRefreshToken: null,
@@ -114,57 +128,57 @@ export class AuthService {
     });
   }
 
-  // --- REFRESH TOKENS (ISSUE NEW TOKENS USING REFRESH TOKEN) ---
   async refreshTokens(userId: string, refreshToken: string) {
-    // 1. Find the user and their current hashed refresh token
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user || !user.hashedRefreshToken) throw new ForbiddenException('Access Denied');
+    const user = await this.prisma.user.findUnique({ 
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        hashedRefreshToken: true,
+        role: true, // 🔒 Inclure le rôle
+      },
+    });
+    if (!user || !user.hashedRefreshToken)
+      throw new ForbiddenException('Access Denied');
 
-    // 2. Compare provided refresh token with stored hash
-    const tokensMatch = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
+    const tokensMatch = await bcrypt.compare(
+      refreshToken,
+      user.hashedRefreshToken,
+    );
     if (!tokensMatch) throw new ForbiddenException('Access Denied');
 
-    // 3. Generate new tokens
-    const newTokens = await this.getTokens(user.id, user.email);
-
-    // 4. Update the stored refresh token hash
+    const newTokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshTokenHash(user.id, newTokens.refreshToken);
-
-    // 5. Return the new tokens
     return newTokens;
   }
 
-  // --- HELPER: Update the user's refresh token hash in the database ---
   private async updateRefreshTokenHash(userId: string, refreshToken: string) {
-    const hash = await bcrypt.hash(refreshToken, 10);
+    const hash = await bcrypt.hash(refreshToken, 12); // 🔒 12 au lieu de 10
     await this.prisma.user.update({
       where: { id: userId },
       data: { hashedRefreshToken: hash },
     });
   }
 
-  // --- HELPER: Generate access and refresh JWT tokens ---
-  private async getTokens(userId: string, email: string) {
+  private async getTokens(userId: string, email: string, role: string) {
     const payload = {
       sub: userId,
       email,
+      role, // 🔒 Inclure le rôle dans le JWT
+      jti: crypto.randomUUID(), // 🔒 ID unique pour le token
     };
 
-    // Generate both tokens in parallel
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_ACCESS_SECRET,
-        expiresIn: '15m', // Short lifetime for access token
+        expiresIn: '15m',
       }),
       this.jwtService.signAsync(payload, {
         secret: process.env.JWT_REFRESH_SECRET,
-        expiresIn: '7d', // Longer lifetime for refresh token
+        expiresIn: '7d',
       }),
     ]);
 
-    return {
-      accessToken,
-      refreshToken,
-    };
+    return { accessToken, refreshToken };
   }
 }

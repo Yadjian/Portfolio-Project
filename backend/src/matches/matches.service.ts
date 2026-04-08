@@ -1,20 +1,24 @@
 // src/matches/matches.service.ts
-// This service contains business logic for retrieving and displaying user matches (candidate-recruiter matches).
-
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class MatchesService {
   constructor(private prisma: PrismaService) {}
 
-  /**
-   * Retrieves all matches for the authenticated user.
-   * The response is formatted for the frontend and includes the profile of the matched user.
-   * @param userId The ID of the authenticated user
-   */
   async findAllMatches(userId: string) {
-    // Find the user and determine their role (candidate or recruiter)
+    // 🔒 Validation sécurisée des entrées
+    if (!userId) {
+      throw new BadRequestException(
+        'Utilisateur requis pour voir les matches.',
+      );
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -23,9 +27,14 @@ export class MatchesService {
       },
     });
 
+    // 🛡️ SÉCURITÉ : Vérifier que l'utilisateur existe
+    if (!user) {
+      throw new NotFoundException('Utilisateur introuvable.');
+    }
+
     let whereClause;
 
-    // Build the query based on the user's role
+    // On construit la requête en fonction du rôle
     if (user.candidateProfile) {
       whereClause = {
         candidateId: user.candidateProfile.id,
@@ -37,28 +46,27 @@ export class MatchesService {
         isMatch: true,
       };
     } else {
-      throw new NotFoundException('Profile not found.');
+      throw new NotFoundException('Profil non trouvé.');
     }
 
-    // Retrieve all matches for the user, including the matched profile's details
     const matches = await this.prisma.swipe.findMany({
       where: whereClause,
       include: {
-        // Include the profile of the OTHER person for display
+        // Inclure le profil de l'AUTRE personne pour l'affichage
         candidate: {
-          select: { 
-            id: true, 
-            firstName: true, 
-            lastName: true, 
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
             photoUrl: true,
             desiredJobTitle: true,
             desiredContractTypes: true,
           },
         },
         recruiter: {
-          select: { 
-            id: true, 
-            firstName: true, 
+          select: {
+            id: true,
+            firstName: true,
             lastName: true,
             searchedCategories: {
               select: { name: true },
@@ -78,10 +86,15 @@ export class MatchesService {
       },
     });
 
-    // Format the response for the frontend
-    return matches.map(match => {
+    // 🔒 Log de sécurité pour audit
+    console.log(
+      `✅ Matches list accessed by user ${userId}: ${matches.length} matches found`,
+    );
+
+    // On formate la réponse pour le front
+    return matches.map((match) => {
       if (user.candidateProfile) {
-        // Candidate sees recruiters
+        // Candidat voit les recruteurs
         const recruiter = match.recruiter;
         return {
           matchId: match.id,
@@ -94,7 +107,7 @@ export class MatchesService {
           },
         };
       } else {
-        // Recruiter sees candidates
+        // Recruteur voit les candidats
         const candidate = match.candidate;
         return {
           matchId: match.id,
@@ -107,17 +120,13 @@ export class MatchesService {
       }
     });
   }
-
-  /**
-   * Retrieves details for a specific match (by swipe ID) for the authenticated user.
-   * The returned data depends on the user's role:
-   * - Candidate: receives the recruiter's job offers.
-   * - Recruiter: receives the candidate's full profile.
-   * @param userId The ID of the authenticated user
-   * @param swipeId The ID of the swipe (match)
-   */
   async getMatchDetails(userId: string, swipeId: string) {
-    // 1. Find the match (swipe)
+    // 🔒 Validation sécurisée des entrées
+    if (!userId || !swipeId) {
+      throw new BadRequestException('Utilisateur et ID de match requis.');
+    }
+
+    // 1. Trouver le match
     const swipe = await this.prisma.swipe.findUnique({
       where: { id: swipeId },
       include: {
@@ -126,26 +135,34 @@ export class MatchesService {
       },
     });
 
-    // 2. Security checks
+    // 2. Vérifications de sécurité
     if (!swipe) {
-      throw new NotFoundException('Match not found.');
+      throw new NotFoundException('Match non trouvé.');
     }
     if (!swipe.isMatch) {
-      throw new ForbiddenException("This is not yet a match.");
+      throw new ForbiddenException("Ce n'est pas encore un match.");
     }
 
-    // 3. Identify the user's role in the match
+    // 3. Identifier l'utilisateur
     const isUserCandidate = swipe.candidate.userId === userId;
     const isUserRecruiter = swipe.recruiter.userId === userId;
 
     if (!isUserCandidate && !isUserRecruiter) {
-      throw new ForbiddenException('Unauthorized access to this match.');
+      console.warn(
+        `🚨 MATCH IDOR BLOCKED: User ${userId} tried to access match ${swipeId} without authorization`,
+      );
+      throw new ForbiddenException('Accès non autorisé à ce match.');
     }
 
-    // 4. Return content based on the user's role
+    // 🔒 Log de sécurité pour audit
+    console.log(
+      `✅ Match details accessed: ${swipeId} by user ${userId} (candidate: ${isUserCandidate}, recruiter: ${isUserRecruiter})`,
+    );
+
+    // 4. Renvoyer le "contenu" en fonction du rôle
     if (isUserCandidate) {
-      // Candidate gets the recruiter's job offers
-      return this.prisma.jobOffer.findMany({
+      // Le CANDIDAT obtient les offres du recruteur
+      const jobOffers = await this.prisma.jobOffer.findMany({
         where: {
           createdById: swipe.recruiterId,
           isActive: true,
@@ -155,11 +172,18 @@ export class MatchesService {
           categories: true,
         },
       });
+
+      // 🔒 Log pour audit
+      console.log(
+        `✅ Candidate ${userId} accessed ${jobOffers.length} job offers from match ${swipeId}`,
+      );
+      return jobOffers;
     }
 
     if (isUserRecruiter) {
-      // Recruiter gets the candidate's full profile (including resume URL)
-      return this.prisma.candidateProfile.findUnique({
+      // Le RECRUTEUR obtient le profil complet du candidat
+      // C'est ici qu'on renvoie le `resumeUrl` (le lien du CV)
+      const candidateProfile = await this.prisma.candidateProfile.findUnique({
         where: {
           id: swipe.candidateId,
         },
@@ -167,6 +191,12 @@ export class MatchesService {
           interestedInCategories: true,
         },
       });
+
+      // 🔒 Log pour audit
+      console.log(
+        `✅ Recruiter ${userId} accessed candidate profile from match ${swipeId}`,
+      );
+      return candidateProfile;
     }
   }
 }

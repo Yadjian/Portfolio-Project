@@ -1,16 +1,27 @@
-// This file defines the AuthDto class used for user login data validation.
+// src/auth/dto/auth.dto.ts - VERSION RENFORCÉE
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  MaxLength,
+} from 'class-validator';
+import { Transform } from 'class-transformer';
 
-import { IsEmail, IsNotEmpty, IsString, MinLength } from 'class-validator';
-
-// AuthDto is used to validate the login request body.
-// It ensures the email is valid and the password meets minimum requirements.
 export class AuthDto {
-  @IsEmail() // Must be a valid email address
-  @IsNotEmpty() // Email field cannot be empty
+  @IsEmail({}, { message: "Format d'email invalide" })
+  @IsNotEmpty({ message: "L'email est obligatoire" })
+  @MaxLength(254, { message: "L'email ne peut pas dépasser 254 caractères" })
+  @Transform(({ value }) => value?.toLowerCase().trim()) // 🔒 Auto-nettoyage
   email: string;
 
-  @IsString() // Must be a string
-  @IsNotEmpty() // Password field cannot be empty
-  @MinLength(6, { message: 'Le mot de passe doit faire au moins 6 caractères.' }) // Minimum password length is 6
+  @IsString({ message: 'Le mot de passe doit être une chaîne de caractères' })
+  @IsNotEmpty({ message: 'Le mot de passe ne peut pas être vide' })
+  @MinLength(6, {
+    message: 'Le mot de passe doit faire au moins 6 caractères.',
+  }) // ✅ GARDE VOS 6 chars
+  @MaxLength(128, {
+    message: 'Le mot de passe ne peut pas dépasser 128 caractères',
+  }) // 🔒 Protection débordement
   password: string;
 }

@@ -10,6 +10,6 @@ import { FileStorageModule } from 'src/file-storage/file-storage.module';
   // Register the ProfileController to handle profile-related routes
   controllers: [ProfileController],
   // Register the ProfileService to provide business logic for profile management
-  providers: [ProfileService]
+  providers: [ProfileService],
 })
 export class ProfileModule {}

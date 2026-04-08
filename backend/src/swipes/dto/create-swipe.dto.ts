@@ -4,7 +4,6 @@ import { IsEnum, IsString, IsOptional, IsUUID } from 'class-validator';
 import { SwipeDirection } from '@prisma/client'; // Import the enum from Prisma
 
 export class CreateSwipeDto {
-
   /**
    * The ID of the profile being swiped on.
    * If the user is a Candidate, this will be a recruiterId.

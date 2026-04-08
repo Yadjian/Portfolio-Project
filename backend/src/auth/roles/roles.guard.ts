@@ -10,10 +10,10 @@ export class RolesGuard implements CanActivate {
 
   canActivate(context: ExecutionContext): boolean {
     // Retrieve required roles from metadata set by the Roles decorator
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(ROLES_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
 
     // If no roles are required, allow access
     if (!requiredRoles) {
@@ -22,8 +22,13 @@ export class RolesGuard implements CanActivate {
 
     // Get the user object from the request
     const { user } = context.switchToHttp().getRequest();
-    // Extract the user's role from the JWT payload
-    const userRole = user['https://mova.app/role'];
+    
+    if (!user) {
+      return false;
+    }
+
+    // Extract the user's role from the JWT payload (maintenant directement dans user.role)
+    const userRole = user.role || user['role'];
 
     // Allow access if the user's role matches one of the required roles
     return requiredRoles.some((role) => userRole === role);

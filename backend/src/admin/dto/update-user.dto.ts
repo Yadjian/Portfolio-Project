@@ -1,7 +1,7 @@
 import { IsEmail, IsString, IsOptional, IsObject } from 'class-validator';
 
 // UpdateUserDto is used to validate the data when updating an existing user from the admin panel.
-// All fields are optional, allowing partial updates. 
+// All fields are optional, allowing partial updates.
 // It ensures the email is valid if provided, the password is a string if provided,
 // and candidate/recruiter data are optional objects if provided.
 export class UpdateUserDto {

@@ -12,7 +12,10 @@ export class FirebaseService implements OnModuleInit {
   onModuleInit() {
     try {
       // Path to your Firebase service account key file (adjust if needed)
-      const serviceAccountPath = path.join(process.cwd(), 'firebase-service-account.json');
+      const serviceAccountPath = path.join(
+        process.cwd(),
+        'firebase-service-account.json',
+      );
 
       // Initialize the Firebase Admin SDK with the service account credentials
       admin.initializeApp({
@@ -31,7 +34,12 @@ export class FirebaseService implements OnModuleInit {
    * @param body The notification body
    * @param data Optional additional data to include in the notification
    */
-  async sendPushNotification(token: string, title: string, body: string, data?: { [key: string]: string }) {
+  async sendPushNotification(
+    token: string,
+    title: string,
+    body: string,
+    data?: { [key: string]: string },
+  ) {
     if (!token) {
       this.logger.warn('Attempted to send notification without a token.');
       return;
@@ -50,7 +58,9 @@ export class FirebaseService implements OnModuleInit {
     try {
       // Send the notification using Firebase Admin SDK
       const response = await admin.messaging().send(message);
-      this.logger.log(`Successfully sent message to token ${token}: ${response}`);
+      this.logger.log(
+        `Successfully sent message to token ${token}: ${response}`,
+      );
       return response;
     } catch (error) {
       this.logger.error(`Error sending message to token ${token}:`, error);

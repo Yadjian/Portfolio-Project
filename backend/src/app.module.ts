@@ -1,4 +1,4 @@
-// This is the root module of the NestJS application. It imports and configures all feature modules and global services.
+// Fichier: backend/src/app.module.ts
 
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
@@ -18,37 +18,66 @@ import { AdminModule } from './admin/admin.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { BullModule } from '@nestjs/bullmq';
 import { NotificationsModule } from './notifications/notifications.module';
+import { FirebaseModule } from './firebase/firebase.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
-    // Global BullMQ configuration for Redis-based queues (used for notifications, etc.)
+    // ✅ 1. BULL CONFIGURATION EN PREMIER
     BullModule.forRoot({
       connection: {
-        host: process.env.REDIS_HOST || 'redis',
-        port: parseInt(process.env.REDIS_PORT) || 6379,
+        host: 'redis',
+        port: 6379,
       },
     }),
-    // Import all feature modules for authentication, profiles, job offers, etc.
-    AuthModule, 
-    PrismaModule, 
-    ProfileModule, 
-    SwipesModule, 
-    JobOfferModule, 
-    CompaniesModule, 
-    MetaModule, 
-    DiscoveryModule, 
-    MatchesModule, 
-    FileStorageModule, 
+
+    // ✅ 2. MODULES DE BASE
+    AuthModule,
+    PrismaModule,
+
+    // ✅ 3. MODULES MÉTIER
+    ProfileModule,
+    SwipesModule,
+    JobOfferModule,
+    CompaniesModule,
+    MetaModule,
+    DiscoveryModule,
+    MatchesModule,
+    FileStorageModule,
     AdminModule,
+
+    // ✅ 4. NOTIFICATIONS MODULE (APRÈS BullModule.forRoot)
     NotificationsModule,
-    // MulterModule is used for handling file uploads (temporary upload folder)
+
+    // ✅ 5. MODULES TECHNIQUES
     MulterModule.register({
-      dest: './uploads', // Temporary folder for uploads
+      dest: './uploads',
     }),
+
+    FirebaseModule,
+
+    // ✅ 6. THROTTLE MODULE
+    ThrottlerModule.forRoot([
+      {
+        name: 'default',
+        ttl: 60000, // 1 minute
+        limit: 10, // 10 requêtes par minute
+      },
+      {
+        name: 'auth',
+        ttl: 900000, // 15 minutes
+        limit: 5, // 5 tentatives de connexion par 15min
+      },
+    ]),
   ],
-  // Register global controllers (main app and health check)
   controllers: [AppController, HealthController],
-  // Register global providers (main app service)
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard, // 🔒 Protection globale
+    },
+  ],
 })
 export class AppModule {}

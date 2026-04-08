@@ -14,12 +14,12 @@ export class HealthController {
     try {
       // Try to execute a very simple and fast query on the database
       await this.prisma.$queryRaw`SELECT 1`;
-      
+
       // If the query succeeds, everything is fine
       return {
         status: 'ok',
         database: 'connected',
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       };
     } catch (error) {
       // If the query fails, the database connection is probably broken

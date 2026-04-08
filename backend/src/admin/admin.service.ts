@@ -63,13 +63,13 @@ export class AdminService {
     });
 
     // Add a role property based on the user's profile
-    return users.map(user => ({
+    return users.map((user) => ({
       ...user,
-      role: user.candidateProfile 
-        ? 'candidate' 
-        : user.recruiterProfile 
-        ? 'recruiter' 
-        : 'admin',
+      role: user.candidateProfile
+        ? 'candidate'
+        : user.recruiterProfile
+          ? 'recruiter'
+          : 'admin',
     }));
   }
 
@@ -101,18 +101,18 @@ export class AdminService {
 
     return {
       ...user,
-      role: user.candidateProfile 
-        ? 'candidate' 
-        : user.recruiterProfile 
-        ? 'recruiter' 
-        : 'admin',
+      role: user.candidateProfile
+        ? 'candidate'
+        : user.recruiterProfile
+          ? 'recruiter'
+          : 'admin',
     };
   }
 
   // Create a new user and their profile based on the role
   async createUser(dto: CreateUserDto) {
     // Hash the password before saving
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await bcrypt.hash(dto.password, 12); // 🔒 12 rounds pour sécurité renforcée
 
     // Create the user in the database
     const user = await this.prisma.user.create({
@@ -153,7 +153,7 @@ export class AdminService {
     // Prepare update data for user fields
     const updateData: any = {};
     if (dto.email) updateData.email = dto.email;
-    if (dto.password) updateData.password = await bcrypt.hash(dto.password, 10);
+    if (dto.password) updateData.password = await bcrypt.hash(dto.password, 12); // 🔒 12 rounds pour sécurité renforcée
 
     // Update user fields if any are provided
     if (Object.keys(updateData).length > 0) {
@@ -165,7 +165,9 @@ export class AdminService {
 
     // Update candidate profile if candidateData is provided
     if (dto.candidateData) {
-      const existing = await this.prisma.candidateProfile.findUnique({ where: { userId: id } });
+      const existing = await this.prisma.candidateProfile.findUnique({
+        where: { userId: id },
+      });
       if (existing) {
         await this.prisma.candidateProfile.update({
           where: { userId: id },
@@ -176,7 +178,9 @@ export class AdminService {
 
     // Update recruiter profile if recruiterData is provided
     if (dto.recruiterData) {
-      const existing = await this.prisma.recruiterProfile.findUnique({ where: { userId: id } });
+      const existing = await this.prisma.recruiterProfile.findUnique({
+        where: { userId: id },
+      });
       if (existing) {
         await this.prisma.recruiterProfile.update({
           where: { userId: id },

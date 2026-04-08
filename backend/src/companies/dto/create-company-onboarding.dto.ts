@@ -11,6 +11,8 @@ export class CreateCompanyOnboardingDto {
 
   @IsString() // Must be a string
   @IsNotEmpty() // SIRET field cannot be empty
-  @Length(14, 14, { message: 'Le numéro SIRET doit contenir exactement 14 chiffres.' }) // SIRET must be exactly 14 characters
+  @Length(14, 14, {
+    message: 'Le numéro SIRET doit contenir exactement 14 chiffres.',
+  }) // SIRET must be exactly 14 characters
   siret: string;
 }

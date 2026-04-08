@@ -12,6 +12,6 @@ import { PrismaModule } from 'src/prisma/prisma.module'; // Import PrismaModule 
   // Register the DiscoveryController to handle discovery-related routes
   controllers: [DiscoveryController],
   // Register the DiscoveryService to provide business logic for discovery operations
-  providers: [DiscoveryService]
+  providers: [DiscoveryService],
 })
 export class DiscoveryModule {}

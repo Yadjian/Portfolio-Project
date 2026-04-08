@@ -8,7 +8,10 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 // RefreshTokenStrategy configures Passport to use JWTs for refresh token validation.
 // The strategy is named 'jwt-refresh'.
-export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'jwt-refresh') {
+export class RefreshTokenStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor() {
     super({
       // Extract JWT from the Authorization header as a Bearer token

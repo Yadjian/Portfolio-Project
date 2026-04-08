@@ -8,11 +8,11 @@ import { AuthModule } from 'src/auth/auth.module'; // Import AuthModule for auth
   // Import required modules for matches features and authentication
   imports: [
     PrismaModule, // Enables database operations in the matches module
-    AuthModule,   // Enables use of AuthGuard and authentication logic
+    AuthModule, // Enables use of AuthGuard and authentication logic
   ],
   // Register the MatchesController to handle match-related routes
   controllers: [MatchesController],
   // Register the MatchesService to provide business logic for matches
-  providers: [MatchesService]
+  providers: [MatchesService],
 })
 export class MatchesModule {}
