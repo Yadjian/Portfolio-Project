@@ -1,5 +1,4 @@
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Constants from 'expo-constants';
 
 /**
  * types.ts
@@ -24,7 +23,12 @@ import Constants from 'expo-constants';
  * @returns Backend API base URL
  */
 export const getApiUrl = () => {
-  return Constants.expoConfig?.extra?.EXPO_PUBLIC_API_URL;
+  const url = process.env.EXPO_PUBLIC_API_URL;
+  if (!url) {
+    console.warn('EXPO_PUBLIC_API_URL not set in .env, using default');
+    return 'https://YOUR_NGROK_URL_HERE.ngrok-free.dev';
+  }
+  return url;
 };
 
 /**
