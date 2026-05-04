@@ -17,13 +17,18 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 /**
  * Get the backend API URL
  * 
- * Returns the current ngrok URL for the backend API.
- * Update this URL when the ngrok tunnel changes.
+ * Reads the ngrok URL from environment variables.
+ * Update EXPO_PUBLIC_API_URL in mova-mobile/.env when the ngrok tunnel changes.
  * 
  * @returns Backend API base URL
  */
 export const getApiUrl = () => {
-  return 'https://tubular-verna-telegraphically.ngrok-free.dev'; // ngrok URL
+  const url = process.env.EXPO_PUBLIC_API_URL;
+  if (!url) {
+    console.warn('EXPO_PUBLIC_API_URL not set in .env, using default');
+    return 'https://YOUR_NGROK_URL_HERE.ngrok-free.dev';
+  }
+  return url;
 };
 
 /**
