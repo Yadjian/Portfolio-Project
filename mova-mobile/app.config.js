@@ -61,7 +61,7 @@ export default ({ config }) => ({
     experiments: { ...config.experiments, typedRoutes: true },
     extra: {
       ...config.extra,
-      // Rendre disponible la clé unique utilisée en dev (Expo Go)
+      EXPO_PUBLIC_API_URL: process.env.EXPO_PUBLIC_API_URL,
       GOOGLE_PLACES_API_KEY: process.env.GOOGLE_PLACES_API_KEY,
       eas: {
         projectId: '23a311f7-7e03-4f55-9b02-1e3a69c073f5'
