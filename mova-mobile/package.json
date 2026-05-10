@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "@expo-google-fonts/poppins": "^0.4.1",
@@ -45,6 +47,7 @@
     "@types/react": "~19.1.0",
     "@types/react-native": "^0.72.8",
     "dotenv": "^17.2.3",
+    "eslint": "^9.0.0",
     "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
   },
