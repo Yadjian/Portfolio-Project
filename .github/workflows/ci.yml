@@ -9,8 +9,6 @@ on:
 jobs:
   mobile-checks:
     runs-on: ubuntu-latest
-    env:
-      ESLINT_USE_FLAT_CONFIG: false
 
     defaults:
       run:
@@ -18,10 +16,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: npm
