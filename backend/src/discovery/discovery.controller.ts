@@ -9,14 +9,12 @@ import {
   ParseIntPipe,
   Req,
 } from '@nestjs/common';
-import type { Request } from 'express';
+import { Request } from 'express';
 import { DiscoveryService } from './discovery.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles/roles.guard';
 import { Roles } from '../auth/roles/roles.decorator';
-import { SkipThrottle } from '@nestjs/throttler';
 
-@SkipThrottle()
 @Controller('discovery')
 export class DiscoveryController {
   constructor(private readonly discoveryService: DiscoveryService) {} // Inject the DiscoveryService
@@ -31,7 +29,7 @@ export class DiscoveryController {
   @Roles('CANDIDATE')
   getRecruiterDiscoveryDeck(
     @Req() req: Request,
-    @Query('radius', new DefaultValuePipe(250), ParseIntPipe) radius: number,
+    @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
     @Query('latitude') latitude?: string,
     @Query('longitude') longitude?: string,
   ) {
@@ -66,7 +64,7 @@ export class DiscoveryController {
   @Roles('RECRUITER')
   getCandidateDiscoveryDeck(
     @Req() req: Request,
-    @Query('radius', new DefaultValuePipe(250), ParseIntPipe) radius: number,
+    @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
     @Query('latitude') latitude?: string,
     @Query('longitude') longitude?: string,
   ) {

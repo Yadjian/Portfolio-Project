@@ -19,8 +19,6 @@ tags:
     description: Gestion des entreprises par les recruteurs
   - name: Job Offers
     description: Gestion et consultation des offres d'emploi
-  - name: Job Categories
-    description: Consultation des catégories de métiers
   - name: Meta
     description: Données de référence publiques
   - name: Swipes
@@ -29,8 +27,6 @@ tags:
     description: Consultation des matches et des candidatures
   - name: Admin
     description: Routes réservées aux administrateurs
-  - name: Health
-    description: Vérification de l'état du service
 
 paths:
   # --- AUTH ---
@@ -58,7 +54,6 @@ paths:
               example:
                 accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
                 refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        '409': { $ref: '#/components/responses/Conflict' }
 
   /auth/login:
     post:
@@ -92,7 +87,6 @@ paths:
       responses:
         '200': { $ref: '#/components/responses/AuthSuccess' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
 
   # --- PROFILE ---
   /profile/me:
@@ -106,9 +100,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserProfileResponse'
+                oneOf:
+                  - $ref: '#/components/schemas/CandidateProfile'
+                  - $ref: '#/components/schemas/RecruiterProfile'
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
     put:
       summary: Mettre à jour le profil de l'utilisateur connecté
       tags: [Profile]
@@ -122,7 +117,6 @@ paths:
       responses:
         '200': { description: "Profil mis à jour avec succès." }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /profile/categories:
     get:
@@ -176,8 +170,6 @@ paths:
       responses:
         '200': { description: Photo mise à jour avec succès. }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /profile/resume:
     put:
@@ -198,7 +190,6 @@ paths:
       responses:
         '200': { description: CV mis à jour avec succès. }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
     delete:
       summary: Supprime le CV
       tags: [Profile]
@@ -206,7 +197,6 @@ paths:
       responses:
         '200': { description: CV supprimé avec succès. }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /profile/push-token:
     post:
@@ -226,7 +216,6 @@ paths:
       responses:
         '200': { description: Token push mis à jour avec succès. }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /discovery/recruiters:
     get:
@@ -261,7 +250,6 @@ paths:
                   $ref: '#/components/schemas/RecruiterProfile'
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /discovery/candidates:
     get:
@@ -296,7 +284,6 @@ paths:
                   $ref: '#/components/schemas/CandidateProfile'
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /discovery/pending-candidates:
     get:
@@ -314,7 +301,6 @@ paths:
                   $ref: '#/components/schemas/CandidateProfile'
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /meta/roles:
     get:
@@ -387,13 +373,9 @@ paths:
       responses:
         '201':
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CompanyOnboardingResponse'
-        '400': { $ref: '#/components/responses/BadRequest' }
+            application/json: { schema: { $ref: '#/components/schemas/Company' } }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
-        '409': { $ref: '#/components/responses/Conflict' }
+        '403': { $ref: '#/components/responses/Forbidden' }
 
   # --- JOB OFFERS ---
   /job-offers:
@@ -423,10 +405,8 @@ paths:
         '201':
           content:
             application/json: { schema: { $ref: '#/components/schemas/JobOffer' } }
-        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /job-offers/my-offers:
     get:
@@ -443,7 +423,6 @@ paths:
                 items:
                   $ref: '#/components/schemas/JobOffer'
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /job-offers/{id}:
     get:
@@ -454,7 +433,6 @@ paths:
         '200':
           content:
             application/json: { schema: { $ref: '#/components/schemas/JobOffer' } }
-        '400': { $ref: '#/components/responses/BadRequest' }
         '404': { $ref: '#/components/responses/NotFound' }
     put:
       summary: (Recruteur) Mettre à jour une offre d'emploi
@@ -470,7 +448,6 @@ paths:
         '200':
           content:
             application/json: { schema: { $ref: '#/components/schemas/JobOffer' } }
-        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -481,7 +458,6 @@ paths:
       parameters: [ { $ref: '#/components/parameters/IdPath' } ]
       responses:
         '204': { description: "Offre supprimée avec succès." }
-        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
         '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
@@ -509,10 +485,7 @@ paths:
               schema:
                 type: object
                 properties: { isMatch: { type: boolean } }
-        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /swipes/undo:
     delete:
@@ -521,10 +494,6 @@ paths:
       security: [ { "bearerAuth": [] } ]
       responses:
         '200': { description: Swipe annulé }
-        '400': { $ref: '#/components/responses/BadRequest' }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   # --- MATCHES & APPLICATIONS ---
   /matches:
@@ -534,10 +503,7 @@ paths:
       security: [ { "bearerAuth": [] } ]
       responses:
         '200': { description: "Une liste de matches." } # Schema à définir
-        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /matches/{id}:
     get:
@@ -547,9 +513,7 @@ paths:
       parameters: [ { $ref: '#/components/parameters/UuidPath' } ]
       responses:
         '200': { description: "Détails du match." }
-        '400': { $ref: '#/components/responses/BadRequest' }
         '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
         '404': { $ref: '#/components/responses/NotFound' }
 
   # Applications endpoints are not implemented in controllers; removed from documentation
@@ -587,9 +551,6 @@ paths:
       parameters: [ { $ref: '#/components/parameters/UserIdPath' } ]
       responses:
         '200': { description: "Détails de l'utilisateur." }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
     put:
       summary: (Admin) Mettre à jour un utilisateur
       tags: [Admin]
@@ -603,9 +564,6 @@ paths:
               $ref: '#/components/schemas/UpdateUserDto'
       responses:
         '200': { description: "Utilisateur mis à jour." }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
     delete:
       summary: (Admin) Supprimer un utilisateur
       tags: [Admin]
@@ -613,9 +571,6 @@ paths:
       parameters: [ { $ref: '#/components/parameters/UserIdPath' } ]
       responses:
         '204': { description: "Utilisateur supprimé." }
-        '401': { $ref: '#/components/responses/Unauthorized' }
-        '403': { $ref: '#/components/responses/Forbidden' }
-        '404': { $ref: '#/components/responses/NotFound' }
 
   /health:
     get:
@@ -678,8 +633,6 @@ components:
       description: Authentifié mais non autorisé à effectuer cette action.
     NotFound:
       description: La ressource demandée n'a pas été trouvée.
-    Conflict:
-      description: Conflit avec l'état actuel de la ressource.
 
   # --- Security Schemes ---
   securitySchemes:
@@ -841,7 +794,6 @@ components:
           description: Mot de passe (min 8 caractères, doit contenir majuscule, minuscule et chiffre)
         role:
           type: string
-          enum: [CANDIDATE, RECRUITER]
           description: Rôle de l'utilisateur
     LoginDto:
       type: object
@@ -868,85 +820,24 @@ components:
       properties:
         id: { type: string, format: uuid }
         email: { type: string, format: email }
-        role:
-          type: string
-          enum: [CANDIDATE, RECRUITER, ADMIN]
         createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
     CandidateProfile:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        userId: { type: string, format: uuid }
-        firstName: { type: string }
-        lastName: { type: string }
-        resumeUrl: { type: string, format: uri, nullable: true }
-        photoUrl: { type: string, format: uri, nullable: true }
-        coverLetterText: { type: string, nullable: true }
-        desiredJobTitle: { type: string, nullable: true }
-        desiredContractTypes:
-          type: array
-          items:
-            type: string
-            enum: [CDI, CDD, ALTERNANCE, STAGE, FREELANCE, AUTRE]
-        locationWKT: { type: string, nullable: true }
-        locationName: { type: string, nullable: true }
-        searchRadiusKm: { type: integer, nullable: true }
-        isActive: { type: boolean }
-        notificationsEnabled: { type: boolean }
-        pushToken: { type: string, nullable: true }
-        experienceLevel:
-          type: string
-          nullable: true
-          enum: [DEBUTANT, INTERMEDIAIRE, CONFIRME]
-        interestedInCategories:
-          type: array
-          items:
-            $ref: '#/components/schemas/JobCategory'
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            firstName: { type: string }
+            lastName: { type: string }
+            resumeUrl: { type: string, format: uri }
+            coverLetterText: { type: string }
     RecruiterProfile:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        userId: { type: string, format: uuid }
-        firstName: { type: string }
-        lastName: { type: string }
-        photoUrl: { type: string, format: uri, nullable: true }
-        internalRoleDefault: { type: string, nullable: true }
-        matchWindowStart: { type: string, format: date-time, nullable: true }
-        matchesTodayCount: { type: integer }
-        dailyMatchLimit: { type: integer }
-        pushToken: { type: string, nullable: true }
-        locationWKT: { type: string, nullable: true }
-        locationName: { type: string, nullable: true }
-        searchDescription: { type: string, nullable: true }
-        desiredExperienceLevel:
-          type: string
-          nullable: true
-          enum: [DEBUTANT, INTERMEDIAIRE, CONFIRME]
-        desiredContractTypes:
-          type: array
-          items:
-            type: string
-            enum: [CDI, CDD, ALTERNANCE, STAGE, FREELANCE, AUTRE]
-        searchedCategories:
-          type: array
-          items:
-            $ref: '#/components/schemas/JobCategory'
-        memberships:
-          type: array
-          items:
-            $ref: '#/components/schemas/RecruiterMembership'
-        companyName:
-          type: string
-          nullable: true
-    RecruiterMembership:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        recruiterId: { type: string, format: uuid }
-        companyId: { type: string, format: uuid }
-        internalRole: { type: string }
-        isPrimary: { type: boolean }
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            firstName: { type: string }
+            lastName: { type: string }
+            company: { $ref: '#/components/schemas/Company' }
     Company:
       type: object
       properties:
@@ -954,15 +845,6 @@ components:
         name: { type: string }
         siret: { type: string }
         logoUrl: { type: string, format: uri }
-        createdAt: { type: string, format: date-time, nullable: true }
-        updatedAt: { type: string, format: date-time, nullable: true }
-    CompanyOnboardingResponse:
-      type: object
-      properties:
-        company:
-          $ref: '#/components/schemas/Company'
-        membership:
-          $ref: '#/components/schemas/RecruiterMembership'
     JobCategory:
       type: object
       properties:
@@ -983,23 +865,7 @@ components:
         isActive: { type: boolean }
         expiresAt: { type: string, format: date-time }
         company: { $ref: '#/components/schemas/Company' }
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/JobCategory'
-        createdBy:
-          type: object
-          properties:
-            firstName: { type: string, nullable: true }
-            lastName: { type: string, nullable: true }
-            user:
-              type: object
-              properties:
-                email: { type: string, format: email, nullable: true }
-            memberships:
-              type: array
-              items:
-                $ref: '#/components/schemas/RecruiterMembership'
+        category: { $ref: '#/components/schemas/JobCategory' }
         contractType: { type: string }
         experienceLevel: { type: string }
         createdById: { type: string, format: uuid }
@@ -1012,21 +878,3 @@ components:
         jobOffer: { $ref: '#/components/schemas/JobOffer' }
         candidate: { $ref: '#/components/schemas/CandidateProfile' }
         createdAt: { type: string, format: date-time }
-    UserProfileResponse:
-      type: object
-      properties:
-        id: { type: string, format: uuid }
-        email: { type: string, format: email }
-        role:
-          type: string
-          enum: [CANDIDATE, RECRUITER, ADMIN]
-        createdAt: { type: string, format: date-time }
-        updatedAt: { type: string, format: date-time }
-        candidateProfile:
-          oneOf:
-            - $ref: '#/components/schemas/CandidateProfile'
-          nullable: true
-        recruiterProfile:
-          oneOf:
-            - $ref: '#/components/schemas/RecruiterProfile'
-          nullable: true

@@ -1,4 +1,4 @@
-// File: backend/src/profile/profile.service.ts
+// Fichier: backend/src/profile/profile.service.ts
 
 import {
   Injectable,
@@ -9,7 +9,6 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
-import { UpdateLiveLocationDto } from './dto/update-live-location.dto';
 import { FileStorageService } from 'src/file-storage/file-storage.service';
 
 @Injectable()
@@ -25,12 +24,12 @@ export class ProfileService {
       include: {
         candidateProfile: {
           include: {
-            interestedInCategories: true, // Include candidate categories
+            interestedInCategories: true, // ✅ Ajouter les catégories du candidat
           },
         },
         recruiterProfile: {
           include: {
-            searchedCategories: true, // Include recruiter categories
+            searchedCategories: true, // ✅ Ajouter les catégories du recruteur
             memberships: {
               include: {
                 company: true,
@@ -57,10 +56,13 @@ export class ProfileService {
     });
     if (!user) throw new NotFoundException('Utilisateur non trouvé.');
 
+    // ✅ Gestion de l'upload de photo
     let photoUrlData = {};
     if (photoFile) {
+      // 🔒 Validation souple côté service
       if (photoFile.size > 3 * 1024 * 1024) {
         console.warn(`Large photo upload: ${photoFile.size} bytes`);
+        // Ne pas bloquer, juste logger
       }
 
       const url = await this.fileStorageService.uploadFile(
@@ -72,7 +74,7 @@ export class ProfileService {
 
     if (user.recruiterProfile) {
       const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // Include photo data
+      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // ✅ Ajout photo
 
       delete dataToUpdate.coverLetterText;
 
@@ -88,7 +90,7 @@ export class ProfileService {
       });
     } else if (user.candidateProfile) {
       const { interestedInCategoryIds, ...restOfData } = data;
-      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // Include photo data
+      const dataToUpdate: any = { ...restOfData, ...photoUrlData }; // ✅ Ajout photo
 
       await this.prisma.candidateProfile.update({
         where: { id: user.candidateProfile.id },
@@ -106,9 +108,9 @@ export class ProfileService {
   }
 
   /**
-   * Updates the GPS location of the authenticated profile, candidate or recruiter.
-   * @param userId The user ID from the JWT token.
-   * @param locationDto The GPS coordinates.
+   * Met à jour la localisation GPS du profil connecté, candidat ou recruteur.
+   * @param userId L'ID de l'utilisateur provenant du token JWT.
+   * @param locationDto Les coordonnées GPS.
    */
   async updateUserLocation(userId: string, locationDto: UpdateLocationDto) {
     const user = await this.prisma.user.findUniqueOrThrow({
@@ -121,15 +123,12 @@ export class ProfileService {
 
     const { locationName, locationWKT } = locationDto;
 
-    // Validate PostGIS input with graceful error handling
+    // 🔒 Validation PostGIS avec gestion d'erreur souple
     try {
       await this.prisma
         .$executeRaw`SELECT ST_GeomFromText(${locationWKT}, 4326)`;
     } catch (error) {
-      console.warn(
-        'PostGIS validation error:',
-        error instanceof Error ? error.message : error,
-      );
+      console.warn('PostGIS validation error:', error.message);
       throw new BadRequestException(
         'Coordonnées GPS invalides. Vérifiez le format.',
       );
@@ -153,9 +152,9 @@ export class ProfileService {
   }
 
   /**
-   * Updates the GPS location of a recruiter.
-   * @param userId The user ID from the JWT token.
-   * @param locationDto The GPS coordinates.
+   * Met à jour la localisation GPS d'un recruteur.
+   * @param userId L'ID de l'utilisateur provenant du token JWT.
+   * @param locationDto Les coordonnées GPS.
    */
   async updateRecruiterLocation(
     userId: string,
@@ -174,15 +173,12 @@ export class ProfileService {
 
     const { locationName, locationWKT } = locationDto;
 
-    // Validate PostGIS input with the same logic
+    // 🔒 Validation PostGIS identique
     try {
       await this.prisma
         .$executeRaw`SELECT ST_GeomFromText(${locationWKT}, 4326)`;
     } catch (error) {
-      console.warn(
-        'PostGIS validation error for recruiter:',
-        error instanceof Error ? error.message : error,
-      );
+      console.warn('PostGIS validation error for recruiter:', error.message);
       throw new BadRequestException(
         'Coordonnées GPS invalides. Vérifiez le format.',
       );
@@ -192,68 +188,18 @@ export class ProfileService {
       where: { id: user.recruiterProfile.id },
       data: {
         locationWKT,
-        locationName: locationName,
+        locationName: locationName, // 🔧 CORRECTION BUG : locationName → city
       },
     });
   }
 
-  async updateUserLiveLocation(
-    userId: string,
-    locationDto: UpdateLiveLocationDto,
-  ) {
-    const locationWKT = `POINT(${locationDto.longitude} ${locationDto.latitude})`;
-    const updatedAt = new Date();
-
-    try {
-      await this.prisma.$executeRaw`SELECT ST_GeomFromText(${locationWKT}, 4326)`;
-    } catch (error) {
-      console.warn(
-        'PostGIS live location validation error:',
-        error instanceof Error ? error.message : error,
-      );
-      throw new BadRequestException(
-        'Coordonnées GPS live invalides. Vérifiez le format.',
-      );
-    }
-
-    const candidateUpdated = await this.prisma.$executeRaw`
-      UPDATE "CandidateProfile"
-      SET "liveLocationWKT" = ${locationWKT}, "liveLocationUpdatedAt" = ${updatedAt}
-      WHERE "userId" = ${userId}
-    `;
-
-    if (Number(candidateUpdated) > 0) {
-      return {
-        success: true,
-        locationWKT,
-        updatedAt,
-      };
-    }
-
-    const recruiterUpdated = await this.prisma.$executeRaw`
-      UPDATE "RecruiterProfile"
-      SET "liveLocationWKT" = ${locationWKT}, "liveLocationUpdatedAt" = ${updatedAt}
-      WHERE "userId" = ${userId}
-    `;
-
-    if (Number(recruiterUpdated) > 0) {
-      return {
-        success: true,
-        locationWKT,
-        updatedAt,
-      };
-    }
-
-    throw new NotFoundException('Profil non trouvé pour cet utilisateur.');
-  }
-
-  // Main profile update method
+  // 🔧 MÉTHODE PRINCIPALE CORRIGÉE
   async updateProfile(
     userId: string,
     dto: UpdateProfileDto,
     photoFile?: Express.Multer.File,
   ) {
-    // Find the user's profile
+    // 1. Trouver le profil de l'utilisateur
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { candidateProfile: true, recruiterProfile: true },
@@ -276,10 +222,10 @@ export class ProfileService {
       throw new NotFoundException('Profil non trouvé.');
     }
 
-    // Handle photo upload when provided
+    // 2. Gérer l'upload de la photo (si elle est fournie)
     let photoUrlData = {};
     if (photoFile) {
-      // Log oversized uploads without blocking the request
+      // 🔒 Validation souple - log mais ne bloque pas
       if (photoFile.size > 3 * 1024 * 1024) {
         console.warn(
           `Large photo upload: ${photoFile.size} bytes for user ${userId}`,
@@ -293,32 +239,32 @@ export class ProfileService {
       photoUrlData = { photoUrl: url };
     }
 
-    // Build category relation data dynamically
+    // 3. 🔧 CORRECTION BUG - Gestion dynamique des catégories
     let categoriesData = {};
     if (dto.interestedInCategoryIds && dto.interestedInCategoryIds.length > 0) {
-      // Choose the correct relation field based on the profile type
+      // 🔧 FIX : Détermine le bon nom de champ selon le profil
       const categoryFieldName = user.candidateProfile
         ? 'interestedInCategories'
         : 'searchedCategories';
 
       categoriesData = {
         [categoryFieldName]: {
-          // Use a dynamic relation key
+          // ✅ CORRECTION : Clé dynamique
           set: dto.interestedInCategoryIds.map((id) => ({ id: id })),
         },
       };
 
-      // Remove the DTO helper field before persistence
+      // On enlève le champ du DTO pour ne pas qu'il soit passé tel quel
       delete dto.interestedInCategoryIds;
     }
 
-    // Update the database record
+    // 4. Mettre à jour la BDD
     return profileModel.update({
       where: { id: profileId },
       data: {
-        ...dto, // Apply text fields
-        ...photoUrlData, // Apply the new photo URL
-        ...categoriesData, // Apply categories using the correct field name
+        ...dto, // Applique les champs de texte
+        ...photoUrlData, // Applique la nouvelle photoUrl
+        ...categoriesData, // Applique les catégories avec le bon nom de champ
       },
     });
   }
@@ -334,12 +280,12 @@ export class ProfileService {
   }
 
   async updateResume(userId: string, file: Express.Multer.File) {
-    // Soft validation at service level
+    // 🔒 Validation souple côté service
     if (file.size > 7 * 1024 * 1024) {
       console.warn(
         `Large resume upload: ${file.size} bytes for user ${userId}`,
       );
-      // Do not block the request, only log it
+      // Ne pas bloquer complètement, juste logger
     }
 
     const profile = await this.prisma.candidateProfile.findUnique({
@@ -382,14 +328,14 @@ export class ProfileService {
     };
   }
 
-  // Push token update with soft validation
+  // 🔒 PUSH TOKEN avec validation souple
   async updatePushToken(userId: string, token: string | null) {
-    // Soft token validation
+    // 🔒 Validation souple du token
     if (token && (token.length < 5 || token.length > 2000)) {
       console.warn(
         `Suspicious push token length: ${token.length} for user ${userId}`,
       );
-      // Do not block the request, only log it
+      // Ne pas bloquer, juste logger
     }
 
     const user = await this.prisma.user.findUnique({
@@ -419,7 +365,7 @@ export class ProfileService {
     userId: string,
     photoFile: Express.Multer.File,
   ): Promise<any> {
-    // Soft validation
+    // 🔒 Validation souple
     if (photoFile.size > 3 * 1024 * 1024) {
       console.warn(
         `Large profile photo: ${photoFile.size} bytes for user ${userId}`,
