@@ -3,6 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { UserRole } from '@prisma/client';
 
 @Injectable()
 export class AdminService {
@@ -114,11 +115,12 @@ export class AdminService {
     // Hash the password before saving
     const hashedPassword = await bcrypt.hash(dto.password, 12); // 🔒 12 rounds pour sécurité renforcée
 
-    // Create the user in the database
+    // Create the user in the database, with explicit role if provided
     const user = await this.prisma.user.create({
       data: {
         email: dto.email,
         password: hashedPassword,
+        role: dto.role ? UserRole[dto.role.toUpperCase() as keyof typeof UserRole] : undefined, // Fix: set role if provided, type-safe
       },
     });
 

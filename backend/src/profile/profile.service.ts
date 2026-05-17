@@ -108,21 +108,18 @@ export class ProfileService {
   }
 
   /**
-   * Met à jour la localisation GPS d'un candidat.
+   * Met à jour la localisation GPS du profil connecté, candidat ou recruteur.
    * @param userId L'ID de l'utilisateur provenant du token JWT.
    * @param locationDto Les coordonnées GPS.
    */
   async updateUserLocation(userId: string, locationDto: UpdateLocationDto) {
     const user = await this.prisma.user.findUniqueOrThrow({
       where: { id: userId },
-      include: { candidateProfile: true },
+      include: {
+        candidateProfile: true,
+        recruiterProfile: true,
+      },
     });
-
-    if (!user.candidateProfile) {
-      throw new NotFoundException(
-        'Profil candidat non trouvé pour cet utilisateur.',
-      );
-    }
 
     const { locationName, locationWKT } = locationDto;
 
@@ -137,13 +134,21 @@ export class ProfileService {
       );
     }
 
-    return this.prisma.candidateProfile.update({
-      where: { id: user.candidateProfile.id },
-      data: {
-        locationWKT,
-        locationName: locationName,
-      },
-    });
+    if (user.candidateProfile) {
+      return this.prisma.candidateProfile.update({
+        where: { id: user.candidateProfile.id },
+        data: {
+          locationWKT,
+          locationName,
+        },
+      });
+    }
+
+    if (user.recruiterProfile) {
+      return this.updateRecruiterLocation(userId, locationDto);
+    }
+
+    throw new NotFoundException('Profil non trouvé pour cet utilisateur.');
   }
 
   /**
