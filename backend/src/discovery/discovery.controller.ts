@@ -9,9 +9,11 @@ import {
   ParseIntPipe,
   Req,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 import { DiscoveryService } from './discovery.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles/roles.guard';
+import { Roles } from '../auth/roles/roles.decorator';
 
 @Controller('discovery')
 export class DiscoveryController {
@@ -23,7 +25,8 @@ export class DiscoveryController {
   // Protected route: requires JWT authentication.
   // Accepts optional 'radius', 'latitude', and 'longitude' query parameters.
   @Get('recruiters')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CANDIDATE')
   getRecruiterDiscoveryDeck(
     @Req() req: Request,
     @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
@@ -57,7 +60,8 @@ export class DiscoveryController {
   // Protected route: requires JWT authentication.
   // Accepts optional 'radius', 'latitude', and 'longitude' query parameters.
   @Get('candidates')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('RECRUITER')
   getCandidateDiscoveryDeck(
     @Req() req: Request,
     @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
@@ -90,7 +94,8 @@ export class DiscoveryController {
   // Returns a list of candidates who are pending for the recruiter (e.g., waiting for a response).
   // Protected route: requires JWT authentication.
   @Get('pending-candidates')
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('RECRUITER')
   getPendingCandidates(@Req() req: Request) {
     // Extract user ID from JWT payload
     const user = req.user as { sub: string };

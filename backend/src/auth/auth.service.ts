@@ -46,11 +46,12 @@ export class AuthService {
         data: {
           email,
           password: hashedPassword,
+          role, // Fix: set role from signup DTO
         },
         select: {
           id: true,
           email: true,
-          role: true, // 🔒 Inclure le rôle
+          role: true, //  Inclure le rle
         },
       });
 
