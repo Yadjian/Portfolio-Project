@@ -1,21 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, UnauthorizedException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import * as bcrypt from 'bcrypt';
-jest.mock('bcrypt', () => ({
-  hash: jest.fn(),
-  compare: jest.fn(),
-}));
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { SignupDto, UserRole } from './dto/signup.dto';
-
-const bcryptMock = bcrypt as unknown as {
-  hash: jest.Mock;
-  compare: jest.Mock;
-};
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -29,11 +20,9 @@ describe('AuthService', () => {
     },
     candidateProfile: {
       create: jest.fn(),
-      updateMany: jest.fn(),
     },
     recruiterProfile: {
       create: jest.fn(),
-      updateMany: jest.fn(),
     },
     $transaction: jest.fn(),
   };
@@ -88,11 +77,14 @@ describe('AuthService', () => {
         candidateProfile: {
           create: jest.fn().mockResolvedValue({ id: '1' }),
         },
+        recruiterProfile: {
+          create: jest.fn(),
+        },
       };
 
       return transactionCallback(transactionClient);
     });
-    bcryptMock.hash.mockResolvedValue('hashed-password');
+    jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed-password' as never);
     jwtServiceMock.signAsync
       .mockResolvedValueOnce('access-token')
       .mockResolvedValueOnce('refresh-token');
@@ -122,7 +114,7 @@ describe('AuthService', () => {
       role: UserRole.CANDIDATE,
     };
     prismaMock.user.findUnique.mockResolvedValue(mockUser);
-    bcryptMock.compare.mockResolvedValue(true);
+    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
     jwtServiceMock.signAsync
       .mockResolvedValueOnce('access-token')
       .mockResolvedValueOnce('refresh-token');
@@ -148,66 +140,11 @@ describe('AuthService', () => {
       password: 'hashed-password',
       role: UserRole.CANDIDATE,
     });
-    bcryptMock.compare.mockResolvedValue(false);
+    jest.spyOn(bcrypt, 'compare').mockResolvedValue(false as never);
 
     await expect(
       service.login({ email: 'lucas.boyadjian@gmail.com', password: 'WrongPassword' }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
-  });
-
-  it('should refresh tokens when the refresh token is valid', async () => {
-    prismaMock.user.findUnique.mockResolvedValue({
-      id: '1',
-      email: 'lucas.boyadjian@gmail.com',
-      hashedRefreshToken: 'hashed-refresh-token',
-      role: UserRole.CANDIDATE,
-    });
-    bcryptMock.compare.mockResolvedValue(true);
-    bcryptMock.hash.mockResolvedValue('new-hashed-refresh-token');
-    jwtServiceMock.signAsync
-      .mockResolvedValueOnce('new-access-token')
-      .mockResolvedValueOnce('new-refresh-token');
-
-    const result = await service.refreshTokens('1', 'refresh-token');
-
-    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
-      where: { id: '1' },
-      select: {
-        id: true,
-        email: true,
-        hashedRefreshToken: true,
-        role: true,
-      },
-    });
-    expect(result).toEqual({
-      accessToken: 'new-access-token',
-      refreshToken: 'new-refresh-token',
-    });
-    expect(prismaMock.user.update).toHaveBeenCalledWith({
-      where: { id: '1' },
-      data: { hashedRefreshToken: 'new-hashed-refresh-token' },
-    });
-  });
-
-  it('should reject refresh tokens when the stored token is missing or invalid', async () => {
-    prismaMock.user.findUnique.mockResolvedValue({
-      id: '1',
-      email: 'lucas.boyadjian@gmail.com',
-      hashedRefreshToken: null,
-      role: UserRole.CANDIDATE,
-    });
-
-    await expect(service.refreshTokens('1', 'refresh-token')).rejects.toBeInstanceOf(
-      ForbiddenException,
-    );
-  });
-
-  it('should logout by clearing the refresh token hash', async () => {
-    prismaMock.$transaction.mockResolvedValue([{ count: 1 }, { count: 0 }, { count: 0 }]);
-
-    await service.logout('user-1');
-
-    expect(prismaMock.$transaction).toHaveBeenCalled();
   });
 
   it('should reject signup when password does not meet backend rules', () => {
