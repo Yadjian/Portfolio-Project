@@ -1,4 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'test-uuid'),
+}));
 import { FileStorageService } from './file-storage.service';
 
 // Unit tests for the FileStorageService
