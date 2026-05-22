@@ -18,10 +18,10 @@ export class AuthDto {
   @IsString({ message: 'Le mot de passe doit être une chaîne de caractères' })
   @IsNotEmpty({ message: 'Le mot de passe ne peut pas être vide' })
   @MinLength(6, {
-    message: 'Le mot de passe doit faire au moins 6 caractères.',
-  }) // ✅ GARDE VOS 6 chars
-  @MaxLength(128, {
-    message: 'Le mot de passe ne peut pas dépasser 128 caractères',
-  }) // 🔒 Protection débordement
+    message: 'Le mot de passe doit contenir au moins 8 caractères.',
+  })
+  @MaxLength(72, {
+    message: 'Le mot de passe ne peut pas dépasser 72 caractères',
+  })
   password: string;
 }

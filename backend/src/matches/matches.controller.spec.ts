@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { MatchesController } from './matches.controller';
+import { MatchesService } from './matches.service';
 
 // Unit tests for the MatchesController
 describe('MatchesController', () => {
@@ -9,6 +10,15 @@ describe('MatchesController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [MatchesController],
+      providers: [
+        {
+          provide: MatchesService,
+          useValue: {
+            findAllMatches: jest.fn(),
+            getMatchDetails: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<MatchesController>(MatchesController);

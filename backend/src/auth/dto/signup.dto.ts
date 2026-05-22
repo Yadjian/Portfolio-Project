@@ -28,8 +28,8 @@ export class SignupDto {
   @MinLength(8, {
     message: 'Le mot de passe doit contenir au moins 8 caractères.',
   }) // 🔒 Passé de 6 à 8
-  @MaxLength(128, {
-    message: 'Le mot de passe ne peut pas dépasser 128 caractères',
+  @MaxLength(72, {
+    message: 'Le mot de passe ne peut pas dépasser 72 caractères',
   })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
     message:

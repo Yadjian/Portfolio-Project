@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SwipesController } from './swipes.controller';
+import { SwipesService } from './swipes.service';
 
 // Unit tests for the SwipesController
 describe('SwipesController', () => {
@@ -9,6 +10,15 @@ describe('SwipesController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [SwipesController],
+      providers: [
+        {
+          provide: SwipesService,
+          useValue: {
+            handleSwipe: jest.fn(),
+            undoLastSwipe: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<SwipesController>(SwipesController);
