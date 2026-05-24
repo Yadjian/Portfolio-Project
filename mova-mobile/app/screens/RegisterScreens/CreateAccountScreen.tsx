@@ -39,6 +39,7 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,72}$/;
 
   // Listen for keyboard show/hide events to adjust UI if needed
   useEffect(() => {
@@ -62,8 +63,11 @@ export default function CreateAccountScreen({ route, navigation }: CreateAccount
       return;
     }
 
-    if (formData.password.length < 6) {
-      Alert.alert('Erreur', 'Le mot de passe doit faire au moins 6 caractères.');
+    if (!passwordRegex.test(formData.password)) {
+      Alert.alert(
+        'Erreur',
+        'Le mot de passe doit contenir entre 8 et 72 caractères, avec au moins une majuscule, une minuscule et un chiffre.'
+      );
       return;
     }
 
