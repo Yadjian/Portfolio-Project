@@ -12,7 +12,7 @@ describe('Auth E2E (Real DB)', () => {
   let accessToken: string;
 
   beforeAll(async () => {
-    // Nettoyer la DB avant les tests: TRUNCATE cascade pour supprimer toutes les dépendances
+    // Clean DB before tests: TRUNCATE CASCADE removes dependent rows as well
     await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE;').catch(() => {});
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -23,12 +23,12 @@ describe('Auth E2E (Real DB)', () => {
     await app.init();
   });
 
-  it('should verify that we have 0 user in the DB before tests', async () => {
+  it('should verify that we have 0 users in the DB before tests', async () => {
     const count = await prisma.user.count();
     expect(count).toBe(0);
   });
 
-  it('should signup a new user', async () => {
+  it('should sign up a new user and return tokens', async () => {
     const res = await request(app.getHttpServer())
       .post('/auth/signup')
       .send({ email: testEmail, password: testPassword, role: 'CANDIDATE' });
@@ -59,6 +59,7 @@ describe('Auth E2E (Real DB)', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.accessToken).toBeDefined();
+    expect(res.body.refreshToken).toBeDefined();
     accessToken = res.body.accessToken;
   });
 
@@ -72,7 +73,7 @@ describe('Auth E2E (Real DB)', () => {
   });
 
   afterAll(async () => {
-    // Nettoyer la DB après les tests: TRUNCATE cascade pour supprimer toutes les dépendances
+    // Clean DB after tests: TRUNCATE CASCADE removes dependent rows as well
     await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE;').catch(() => {});
     await prisma.$disconnect();
     await app.close();
