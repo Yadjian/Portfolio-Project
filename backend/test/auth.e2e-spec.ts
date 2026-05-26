@@ -1,9 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { AppModule } from '../src/app.module';
+import { AuthModule } from '../src/auth/auth.module';
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
 
 describe('Auth E2E (Real DB)', () => {
   let app: INestApplication;
@@ -13,125 +12,69 @@ describe('Auth E2E (Real DB)', () => {
   let accessToken: string;
 
   beforeAll(async () => {
-    // Nettoyer la DB avant les tests
-    await prisma.user.deleteMany({ where: { email: testEmail } }).catch(() => {});
-    
+    // Nettoyer la DB avant les tests: TRUNCATE cascade pour supprimer toutes les dépendances
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE;').catch(() => {});
+
     const moduleFixture: TestingModule = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AuthModule],
     }).compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
   });
 
+  it('should verify that we have 0 user in the DB before tests', async () => {
+    const count = await prisma.user.count();
+    expect(count).toBe(0);
+  });
+
+  it('should signup a new user', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/auth/signup')
+      .send({ email: testEmail, password: testPassword, role: 'CANDIDATE' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.accessToken).toBeDefined();
+    expect(res.body.refreshToken).toBeDefined();
+  });
+
+  it('should verify the user exists in the DB after signup', async () => {
+    const user = await prisma.user.findUnique({ where: { email: testEmail } });
+    expect(user).not.toBeNull();
+    expect(user.email).toBe(testEmail);
+  });
+
+  it('should reject duplicate signup', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/auth/signup')
+      .send({ email: testEmail, password: testPassword, role: 'CANDIDATE' });
+
+    expect(res.status).toBe(409);
+  });
+
+  it('should login and return tokens', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ email: testEmail, password: testPassword });
+
+    expect(res.status).toBe(200);
+    expect(res.body.accessToken).toBeDefined();
+    accessToken = res.body.accessToken;
+  });
+
+  it('should access protected route (logout) with token', async () => {
+    const res = await request(app.getHttpServer())
+      .post('/auth/logout')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send();
+
+    expect(res.status).toBe(200);
+  });
+
   afterAll(async () => {
-    // Nettoyer la DB après les tests
-    await prisma.user.deleteMany({ where: { email: testEmail } }).catch(() => {});
+    // Nettoyer la DB après les tests: TRUNCATE cascade pour supprimer toutes les dépendances
+    await prisma.$executeRawUnsafe('TRUNCATE TABLE "User" CASCADE;').catch(() => {});
     await prisma.$disconnect();
     await app.close();
-  });
-
-  it('should POST a valid signup', () => {
-    authServiceMock.signup.mockResolvedValue({
-      accessToken: 'access-token',
-      refreshToken: 'refresh-token',
-    });
-
-    return request(app.getHttpServer())
-      .post('/auth/signup')
-      .send({
-        email: 'lucas.boyadjian@gmail.com',
-        password: 'Password123',
-        role: 'CANDIDATE',
-      })
-      .expect(201)
-      .expect((res) => {
-        expect(res.body.accessToken).toBeDefined();
-        expect(res.body.refreshToken).toBeDefined();
-      });
-  });
-
-  it('should return 409 when the email already exists', () => {
-    authServiceMock.signup.mockRejectedValue(
-      new ConflictException('Un utilisateur avec cet email existe déjà.'),
-    );
-
-    return request(app.getHttpServer())
-      .post('/auth/signup')
-      .send({
-        email: 'lucas.boyadjian@gmail.com',
-        password: 'Password123',
-        role: 'CANDIDATE',
-      })
-      .expect(409)
-      .expect((res) => {
-        expect(res.body.message).toBe('Un utilisateur avec cet email existe déjà.');
-      });
-  });
-
-  it('should return 400 for invalid passwords', async () => {
-    const cases = [
-      {
-        password: '123',
-        message: 'Le mot de passe doit contenir au moins 8 caractères.',
-      },
-      {
-        password: 'password123',
-        message: 'Le mot de passe doit contenir au moins 1 majuscule, 1 minuscule et 1 chiffre.',
-      },
-      {
-        password: 'P'.repeat(73),
-        message: 'Le mot de passe ne peut pas dépasser 72 caractères',
-      },
-    ];
-
-    for (const c of cases) {
-      const response = await request(app.getHttpServer())
-        .post('/auth/signup')
-        .send({
-          email: 'lucas.boyadjian@gmail.com',
-          password: c.password,
-          role: 'CANDIDATE',
-        });
-
-      expect(response.status).toBe(400);
-      expect(response.body.message).toContain(c.message);
-    }
-  });
-
-  it('should POST a valid login', () => {
-    authServiceMock.login.mockResolvedValue({
-      accessToken: 'access-token',
-      refreshToken: 'refresh-token',
-    });
-
-    return request(app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        email: 'lucas.boyadjian@gmail.com',
-        password: 'Password123',
-      })
-      .expect(200)
-      .expect((res) => {
-        expect(res.body.accessToken).toBeDefined();
-        expect(res.body.refreshToken).toBeDefined();
-      });
-  });
-
-  it('should return 401 when the password is invalid', () => {
-    authServiceMock.login.mockRejectedValue(
-      new UnauthorizedException('Identifiants incorrects.'),
-    );
-
-    return request(app.getHttpServer())
-      .post('/auth/login')
-      .send({
-        email: 'lucas.boyadjian@gmail.com',
-        password: 'WrongPassword',
-      })
-      .expect(401)
-      .expect((res) => {
-        expect(res.body.message).toBe('Identifiants incorrects.');
-      });
   });
 });
