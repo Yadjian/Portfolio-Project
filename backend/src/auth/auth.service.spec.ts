@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, UnauthorizedException } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import * as bcrypt from 'bcrypt';
@@ -77,9 +77,6 @@ describe('AuthService', () => {
         candidateProfile: {
           create: jest.fn().mockResolvedValue({ id: '1' }),
         },
-        recruiterProfile: {
-          create: jest.fn(),
-        },
       };
 
       return transactionCallback(transactionClient);
@@ -145,6 +142,69 @@ describe('AuthService', () => {
     await expect(
       service.login({ email: 'lucas.boyadjian@gmail.com', password: 'WrongPassword' }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('should refresh tokens when the refresh token is valid', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: '1',
+      email: 'lucas.boyadjian@gmail.com',
+      hashedRefreshToken: 'hashed-refresh-token',
+      role: UserRole.CANDIDATE,
+    });
+    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
+    jest.spyOn(bcrypt, 'hash').mockResolvedValue('new-hashed-refresh-token' as never);
+    jwtServiceMock.signAsync
+      .mockResolvedValueOnce('new-access-token')
+      .mockResolvedValueOnce('new-refresh-token');
+
+    const result = await service.refreshTokens('1', 'refresh-token');
+
+    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+      where: { id: '1' },
+      select: {
+        id: true,
+        email: true,
+        hashedRefreshToken: true,
+        role: true,
+      },
+    });
+    expect(result).toEqual({
+      accessToken: 'new-access-token',
+      refreshToken: 'new-refresh-token',
+    });
+    expect(prismaMock.user.update).toHaveBeenCalledWith({
+      where: { id: '1' },
+      data: { hashedRefreshToken: 'new-hashed-refresh-token' },
+    });
+  });
+
+  it('should reject refresh tokens when the stored token is missing or invalid', async () => {
+    prismaMock.user.findUnique.mockResolvedValue({
+      id: '1',
+      email: 'lucas.boyadjian@gmail.com',
+      hashedRefreshToken: null,
+      role: UserRole.CANDIDATE,
+    });
+
+    await expect(service.refreshTokens('1', 'refresh-token')).rejects.toBeInstanceOf(
+      ForbiddenException,
+    );
+  });
+
+  it('should logout by clearing the refresh token hash', async () => {
+    prismaMock.user.updateMany.mockResolvedValue({ count: 1 });
+
+    await service.logout('user-1');
+
+    expect(prismaMock.user.updateMany).toHaveBeenCalledWith({
+      where: {
+        id: 'user-1',
+        hashedRefreshToken: { not: null },
+      },
+      data: {
+        hashedRefreshToken: null,
+      },
+    });
   });
 
   it('should reject signup when password does not meet backend rules', () => {

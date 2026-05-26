@@ -1,7 +1,6 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
   "rootDir": "..",
-  "setupFiles": ["<rootDir>/test/setup-env.js"],
   "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/src/$1"
   },
@@ -9,8 +8,8 @@
     "node_modules/(?!(uuid)/)"
   ],
   "testEnvironment": "node",
-  "testRegex": "auth\\.e2e-spec\\.ts$",
+  "testRegex": ".e2e-spec.ts$",
   "transform": {
-    "^.+\\.ts$": "ts-jest"
+    "^.+\\.(t|j)s$": "ts-jest"
   }
 }
