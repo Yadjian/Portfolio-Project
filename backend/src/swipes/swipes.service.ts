@@ -1,4 +1,3 @@
-// src/swipes/swipes.service.ts
 import {
   Injectable,
   NotFoundException,
@@ -19,15 +18,15 @@ export class SwipesService {
   constructor(
     private prisma: PrismaService,
 
-    @InjectQueue(SWIPE_NOTIFICATION_QUEUE) private swipeQueue: Queue,
-    @InjectQueue(MATCH_NOTIFICATION_QUEUE) private matchQueue: Queue,
+    @InjectQueue(SWIPE_NOTIFICATION_QUEUE) private swipeQueue: Queue, // Notification queue for swipes
+    @InjectQueue(MATCH_NOTIFICATION_QUEUE) private matchQueue: Queue, // Notification queue for matches
   ) {}
 
   /**
-   * Gère un swipe (création ou mise à jour) et vérifie les matchs.
+   * Handles a swipe (creation or update) and verifies matches.
    */
   async handleSwipe(userId: string, dto: CreateSwipeDto) {
-    // 🔒 Validation sécurisée des entrées
+    // Validate user ID and swipe data
     if (!userId) {
       throw new BadRequestException('Utilisateur requis pour swiper.');
     }
@@ -38,14 +37,14 @@ export class SwipesService {
 
     const { profileId: swipedProfileId, direction } = dto;
 
-    // 🛡️ SÉCURITÉ : Empêcher l'auto-swipe
+    // Security: Prevent self-swipe
     if (swipedProfileId === userId) {
       throw new ForbiddenException(
         'Vous ne pouvez pas swiper sur votre propre profil.',
       );
     }
 
-    // 1. Identifier qui est le swiper (Candidat ou Recruteur)
+    // Identify who is swiping (Candidate or Recruiter)
     const swiperUser = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
@@ -63,40 +62,40 @@ export class SwipesService {
     let swiperDirectionField: 'candidateDirection' | 'recruiterDirection';
     let otherDirectionField: 'candidateDirection' | 'recruiterDirection';
 
-    // 2. Déterminer les rôles
+    // Determine roles
     if (swiperUser.candidateProfile) {
-      // C'est un CANDIDAT qui swipe
+      // Candidate is swiping
       candidateId = swiperUser.candidateProfile.id;
-      recruiterId = swipedProfileId; // L'ID reçu est celui d'un recruteur
+      recruiterId = swipedProfileId; // Received ID is a recruiter profile
       swiperDirectionField = 'candidateDirection';
       otherDirectionField = 'recruiterDirection';
 
-      // 🛡️ SÉCURITÉ : Vérifier que le profil swipé est bien un recruteur
+      // IDOR protection: Verify target is a valid recruiter profile
       const targetRecruiter = await this.prisma.recruiterProfile.findUnique({
         where: { id: swipedProfileId },
         select: { id: true },
       });
       if (!targetRecruiter) {
         console.warn(
-          `🚨 SWIPE SECURITY: Candidate ${userId} tried to swipe on invalid recruiter ${swipedProfileId}`,
+          `Swipe security: Candidate ${userId} attempted invalid recruiter swipe`,
         );
         throw new NotFoundException('Profil recruteur introuvable.');
       }
     } else if (swiperUser.recruiterProfile) {
-      // C'est un RECRUTEUR qui swipe
-      candidateId = swipedProfileId; // L'ID reçu est celui d'un candidat
+      // Recruiter is swiping
+      candidateId = swipedProfileId; // Received ID is a candidate profile
       recruiterId = swiperUser.recruiterProfile.id;
       swiperDirectionField = 'recruiterDirection';
       otherDirectionField = 'candidateDirection';
 
-      // 🛡️ SÉCURITÉ : Vérifier que le profil swipé est bien un candidat
+      // IDOR protection: Verify target is a valid candidate profile
       const targetCandidate = await this.prisma.candidateProfile.findUnique({
         where: { id: swipedProfileId },
         select: { id: true },
       });
       if (!targetCandidate) {
         console.warn(
-          `🚨 SWIPE SECURITY: Recruiter ${userId} tried to swipe on invalid candidate ${swipedProfileId}`,
+          `Swipe security: Recruiter ${userId} attempted invalid candidate swipe`,
         );
         throw new NotFoundException('Profil candidat introuvable.');
       }
@@ -104,62 +103,59 @@ export class SwipesService {
       throw new ForbiddenException("L'utilisateur n'a pas de profil actif.");
     }
 
-    // 3. Trouver la ligne de Swipe existante (ou la créer)
-    // C'est la magie de `upsert` :
-    // - Tente de trouver un swipe unique pour ce couple.
-    // - S'il existe, on le met à jour (UPDATE).
-    // - S'il n'existe pas, on le crée (CREATE).
+    // Create or update swipe record using upsert
+    // If exists: updates the swiper's direction
+    // If not: creates new swipe with initial direction
     const swipe = await this.prisma.swipe.upsert({
       where: {
-        // L'index unique de notre schéma
+        // Unique constraint on candidate-recruiter pair
         candidateId_recruiterId: {
           candidateId,
           recruiterId,
         },
       },
-      // 4. METTRE À JOUR (s'il existe)
+      // Update if exists
       update: {
-        [swiperDirectionField]: direction, // Met à jour le swipe de l'acteur
+        [swiperDirectionField]: direction, // Updates the swiper's direction
       },
-      // 5. CRÉER (s'il n'existe pas)
+      // Create if not exists
       create: {
         candidateId,
         recruiterId,
-        [swiperDirectionField]: direction, // Définit le premier swipe
+        [swiperDirectionField]: direction, // Sets the first swipe direction
       },
     });
 
-    // 6. VÉRIFIER LE MATCH
-    // On doit re-vérifier la donnée après l'upsert
+    // Verify match state after upsert
     const updatedSwipe = await this.prisma.swipe.findUnique({
       where: { id: swipe.id },
     });
 
-    // === Logique d'ajout de Job ===
+    // Add to notification queues
 
-    // 1. Si un CANDIDAT vient de swiper RIGHT (et que ce n'est pas déjà un match)
+    // If candidate just swiped RIGHT and no match yet
     if (
       swiperDirectionField === 'candidateDirection' &&
       direction === 'RIGHT' &&
-      updatedSwipe.recruiterDirection !== 'RIGHT' // Pas encore de match
+      updatedSwipe.recruiterDirection !== 'RIGHT' // No match yet
     ) {
       await this.swipeQueue.add('candidate-swipe-right', {
         candidateId: candidateId,
         recruiterId: recruiterId,
         swipeId: updatedSwipe.id,
-      }); // <-- COMMENTE
+      });
       console.log(
-        `Job ajouté à ${SWIPE_NOTIFICATION_QUEUE}: candidate-swipe-right`,
-      ); // <-- COMMENTE
+        `Job added to ${SWIPE_NOTIFICATION_QUEUE}: candidate-swipe-right`,
+      );
     }
 
-    // 2. Si un MATCH vient de se produire
+    // If match just occurred
     if (
       updatedSwipe.candidateDirection === 'RIGHT' &&
       updatedSwipe.recruiterDirection === 'RIGHT' &&
-      !updatedSwipe.isMatch // S'assure qu'on ne le fait qu'une fois
+      !updatedSwipe.isMatch // Ensure match is only processed once
     ) {
-      // Marquer comme match (ta logique existante)
+      // Mark as match
       const matchData = await this.prisma.swipe.update({
         where: { id: updatedSwipe.id },
         data: { isMatch: true, matchedAt: new Date() },
@@ -170,38 +166,37 @@ export class SwipesService {
         recruiterId: recruiterId,
         matchId: matchData.id,
         matchedAt: matchData.matchedAt,
-      }); // <-- COMMENTE
+      });
       console.log(
-        `Job ajouté à ${MATCH_NOTIFICATION_QUEUE}: new-match-candidate`,
-      ); // <-- COMMENTE
+        `Job added to ${MATCH_NOTIFICATION_QUEUE}: new-match-candidate`,
+      );
 
       await this.matchQueue.add('new-match-recruiter', {
         candidateId: candidateId,
         recruiterId: recruiterId,
         matchId: matchData.id,
         matchedAt: matchData.matchedAt,
-      }); // <-- COMMENTE
+      });
       console.log(
-        `Job ajouté à ${MATCH_NOTIFICATION_QUEUE}: new-match-recruiter`,
-      ); // <-- COMMENTE
+        `Job added to ${MATCH_NOTIFICATION_QUEUE}: new-match-recruiter`,
+      );
 
       return { match: true, matchedAt: matchData.matchedAt };
     }
 
-    // 🔒 Log de sécurité pour audit
+    // Audit logging
     console.log(
-      `✅ Swipe authorized: ${direction} by user ${userId} on profile ${swipedProfileId}`,
+      `Swipe authorized: ${direction} by user ${userId} on profile ${swipedProfileId}`,
     );
 
-    // Si pas de match
     return { match: false };
   }
 
   /**
-   * Annule le dernier swipe de l'utilisateur
+   * Undo the user's last swipe action
    */
   async undoLastSwipe(userId: string) {
-    // 🔒 Validation sécurisée des entrées
+    // Validate user ID
     if (!userId) {
       throw new BadRequestException(
         'Utilisateur requis pour annuler un swipe.',
@@ -224,9 +219,9 @@ export class SwipesService {
     let lastSwipe;
     let directionField: 'candidateDirection' | 'recruiterDirection';
 
-    // 2. Déterminer le rôle et trouver le dernier swipe
+    // Determine role and find last swipe
     if (user.candidateProfile) {
-      // Candidat : chercher le dernier swipe où candidateDirection n'est pas null
+      // Candidate: find last swipe
       lastSwipe = await this.prisma.swipe.findFirst({
         where: {
           candidateId: user.candidateProfile.id,
@@ -238,7 +233,7 @@ export class SwipesService {
       });
       directionField = 'candidateDirection';
     } else if (user.recruiterProfile) {
-      // Recruteur : chercher le dernier swipe où recruiterDirection n'est pas null
+      // Recruiter: find last swipe
       lastSwipe = await this.prisma.swipe.findFirst({
         where: {
           recruiterId: user.recruiterProfile.id,
@@ -257,19 +252,19 @@ export class SwipesService {
       return { success: false, message: 'Aucun swipe à annuler.' };
     }
 
-    // 3. Annuler le swipe en remettant la direction à null
+    // Undo swipe by setting direction to null
     await this.prisma.swipe.update({
       where: { id: lastSwipe.id },
       data: {
         [directionField]: null,
-        // Si c'était un match, on le défait
+        // If it was a match, undo it
         isMatch: false,
         matchedAt: null,
       },
     });
 
-    // 🔒 Log de sécurité pour audit
-    console.log(`✅ Swipe undo authorized: ${lastSwipe.id} by user ${userId}`);
+    // Audit logging
+    console.log(`Swipe undo authorized: ${lastSwipe.id} by user ${userId}`);
 
     return { success: true };
   }
