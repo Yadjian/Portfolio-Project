@@ -1,5 +1,3 @@
-// Fichier: backend/src/app.module.ts
-
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -24,19 +22,17 @@ import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
-    // ✅ 1. BULL CONFIGURATION EN PREMIER
+    // Redis configuration for job queue
     BullModule.forRoot({
       connection: {
         host: 'redis',
         port: 6379,
       },
     }),
-
-    // ✅ 2. MODULES DE BASE
+    // Core modules
     AuthModule,
     PrismaModule,
-
-    // ✅ 3. MODULES MÉTIER
+    // Feature modules
     ProfileModule,
     SwipesModule,
     JobOfferModule,
@@ -46,28 +42,23 @@ import { APP_GUARD } from '@nestjs/core';
     MatchesModule,
     FileStorageModule,
     AdminModule,
-
-    // ✅ 4. NOTIFICATIONS MODULE (APRÈS BullModule.forRoot)
     NotificationsModule,
-
-    // ✅ 5. MODULES TECHNIQUES
+    // File upload configuration
     MulterModule.register({
       dest: './uploads',
     }),
-
     FirebaseModule,
-
-    // ✅ 6. THROTTLE MODULE
+    // Rate limiting for all routes
     ThrottlerModule.forRoot([
       {
         name: 'default',
         ttl: 60000, // 1 minute
-        limit: 10, // 10 requêtes par minute
+        limit: 20, // 20 requests per minute
       },
       {
         name: 'auth',
         ttl: 900000, // 15 minutes
-        limit: 5, // 5 tentatives de connexion par 15min
+        limit: 5, // 5 login attempts per 15 minutes
       },
     ]),
   ],
@@ -76,7 +67,7 @@ import { APP_GUARD } from '@nestjs/core';
     AppService,
     {
       provide: APP_GUARD,
-      useClass: ThrottlerGuard, // 🔒 Protection globale
+      useClass: ThrottlerGuard,
     },
   ],
 })

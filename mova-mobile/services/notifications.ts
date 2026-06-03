@@ -47,11 +47,11 @@ export async function registerForPushNotificationsAsync() {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#4930a3', // Mova brand color
+      lightColor: '#4930a3',
     });
   }
 
-  // Check if it's a physical device (emulators don't support push notifications)
+  // Check if it's a physical device
   if (Device.isDevice) {
     // Check existing permissions
     const { status: existingStatus } = await Notifications.getPermissionsAsync();

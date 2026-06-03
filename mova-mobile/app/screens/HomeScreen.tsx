@@ -5,7 +5,6 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as Location from 'expo-location';
 import MovaLogo from '@/components/ui/MovaLogo';
 import { useAuth } from '../../contexts/AuthContext';
-import { sendLocationToBackend, checkBackendHealth } from '../../services/api';
 import Colors from '../../constants/Colors';
 import { AuthStackParamList, getApiUrl } from '@/lib/types';
 
@@ -43,10 +42,6 @@ export default function HomeScreen() {
       }
       try {
         const location = await Location.getCurrentPositionAsync({});
-        await sendLocationToBackend({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude,
-        });
       } catch (error) {
       }
     };
