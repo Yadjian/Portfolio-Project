@@ -96,19 +96,6 @@ export async function login(email: string, password: string) {
   return data;
 }
 
-export async function logout() {
-  const response = await fetch(`${API_URL}/auth/logout`, {
-    method: 'POST',
-    headers: await getHeaders(true),
-  });
-
-  if (response.status === 401) {
-    return null;
-  }
-
-  return handleResponse(response);
-}
-
 // PROFILE & SWIPE
 /**
  * Fetch the current user's profile
@@ -139,18 +126,6 @@ export async function updateProfile(
   }
   
   return result;
-}
-
-/**
- * Update real-time GPS location used only for discovery/swipe distance checks
- */
-export async function updateLiveLocation(latitude: number, longitude: number) {
-  const response = await fetch(`${API_URL}/profile/live-location`, {
-    method: 'PUT',
-    headers: await getHeaders(true),
-    body: JSON.stringify({ latitude, longitude }),
-  });
-  return handleResponse(response);
 }
 
 /**

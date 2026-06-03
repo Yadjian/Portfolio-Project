@@ -13,7 +13,7 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthService } from './auth.service';
 import { AuthDto } from './dto/auth.dto';
 import { AuthGuard } from '@nestjs/passport';
-import type { Request } from 'express';
+import { Request } from 'express';
 import { SignupDto } from './dto/signup.dto';
 
 @Controller('auth')
@@ -23,7 +23,7 @@ export class AuthController {
   // Signup route: POST /auth/signup
   // Registers a new user and returns access and refresh tokens
   @Post('signup')
-  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 inscriptions par minute, override du throttler global
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 🔒 5 inscriptions par minute
   @HttpCode(HttpStatus.CREATED)
   signup(
     @Body() dto: SignupDto,
@@ -34,7 +34,7 @@ export class AuthController {
   // Login route: POST /auth/login
   // Authenticates a user and returns access and refresh tokens
   @Post('login')
-  @Throttle({ default: { limit: 10, ttl: 900000 } }) // 10 tentatives par 15min, override du throttler global
+  @Throttle({ auth: { limit: 5, ttl: 900000 } }) // 🔒 5 tentatives par 15min
   @HttpCode(HttpStatus.OK)
   login(
     @Body() dto: AuthDto,

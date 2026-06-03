@@ -20,24 +20,15 @@ import { FirebaseModule } from './firebase/firebase.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 
-const getBullImports = () => {
-  // Skip BullModule in test environment to avoid Redis dependency
-  if (process.env.NODE_ENV === 'test') {
-    return [];
-  }
-  return [
+@Module({
+  imports: [
+    // Redis configuration for job queue
     BullModule.forRoot({
       connection: {
         host: 'redis',
         port: 6379,
       },
     }),
-  ];
-};
-
-@Module({
-  imports: [
-    ...getBullImports(),
     // Core modules
     AuthModule,
     PrismaModule,
@@ -62,7 +53,12 @@ const getBullImports = () => {
       {
         name: 'default',
         ttl: 60000, // 1 minute
-        limit: 500, // 500 requests per minute
+        limit: 20, // 20 requests per minute
+      },
+      {
+        name: 'auth',
+        ttl: 900000, // 15 minutes
+        limit: 5, // 5 login attempts per 15 minutes
       },
     ]),
   ],
