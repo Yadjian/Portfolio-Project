@@ -12,7 +12,7 @@ datasource db {
   extensions = [postgis]
 }
 
-// --- Énumérations ---
+// --- Enumerations ---
 
 enum ContractType {
   CDI
@@ -54,29 +54,29 @@ enum UserRole {
   ADMIN
 }
 
-// --- NOUVEAU MODÈLE CENTRAL POUR L'IDENTITÉ ---
+// --- CENTRAL IDENTITY MODEL ---
 model User {
   id        String    @id @default(uuid())
   email     String    @unique
   password           String
-  role      UserRole  @default(CANDIDATE) // 🔒 Rôle de l'utilisateur
+  role      UserRole  @default(CANDIDATE) // User role
   hashedRefreshToken String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  // Relations (un User peut avoir un profil candidat ET/OU un profil recruteur)
+  // Relations (a User can have a candidate profile and/or a recruiter profile)
   candidateProfile CandidateProfile?
   recruiterProfile RecruiterProfile?
 }
 
-// --- MODÈLES DE PROFILS (CORRIGÉS) ---
+// --- PROFILE MODELS ---
 
 model CandidateProfile {
   id        String    @id @default(uuid())
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  // Champs propres au profil
+  // Profile-specific fields
   firstName            String
   lastName             String
   resumeUrl            String?
@@ -91,14 +91,14 @@ model CandidateProfile {
   notificationsEnabled Boolean    @default(true)
   pushToken String?  @unique // Le token de notification push Expo
 
-  experienceLevel      ExperienceLevel? // <-- Niveau d'expérience (optionnel)
+  experienceLevel      ExperienceLevel? // Experience level (optional)
   interestedInCategories JobCategory[] @relation("CandidateInterestedCategories")
 
-  // Relation vers le User (un profil candidat appartient à un seul user)
+  // Relation to User (a candidate profile belongs to a single user)
   user   User @relation(fields: [userId], references: [id])
-  userId String  @unique // La relation est unique (one-to-one)
+  userId String  @unique // Unique one-to-one relation
 
-  // Autres relations
+  // Other relations
   applications Application[]
   swipes       Swipe[]
 }
@@ -108,36 +108,36 @@ model RecruiterProfile {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  // Champs propres au profil
+  // Profile-specific fields
   firstName         String
   lastName          String
-  photoUrl          String?          // Photo de profil du recruteur
+  photoUrl          String?          // Recruiter profile photo
   internalRoleDefault String?
   matchWindowStart  DateTime?
   matchesTodayCount Int       @default(0)
   dailyMatchLimit   Int       @default(100)
-  pushToken String?  @unique // Le token de notification push Expo
+  pushToken String?  @unique // Expo push notification token
 
-  // NOUVEAUX CHAMPS POUR LES CRITÈRES DE RECHERCHE
-  locationWKT          String?          // La zone où le recruteur recherche
+  // SEARCH CRITERIA FIELDS
+  locationWKT          String?          // Zone where the recruiter searches
   locationName         String?
-  searchDescription    String?          // Petite phrase d'accroche du recruteur
-  desiredExperienceLevel ExperienceLevel? // Le niveau d'expérience recherché
-  desiredContractTypes ContractType[]   @default([]) // Les types de contrats recherchés
-  searchedCategories   JobCategory[]    @relation("RecruiterSearchedCategories") // Catégories recherchées
+  searchDescription    String?          // Recruiter tagline
+  desiredExperienceLevel ExperienceLevel? // Desired experience level
+  desiredContractTypes ContractType[]   @default([]) // Desired contract types
+  searchedCategories   JobCategory[]    @relation("RecruiterSearchedCategories") // Searched categories
   
-  // Relation vers le User (un profil recruteur appartient à un seul user)
+  // Relation to User (a recruiter profile belongs to a single user)
   user   User @relation(fields: [userId], references: [id])
-  userId String  @unique // La relation est unique (one-to-one)
+  userId String  @unique // Unique one-to-one relation
 
-  // Autres relations
+  // Other relations
   memberships        RecruiterMembership[]
   swipes             Swipe[]
   viewedApplications Application[]       @relation("ViewedByRecruiter")
   createdJobOffers   JobOffer[]          @relation("CreatedByRecruiter")
 }
 
-// --- AUTRES MODÈLES ---
+// --- OTHER MODELS ---
 
 model Company {
   id        String    @id @default(uuid())
@@ -191,13 +191,14 @@ model JobOffer {
   company      Company        @relation(fields: [companyId], references: [id])
   companyId    String
   applications Application[]
-  categories   JobCategory[]
+  category    JobCategory @relation(fields: [categoryId], references: [id])
+  categoryId  String
 
-  // Champs hérités du profil du recruteur
+  // Fields inherited from recruiter profile
   contractType    ContractType
   experienceLevel ExperienceLevel?
 
-  // Relation pour savoir qui a créé l'offre
+  // Relation to know who created the offer
   createdBy   RecruiterProfile @relation("CreatedByRecruiter", fields: [createdById], references: [id])
   createdById String
 }
@@ -224,19 +225,19 @@ model Swipe {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
-  // La relation unique entre les deux profils
+  // The unique relation between the two profiles
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id])
   candidateId String
   recruiter   RecruiterProfile @relation(fields: [recruiterId], references: [id])
   recruiterId String
 
-  // L'état des swipes de chaque personne
-  candidateDirection SwipeDirection? // Null jusqu'à ce que le candidat swipe
-  recruiterDirection SwipeDirection? // Null jusqu'à ce que le recruteur swipe
+  // The state of each person's swipes
+  candidateDirection SwipeDirection? // Null until the candidate swipes
+  recruiterDirection SwipeDirection? // Null until the recruiter swipes
 
   isMatch   Boolean  @default(false)
   matchedAt DateTime?
 
-  // Une seule ligne de swipe peut exister par couple candidat/recruteur
+  // Only one swipe record can exist per candidate/recruiter pair
   @@unique([candidateId, recruiterId])
 }

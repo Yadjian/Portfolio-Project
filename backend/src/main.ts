@@ -1,8 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-
-// Imports pour Swagger
 import { SwaggerModule, OpenAPIObject } from '@nestjs/swagger';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
@@ -12,7 +10,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const port = process.env.PORT ?? 3000;
 
-  // 🌐 CORS - Votre config existante maintenue
+  // Enable CORS for frontend requests
   app.enableCors({
     origin:
       process.env.NODE_ENV === 'production'
@@ -22,24 +20,24 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   });
 
-  // 🔒 VALIDATION PROGRESSIVE - Sécurisée mais NON-CASSANTE
+  // Apply global validation and data transformation
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // ✅ Supprime les champs malveillants
-      forbidNonWhitelisted: false, // 🔄 Ignore les champs inconnus (COMPATIBLE FRONTEND)
-      transform: true, // ✅ Transformations automatiques
-      skipUndefinedProperties: true, // ✅ Ignore les undefined
-      skipNullProperties: false, // ✅ Valide les null
-      skipMissingProperties: false, // ✅ Valide les champs requis
-      disableErrorMessages: false, // ✅ Messages d'erreur détaillés
-      validateCustomDecorators: true, // ✅ Validation avancée
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+      skipUndefinedProperties: true,
+      skipNullProperties: false,
+      skipMissingProperties: false,
+      disableErrorMessages: false,
+      validateCustomDecorators: true,
       transformOptions: {
-        enableImplicitConversion: true, // ✅ Conversion automatique des types
+        enableImplicitConversion: true,
       },
     }),
   );
 
-  // 📊 LOGS SÉCURISÉS - credentials masqués
+  // Log database and service status at startup
   const dbUrl = process.env.DATABASE_URL;
   const dbUrlSafe = dbUrl ? dbUrl.replace(/:\/\/([^:]+):([^@]+)@/, '://***:***@') : 'not set';
   console.log('Database:', dbUrlSafe);
@@ -48,7 +46,7 @@ async function bootstrap() {
   console.log('JWT Refresh Secret:', !!process.env.JWT_REFRESH_SECRET ? '✓ loaded' : '✗ missing');
   console.log('Port:', process.env.PORT);
 
-  // 📚 VOTRE CONFIG SWAGGER EXISTANTE - inchangée
+  // Load OpenAPI documentation from YAML file
   const yamlPath = path.join(__dirname, '..', 'openapi.yml');
 
   if (fs.existsSync(yamlPath)) {
@@ -60,9 +58,9 @@ async function bootstrap() {
     console.log('OpenAPI file not found, Swagger UI disabled');
   }
 
-  // 🚀 VOTRE DÉMARRAGE EXISTANT - inchangé
+  // Start the server
   await app.listen(port, '0.0.0.0');
   console.log(`Server is running on http://localhost:${port}`);
-  console.log('🔒 Progressive validation enabled (frontend-compatible)');
+  console.log('Progressive validation enabled (frontend-compatible)');
 }
 bootstrap();

@@ -47,7 +47,7 @@ export default function AuthStack() {
       screenOptions={{
         headerStyle: { backgroundColor: '#fff' },
         headerShadowVisible: false,
-        headerTitle: '', // force header to be empty everywhere
+        headerTitle: '',
       }}
     >
       {/* Home screen for unauthenticated users */}
