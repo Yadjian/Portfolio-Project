@@ -29,7 +29,7 @@ export class DiscoveryController {
   @Roles('CANDIDATE')
   getRecruiterDiscoveryDeck(
     @Req() req: Request,
-    @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
+    @Query('radius', new DefaultValuePipe(250), ParseIntPipe) radius: number,
     @Query('latitude') latitude?: string,
     @Query('longitude') longitude?: string,
   ) {
@@ -64,7 +64,7 @@ export class DiscoveryController {
   @Roles('RECRUITER')
   getCandidateDiscoveryDeck(
     @Req() req: Request,
-    @Query('radius', new DefaultValuePipe(20000), ParseIntPipe) radius: number,
+    @Query('radius', new DefaultValuePipe(250), ParseIntPipe) radius: number,
     @Query('latitude') latitude?: string,
     @Query('longitude') longitude?: string,
   ) {
