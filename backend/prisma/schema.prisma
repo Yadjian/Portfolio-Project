@@ -89,7 +89,7 @@ model CandidateProfile {
   searchRadiusKm       Int?
   isActive             Boolean    @default(true)
   notificationsEnabled Boolean    @default(true)
-  pushToken String?  @unique // Le token de notification push Expo
+  pushToken String?  @unique // Expo push notification token
 
   experienceLevel      ExperienceLevel? // Experience level (optional)
   interestedInCategories JobCategory[] @relation("CandidateInterestedCategories")
@@ -99,7 +99,6 @@ model CandidateProfile {
   userId String  @unique // Unique one-to-one relation
 
   // Other relations
-  applications Application[]
   swipes       Swipe[]
 }
 
@@ -133,7 +132,6 @@ model RecruiterProfile {
   // Other relations
   memberships        RecruiterMembership[]
   swipes             Swipe[]
-  viewedApplications Application[]       @relation("ViewedByRecruiter")
   createdJobOffers   JobOffer[]          @relation("CreatedByRecruiter")
 }
 
@@ -190,7 +188,6 @@ model JobOffer {
   expiresAt    DateTime?
   company      Company        @relation(fields: [companyId], references: [id])
   companyId    String
-  applications Application[]
   category    JobCategory @relation(fields: [categoryId], references: [id])
   categoryId  String
 
@@ -201,23 +198,6 @@ model JobOffer {
   // Relation to know who created the offer
   createdBy   RecruiterProfile @relation("CreatedByRecruiter", fields: [createdById], references: [id])
   createdById String
-}
-
-model Application {
-  id                  String            @id @default(uuid())
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  status              ApplicationStatus @default(ENVOYE)
-  cvUrl               String?
-  coverLetterText     String?
-  viewedAt            DateTime?
-  candidate           CandidateProfile  @relation(fields: [candidateId], references: [id])
-  candidateId         String
-  job                 JobOffer          @relation(fields: [jobId], references: [id])
-  jobId               String
-  viewedByRecruiter   RecruiterProfile?        @relation("ViewedByRecruiter", fields: [viewedByRecruiterId], references: [id])
-  viewedByRecruiterId String?
-  @@unique([candidateId, jobId])
 }
 
 model Swipe {
