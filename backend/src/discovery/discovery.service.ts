@@ -1,11 +1,28 @@
 // This service contains the business logic for user discovery features, such as finding nearby recruiters or candidates.
 
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { ExperienceLevel } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class DiscoveryService {
   constructor(private readonly prisma: PrismaService) {}
+
+  /**
+   * Maps experience level to a list of acceptable levels.
+   * DEBUTANT accepts only DEBUTANT.
+   * INTERMEDIAIRE accepts DEBUTANT and INTERMEDIAIRE.
+   * CONFIRME accepts DEBUTANT, INTERMEDIAIRE, and CONFIRME.
+   */
+  private mapExperienceLevels(level?: string): ExperienceLevel[] {
+    if (!level) return ['DEBUTANT', 'INTERMEDIAIRE', 'CONFIRME'];
+    const mapping = {
+      DEBUTANT: ['DEBUTANT'],
+      INTERMEDIAIRE: ['DEBUTANT', 'INTERMEDIAIRE'],
+      CONFIRME: ['DEBUTANT', 'INTERMEDIAIRE', 'CONFIRME'],
+    };
+    return (mapping[level] || []) as ExperienceLevel[];
+  }
 
   /**
    * Finds recruiters near a candidate using PostGIS spatial queries.
@@ -56,11 +73,9 @@ export class DiscoveryService {
     >`
       SELECT "id"
       FROM "RecruiterProfile"
-      WHERE "liveLocationWKT" IS NOT NULL
-      AND "liveLocationUpdatedAt" IS NOT NULL
-      AND "liveLocationUpdatedAt" >= NOW() - INTERVAL '2 minutes'
+      WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
-        "liveLocationWKT"::geography,
+        "locationWKT"::geography,
         ${searchLocation}::geography,
         ${radiusInMeters}
       )
@@ -84,6 +99,11 @@ export class DiscoveryService {
         }),
         ...(candidateProfile.desiredContractTypes?.length && {
           desiredContractTypes: { hasSome: candidateProfile.desiredContractTypes },
+        }),
+        ...(candidateProfile.experienceLevel && {
+          desiredExperienceLevel: {
+            in: this.mapExperienceLevels(candidateProfile.experienceLevel),
+          },
         }),
       },
       include: {
@@ -152,11 +172,9 @@ export class DiscoveryService {
     >`
       SELECT "id"
       FROM "CandidateProfile"
-      WHERE "liveLocationWKT" IS NOT NULL
-      AND "liveLocationUpdatedAt" IS NOT NULL
-      AND "liveLocationUpdatedAt" >= NOW() - INTERVAL '2 minutes'
+      WHERE "locationWKT" IS NOT NULL
       AND ST_DWithin(
-        "liveLocationWKT"::geography,
+        "locationWKT"::geography,
         ${searchLocation}::geography,
         ${radiusInMeters}
       )
@@ -172,34 +190,19 @@ export class DiscoveryService {
         },
         // Apply recruiter preferences
         ...(recruiterProfile.searchedCategories?.length && {
-          OR: [
-            {
-              interestedInCategories: {
-                some: {
-                  id: { in: recruiterProfile.searchedCategories.map((c) => c.id) },
-                },
-              },
+          interestedInCategories: {
+            some: {
+              id: { in: recruiterProfile.searchedCategories.map((c) => c.id) },
             },
-            {
-              interestedInCategories: {
-                none: {},
-              },
-            },
-          ],
+          },
         }),
         ...(recruiterProfile.desiredContractTypes?.length && {
-          OR: [
-            {
-              desiredContractTypes: {
-                hasSome: recruiterProfile.desiredContractTypes,
-              },
-            },
-            {
-              desiredContractTypes: {
-                isEmpty: true,
-              },
-            },
-          ],
+          desiredContractTypes: { hasSome: recruiterProfile.desiredContractTypes },
+        }),
+        ...(recruiterProfile.desiredExperienceLevel && {
+          experienceLevel: {
+            in: this.mapExperienceLevels(recruiterProfile.desiredExperienceLevel),
+          },
         }),
       },
       include: {
