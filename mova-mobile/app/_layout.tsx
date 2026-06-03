@@ -102,6 +102,10 @@ export default function RootLayout() {
   );
 }
 
+/**
+ * RootLayoutNav
+ * Applies theme, handles notifications, displays AuthStack
+ */
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
   const { isAuthenticated, loading } = useAuth();
@@ -111,6 +115,7 @@ function RootLayoutNav() {
 
   const isExpoGo = Constants.appOwnership === 'expo';
 
+  // Listen for incoming notifications
   useEffect(() => {
     if (isExpoGo || !Notifications) {
       return;
