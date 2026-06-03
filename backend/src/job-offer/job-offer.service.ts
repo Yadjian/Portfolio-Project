@@ -85,7 +85,7 @@ export class JobOfferService {
       },
     });
 
-    // 🔒 Log sécurisé de création
+    // Log sécurisé de création
     console.log(`✅ Job offer created: ${jobOffer.id} by user ${userId}`);
 
     return jobOffer;
