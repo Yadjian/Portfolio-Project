@@ -56,9 +56,11 @@ export class DiscoveryService {
     >`
       SELECT "id"
       FROM "RecruiterProfile"
-      WHERE "locationWKT" IS NOT NULL
+      WHERE "liveLocationWKT" IS NOT NULL
+      AND "liveLocationUpdatedAt" IS NOT NULL
+      AND "liveLocationUpdatedAt" >= NOW() - INTERVAL '2 minutes'
       AND ST_DWithin(
-        "locationWKT"::geography,
+        "liveLocationWKT"::geography,
         ${searchLocation}::geography,
         ${radiusInMeters}
       )
@@ -150,9 +152,11 @@ export class DiscoveryService {
     >`
       SELECT "id"
       FROM "CandidateProfile"
-      WHERE "locationWKT" IS NOT NULL
+      WHERE "liveLocationWKT" IS NOT NULL
+      AND "liveLocationUpdatedAt" IS NOT NULL
+      AND "liveLocationUpdatedAt" >= NOW() - INTERVAL '2 minutes'
       AND ST_DWithin(
-        "locationWKT"::geography,
+        "liveLocationWKT"::geography,
         ${searchLocation}::geography,
         ${radiusInMeters}
       )
@@ -168,14 +172,34 @@ export class DiscoveryService {
         },
         // Apply recruiter preferences
         ...(recruiterProfile.searchedCategories?.length && {
-          interestedInCategories: {
-            some: {
-              id: { in: recruiterProfile.searchedCategories.map((c) => c.id) },
+          OR: [
+            {
+              interestedInCategories: {
+                some: {
+                  id: { in: recruiterProfile.searchedCategories.map((c) => c.id) },
+                },
+              },
             },
-          },
+            {
+              interestedInCategories: {
+                none: {},
+              },
+            },
+          ],
         }),
         ...(recruiterProfile.desiredContractTypes?.length && {
-          desiredContractTypes: { hasSome: recruiterProfile.desiredContractTypes },
+          OR: [
+            {
+              desiredContractTypes: {
+                hasSome: recruiterProfile.desiredContractTypes,
+              },
+            },
+            {
+              desiredContractTypes: {
+                isEmpty: true,
+              },
+            },
+          ],
         }),
       },
       include: {

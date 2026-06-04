@@ -23,6 +23,7 @@ import { Request } from 'express';
 import { ProfileService } from './profile.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { UpdateLiveLocationDto } from './dto/update-live-location.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('profile')
@@ -94,6 +95,17 @@ export class ProfileController {
       }
       throw error;
     }
+  }
+
+  @Put('live-location')
+  @UseGuards(AuthGuard('jwt'))
+  @HttpCode(HttpStatus.OK)
+  async updateLiveLocation(
+    @Req() req: Request,
+    @Body() updateLiveLocationDto: UpdateLiveLocationDto,
+  ) {
+    const userId = req.user.sub;
+    return this.profileService.updateUserLiveLocation(userId, updateLiveLocationDto);
   }
 
   @Get('categories')

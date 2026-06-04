@@ -7,7 +7,7 @@ import SwipeCard from '@/components/ui/SwipeCard';
 import BottomTabBar from '@/components/ui/BottomTabBar';
 import { getCandidateTabs, getRecruiterTabs } from '@/constants/tabsConfig';
 import { UserType } from '@/lib/types';
-import { getProfilesToSwipe, sendSwipeAction, undoPreviousSwipe } from '../../services/api';
+import { getProfilesToSwipe, sendSwipeAction, undoPreviousSwipe, updateLiveLocation } from '../../services/api';
 import { useNavigation, useRoute, RouteProp, useFocusEffect } from '@react-navigation/native';
 import Colors from '@/constants/Colors';
 import { useNotifications } from '@/contexts/NotificationContext';
@@ -100,6 +100,7 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
   const position = useRef(new Animated.ValueXY()).current;
   // panResponderRef: PanResponder for swipe gestures
   const panResponderRef = useRef<any>(null);
+  const isFetchingRef = useRef(false);
 
   // Reset profile badge when visiting this screen
   useFocusEffect(
@@ -113,82 +114,118 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
     }, [setProfileBadgeCount, profiles.length])
   );
 
-  // Fetch profiles to swipe on mount
-  useEffect(() => {
-    const getLocationAndFetchProfiles = async () => {
-      // Request geolocation permission
-      let { status } = await Location.requestForegroundPermissionsAsync();
+  const mapProfilesForUI = useCallback((data: any[]) => {
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    return data.map((profile: any) => {
+      if (userType === 'candidate') {
+        // Candidate sees recruiters
+        const descriptionParts = profile.searchDescription ? profile.searchDescription.split('\n\n') : [];
+        const jobTitle = descriptionParts[0] || 'Poste non spécifié';
+        const description = descriptionParts.slice(1).join('\n\n') || 'Aucune présentation disponible';
+        return {
+          ...profile,
+          profilePhoto: profile.photoUrl,
+          avatarUrl: profile.photoUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
+          location: profile.locationName || 'Localisation non spécifiée',
+          jobSeeking: jobTitle,
+          experienceRequired: profile.desiredExperienceLevel || 'Non spécifié',
+          presentation: description,
+          companyName: profile.companyName || `Entreprise de ${profile.firstName} ${profile.lastName}`,
+          contractType: profile.desiredContractTypes && profile.desiredContractTypes.length > 0
+            ? profile.desiredContractTypes.join(', ')
+            : 'Non spécifié',
+        };
+      }
+
+      // Recruiter sees candidates
+      const jobTitle = profile.desiredJobTitle || 'Poste non spécifié';
+      const description = profile.coverLetterText || 'Aucune présentation disponible';
+      return {
+        ...profile,
+        avatarUrl: profile.photoUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
+        location: profile.locationName || 'Localisation non spécifiée',
+        job: jobTitle,
+        experience: profile.experienceLevel || 'Non spécifié',
+        presentation: description,
+        contractType: profile.desiredContractTypes && profile.desiredContractTypes.length > 0
+          ? profile.desiredContractTypes.join(', ')
+          : 'Non spécifié',
+      };
+    });
+  }, [userType]);
+
+  const refreshSwipeDeck = useCallback(async () => {
+    if (isFetchingRef.current) {
+      return;
+    }
+
+    isFetchingRef.current = true;
+    try {
+      // Faster permission flow: request only if needed.
+      const permission = await Location.getForegroundPermissionsAsync();
+      let status = permission.status;
+      if (status !== 'granted') {
+        const requested = await Location.requestForegroundPermissionsAsync();
+        status = requested.status;
+      }
+
       if (status !== 'granted') {
         setProfiles([]);
         setNotificationCount(0);
         return;
       }
 
-      try {
-        // Get current location
-        let location = await Location.getCurrentPositionAsync({});
-        const { latitude, longitude } = location.coords;
-
-        // Fetch profiles from backend
-        const data = await getProfilesToSwipe(userType, latitude, longitude);
-
-        const allProfiles: any[] = [];
-
-        // Map backend profiles to UI format
-        if (data && data.length > 0) {
-          const mappedProfiles = data.map((profile: any) => {
-            if (userType === 'candidate') {
-              // Candidate sees recruiters
-              const descriptionParts = profile.searchDescription ? profile.searchDescription.split('\n\n') : [];
-              const jobTitle = descriptionParts[0] || 'Poste non spécifié';
-              const description = descriptionParts.slice(1).join('\n\n') || 'Aucune présentation disponible';
-              return {
-                ...profile,
-                profilePhoto: profile.photoUrl,
-                avatarUrl: profile.photoUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
-                location: profile.locationName || 'Localisation non spécifiée',
-                jobSeeking: jobTitle,
-                experienceRequired: profile.desiredExperienceLevel || 'Non spécifié',
-                presentation: description,
-                companyName: profile.companyName || `Entreprise de ${profile.firstName} ${profile.lastName}`,
-                contractType: profile.desiredContractTypes && profile.desiredContractTypes.length > 0 
-                  ? profile.desiredContractTypes.join(', ') 
-                  : 'Non spécifié',
-              };
-            } else {
-              // Recruiter sees candidates
-              const jobTitle = profile.desiredJobTitle || 'Poste non spécifié';
-              const description = profile.coverLetterText || 'Aucune présentation disponible';
-              return {
-                ...profile,
-                avatarUrl: profile.photoUrl || `https://ui-avatars.com/api/?name=${profile.firstName}+${profile.lastName}&size=200&background=4930a3&color=fff`,
-                location: profile.locationName || 'Localisation non spécifiée',
-                job: jobTitle,
-                experience: profile.experienceLevel || 'Non spécifié',
-                presentation: description,
-                contractType: profile.desiredContractTypes && profile.desiredContractTypes.length > 0 
-                  ? profile.desiredContractTypes.join(', ') 
-                  : 'Non spécifié',
-              };
-            }
-          });
-          allProfiles.push(...mappedProfiles);
-        }
-
-        setProfiles(allProfiles.length > 0 ? allProfiles : []);
-        setNotificationCount(allProfiles.length);
-        
-        await refreshProfileBadge(allProfiles.length);
-        
-        await refreshMatchBadge();
-      } catch (error) {
-        setProfiles([]);
-        setNotificationCount(0);
+      // Try a cached location first to reduce latency.
+      let location = await Location.getLastKnownPositionAsync();
+      if (!location) {
+        location = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeout: 6000,
+        });
       }
-    };
 
-    getLocationAndFetchProfiles();
-  }, []);
+      const { latitude, longitude } = location.coords;
+
+      try {
+        await updateLiveLocation(latitude, longitude);
+      } catch (error) {
+        // Keep discovery working even if live location update fails
+      }
+
+      const data = await getProfilesToSwipe(userType, latitude, longitude);
+      const mappedProfiles = mapProfilesForUI(data);
+
+      if (!isAnimating) {
+        setProfiles(mappedProfiles);
+      }
+      setNotificationCount(mappedProfiles.length);
+      await refreshProfileBadge(mappedProfiles.length);
+      await refreshMatchBadge();
+    } catch (error) {
+      setProfiles([]);
+      setNotificationCount(0);
+    } finally {
+      isFetchingRef.current = false;
+    }
+  }, [isAnimating, mapProfilesForUI, refreshMatchBadge, refreshProfileBadge, userType]);
+
+  // Refresh deck on focus and keep polling while this screen is open.
+  useFocusEffect(
+    React.useCallback(() => {
+      refreshSwipeDeck();
+
+      const intervalId = setInterval(() => {
+        refreshSwipeDeck();
+      }, 8000);
+
+      return () => {
+        clearInterval(intervalId);
+      };
+    }, [refreshSwipeDeck])
+  );
 
   // Tab bar configuration
   const baseTabs = userType === 'recruiter' ? getRecruiterTabs(navigation, profileBadgeCount) : getCandidateTabs(navigation, profileBadgeCount);

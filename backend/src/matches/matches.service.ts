@@ -169,7 +169,7 @@ export class MatchesService {
         },
         include: {
           company: true,
-          categories: true,
+          category: true,
         },
       });
 
