@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { AppState } from 'react-native';
-import { login as apiLogin, getMyProfile, updatePushToken } from '../services/api';
+import * as Location from 'expo-location';
+import { login as apiLogin, logout as apiLogout, getMyProfile, updatePushToken, updateLiveLocation } from '../services/api';
 import { registerForPushNotificationsAsync } from '../services/notifications';
 
 /**
@@ -39,6 +40,117 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const locationWatchRef = useRef<Location.LocationSubscription | null>(null);
+  const lastLiveSyncAtRef = useRef<number>(0);
+  const isSyncingLiveLocationRef = useRef(false);
+
+  const syncLiveLocation = async () => {
+    if (isSyncingLiveLocationRef.current) {
+      return;
+    }
+
+    try {
+      isSyncingLiveLocationRef.current = true;
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+      await updateLiveLocation(latitude, longitude);
+      lastLiveSyncAtRef.current = Date.now();
+    } catch (error) {
+      // Do not block authentication flow if live location update fails
+    } finally {
+      isSyncingLiveLocationRef.current = false;
+    }
+  };
+
+  // Keep live location fresh globally while the user is authenticated, no matter the current screen.
+  useEffect(() => {
+    if (!isAuthenticated || !token) {
+      if (locationWatchRef.current) {
+        locationWatchRef.current.remove();
+        locationWatchRef.current = null;
+      }
+      return;
+    }
+
+    let isCancelled = false;
+
+    const syncFromCoords = async (latitude: number, longitude: number) => {
+      if (isSyncingLiveLocationRef.current) {
+        return;
+      }
+
+      const now = Date.now();
+      if (now - lastLiveSyncAtRef.current < 15000) {
+        return;
+      }
+
+      try {
+        isSyncingLiveLocationRef.current = true;
+        await updateLiveLocation(latitude, longitude);
+        lastLiveSyncAtRef.current = now;
+      } catch (error) {
+      } finally {
+        isSyncingLiveLocationRef.current = false;
+      }
+    };
+
+    const startLocationWatch = async () => {
+      try {
+        const permission = await Location.getForegroundPermissionsAsync();
+        let status = permission.status;
+        if (status !== 'granted') {
+          const requested = await Location.requestForegroundPermissionsAsync();
+          status = requested.status;
+        }
+
+        if (status !== 'granted' || isCancelled) {
+          return;
+        }
+
+        const lastKnownPosition = await Location.getLastKnownPositionAsync();
+        if (lastKnownPosition && !isCancelled) {
+          await syncFromCoords(
+            lastKnownPosition.coords.latitude,
+            lastKnownPosition.coords.longitude,
+          );
+        }
+
+        if (isCancelled) {
+          return;
+        }
+
+        locationWatchRef.current = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.Balanced,
+            timeInterval: 15000,
+            distanceInterval: 20,
+          },
+          (position) => {
+            void syncFromCoords(
+              position.coords.latitude,
+              position.coords.longitude,
+            );
+          },
+        );
+      } catch (error) {
+      }
+    };
+
+    void startLocationWatch();
+
+    return () => {
+      isCancelled = true;
+      if (locationWatchRef.current) {
+        locationWatchRef.current.remove();
+        locationWatchRef.current = null;
+      }
+    };
+  }, [isAuthenticated, token]);
 
   // Refresh user profile from API
   const refreshUser = async () => {
@@ -62,6 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(storedToken);
           setIsAuthenticated(true);
           await refreshUser();
+          await syncLiveLocation();
           setLoading(false);
         } else {
           setLoading(false);
@@ -84,6 +197,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(storedToken);
           setIsAuthenticated(true);
           await refreshUser();
+          await syncLiveLocation();
         }
       }
     });
@@ -129,6 +243,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setToken(response.accessToken);
         setIsAuthenticated(true);
         await refreshUser();
+        await syncLiveLocation();
         return true;
       } else {
         setIsAuthenticated(false);
@@ -149,14 +264,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Logout and clear token
   const logout = async () => {
     try {
+      if (locationWatchRef.current) {
+        locationWatchRef.current.remove();
+        locationWatchRef.current = null;
+      }
+
       try {
         await updatePushToken('');
+      } catch (error) {
+      }
+      try {
+        await apiLogout();
       } catch (error) {
       }
       await SecureStore.deleteItemAsync('auth_token');
       await SecureStore.deleteItemAsync('refresh_token');
       await SecureStore.deleteItemAsync('last_match_count');
       await SecureStore.deleteItemAsync('last_profile_count');
+      lastLiveSyncAtRef.current = 0;
       setToken(null);
       setUser(null);
       setIsAuthenticated(false);

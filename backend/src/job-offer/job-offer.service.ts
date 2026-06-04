@@ -42,11 +42,9 @@ export class JobOfferService {
       );
     }
 
-    // Extract company ID and category IDs for job offer creation
+    // Extract company ID and primary category for job offer creation
     const companyId = recruiterProfile.memberships[0].company.id;
-    const categoryIds = recruiterProfile.searchedCategories.map((cat) => ({
-      id: cat.id,
-    }));
+    const primaryCategoryId = recruiterProfile.searchedCategories[0].id;
 
     // Create job offer with inherited recruiter preferences
     const jobOffer = await this.prisma.jobOffer.create({
@@ -61,14 +59,14 @@ export class JobOfferService {
         createdBy: {
           connect: { id: recruiterProfile.id },
         },
-        categories: {
-          connect: categoryIds,
+        category: {
+          connect: { id: primaryCategoryId },
         },
       },
       // Include related data in response
       include: {
         company: { select: { name: true, logoUrl: true } },
-        categories: true,
+        category: true,
         createdBy: { select: { firstName: true, lastName: true } },
       },
     });
@@ -92,8 +90,8 @@ export class JobOfferService {
             logoUrl: true,
           },
         },
-        // Include job categories
-        categories: true,
+        // Include job category
+        category: true,
         // Include recruiter information with their company associations
         createdBy: {
           select: {
@@ -120,7 +118,7 @@ export class JobOfferService {
       where: { id },
       include: {
         company: true,
-        categories: true,
+        category: true,
         createdBy: {
           select: {
             user: {
@@ -202,7 +200,7 @@ export class JobOfferService {
             logoUrl: true,
           },
         },
-        categories: true,
+        category: true,
       },
     });
   }
@@ -286,7 +284,7 @@ export class JobOfferService {
       },
       include: {
         company: true,
-        categories: true,
+        category: true,
       },
       orderBy: {
         createdAt: 'desc',

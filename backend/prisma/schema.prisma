@@ -2,13 +2,13 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
   extensions = [postgis]
 }
 
@@ -56,13 +56,13 @@ enum UserRole {
 
 // --- CENTRAL IDENTITY MODEL ---
 model User {
-  id        String    @id @default(uuid())
-  email     String    @unique
+  id                 String   @id @default(uuid())
+  email              String   @unique
   password           String
-  role      UserRole  @default(CANDIDATE) // User role
+  role               UserRole @default(CANDIDATE) // User role
   hashedRefreshToken String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   // Relations (a User can have a candidate profile and/or a recruiter profile)
   candidateProfile CandidateProfile?
@@ -72,92 +72,97 @@ model User {
 // --- PROFILE MODELS ---
 
 model CandidateProfile {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Profile-specific fields
-  firstName            String
-  lastName             String
-  resumeUrl            String?
-  photoUrl             String?
-  coverLetterText      String?
-  desiredJobTitle      String?
-  desiredContractTypes ContractType[] @default([])
-  locationWKT          String?
-  locationName         String?
-  searchRadiusKm       Int?
-  isActive             Boolean    @default(true)
-  notificationsEnabled Boolean    @default(true)
-  pushToken String?  @unique // Expo push notification token
+  firstName             String
+  lastName              String
+  resumeUrl             String?
+  photoUrl              String?
+  coverLetterText       String?
+  desiredJobTitle       String?
+  desiredContractTypes  ContractType[] @default([])
+  locationWKT           String?
+  locationName          String?
+  liveLocationWKT       String?
+  liveLocationUpdatedAt DateTime?
+  searchRadiusKm        Int?
+  isActive              Boolean        @default(true)
+  notificationsEnabled  Boolean        @default(true)
+  pushToken             String?        @unique // Expo push notification token
 
-  experienceLevel      ExperienceLevel? // Experience level (optional)
-  interestedInCategories JobCategory[] @relation("CandidateInterestedCategories")
+  experienceLevel        ExperienceLevel? // Experience level (optional)
+  interestedInCategories JobCategory[]    @relation("CandidateInterestedCategories")
 
   // Relation to User (a candidate profile belongs to a single user)
-  user   User @relation(fields: [userId], references: [id])
-  userId String  @unique // Unique one-to-one relation
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique // Unique one-to-one relation
 
   // Other relations
-  swipes       Swipe[]
+  swipes Swipe[]
 }
 
 model RecruiterProfile {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Profile-specific fields
-  firstName         String
-  lastName          String
-  photoUrl          String?          // Recruiter profile photo
+  firstName           String
+  lastName            String
+  photoUrl            String? // Recruiter profile photo
   internalRoleDefault String?
-  matchWindowStart  DateTime?
-  matchesTodayCount Int       @default(0)
-  dailyMatchLimit   Int       @default(100)
-  pushToken String?  @unique // Expo push notification token
+  matchWindowStart    DateTime?
+  matchesTodayCount   Int       @default(0)
+  dailyMatchLimit     Int       @default(100)
+  pushToken           String?   @unique // Expo push notification token
 
   // SEARCH CRITERIA FIELDS
-  locationWKT          String?          // Zone where the recruiter searches
-  locationName         String?
-  searchDescription    String?          // Recruiter tagline
+  locationWKT            String? // Zone where the recruiter searches
+  locationName           String?
+  liveLocationWKT        String?
+  liveLocationUpdatedAt  DateTime?
+  searchDescription      String? // Recruiter tagline
   desiredExperienceLevel ExperienceLevel? // Desired experience level
-  desiredContractTypes ContractType[]   @default([]) // Desired contract types
-  searchedCategories   JobCategory[]    @relation("RecruiterSearchedCategories") // Searched categories
-  
+  desiredContractTypes   ContractType[]   @default([]) // Desired contract types
+  searchedCategories     JobCategory[]    @relation("RecruiterSearchedCategories") // Searched categories
+
   // Relation to User (a recruiter profile belongs to a single user)
-  user   User @relation(fields: [userId], references: [id])
-  userId String  @unique // Unique one-to-one relation
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique // Unique one-to-one relation
 
   // Other relations
-  memberships        RecruiterMembership[]
-  swipes             Swipe[]
-  createdJobOffers   JobOffer[]          @relation("CreatedByRecruiter")
+  memberships      RecruiterMembership[]
+  swipes           Swipe[]
+  createdJobOffers JobOffer[]            @relation("CreatedByRecruiter")
 }
 
 // --- OTHER MODELS ---
 
 model Company {
-  id        String    @id @default(uuid())
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id        String                @id @default(uuid())
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
   name      String
-  siret     String    @unique
+  siret     String                @unique
   logoUrl   String?
   jobOffers JobOffer[]
   members   RecruiterMembership[]
 }
 
 model RecruiterMembership {
-  id           String    @id @default(uuid())
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id           String           @id @default(uuid())
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
   internalRole String
-  isPrimary    Boolean   @default(false)
+  isPrimary    Boolean          @default(false)
   recruiter    RecruiterProfile @relation(fields: [recruiterId], references: [id])
   recruiterId  String
-  company      Company   @relation(fields: [companyId], references: [id])
+  company      Company          @relation(fields: [companyId], references: [id])
   companyId    String
+
   @@unique([recruiterId, companyId])
 }
 
@@ -173,23 +178,23 @@ model JobCategory {
 }
 
 model JobOffer {
-  id           String         @id @default(uuid())
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  id           String      @id @default(uuid())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
   title        String
   description  String
-  locationWKT          String?
-  locationName         String?
+  locationWKT  String?
+  locationName String?
   salaryMin    Int?
   salaryMax    Int?
   currency     String?
   workHours    String?
-  isActive     Boolean        @default(true)
+  isActive     Boolean     @default(true)
   expiresAt    DateTime?
-  company      Company        @relation(fields: [companyId], references: [id])
+  company      Company     @relation(fields: [companyId], references: [id])
   companyId    String
-  category    JobCategory @relation(fields: [categoryId], references: [id])
-  categoryId  String
+  category     JobCategory @relation(fields: [categoryId], references: [id])
+  categoryId   String
 
   // Fields inherited from recruiter profile
   contractType    ContractType
@@ -201,9 +206,9 @@ model JobOffer {
 }
 
 model Swipe {
-  id        String         @id @default(uuid())
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // The unique relation between the two profiles
   candidate   CandidateProfile @relation(fields: [candidateId], references: [id])
@@ -215,7 +220,7 @@ model Swipe {
   candidateDirection SwipeDirection? // Null until the candidate swipes
   recruiterDirection SwipeDirection? // Null until the recruiter swipes
 
-  isMatch   Boolean  @default(false)
+  isMatch   Boolean   @default(false)
   matchedAt DateTime?
 
   // Only one swipe record can exist per candidate/recruiter pair
