@@ -58,7 +58,7 @@ import { APP_GUARD } from '@nestjs/core';
       {
         name: 'auth',
         ttl: 900000, // 15 minutes
-        limit: 5, // 5 login attempts per 15 minutes
+        limit: 30, // 5 login attempts per 15 minutes
       },
     ]),
   ],
