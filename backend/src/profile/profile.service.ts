@@ -9,6 +9,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
+import { UpdateLiveLocationDto } from './dto/update-live-location.dto';
 import { FileStorageService } from 'src/file-storage/file-storage.service';
 
 @Injectable()
@@ -191,6 +192,53 @@ export class ProfileService {
         locationName: locationName, // 🔧 CORRECTION BUG : locationName → city
       },
     });
+  }
+
+  async updateUserLiveLocation(
+    userId: string,
+    locationDto: UpdateLiveLocationDto,
+  ) {
+    const locationWKT = `POINT(${locationDto.longitude} ${locationDto.latitude})`;
+    const updatedAt = new Date();
+
+    try {
+      await this.prisma.$executeRaw`SELECT ST_GeomFromText(${locationWKT}, 4326)`;
+    } catch (error) {
+      console.warn('PostGIS live location validation error:', error.message);
+      throw new BadRequestException(
+        'Coordonnées GPS live invalides. Vérifiez le format.',
+      );
+    }
+
+    const candidateUpdated = await this.prisma.$executeRaw`
+      UPDATE "CandidateProfile"
+      SET "liveLocationWKT" = ${locationWKT}, "liveLocationUpdatedAt" = ${updatedAt}
+      WHERE "userId" = ${userId}
+    `;
+
+    if (Number(candidateUpdated) > 0) {
+      return {
+        success: true,
+        locationWKT,
+        updatedAt,
+      };
+    }
+
+    const recruiterUpdated = await this.prisma.$executeRaw`
+      UPDATE "RecruiterProfile"
+      SET "liveLocationWKT" = ${locationWKT}, "liveLocationUpdatedAt" = ${updatedAt}
+      WHERE "userId" = ${userId}
+    `;
+
+    if (Number(recruiterUpdated) > 0) {
+      return {
+        success: true,
+        locationWKT,
+        updatedAt,
+      };
+    }
+
+    throw new NotFoundException('Profil non trouvé pour cet utilisateur.');
   }
 
   // 🔧 MÉTHODE PRINCIPALE CORRIGÉE

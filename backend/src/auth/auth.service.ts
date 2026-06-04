@@ -118,15 +118,31 @@ export class AuthService {
 
   // ✅ VOS MÉTHODES EXISTANTES - inchangées
   async logout(userId: string): Promise<void> {
-    await this.prisma.user.updateMany({
-      where: {
-        id: userId,
-        hashedRefreshToken: { not: null },
-      },
-      data: {
-        hashedRefreshToken: null,
-      },
-    });
+    await this.prisma.$transaction([
+      this.prisma.user.updateMany({
+        where: {
+          id: userId,
+          hashedRefreshToken: { not: null },
+        },
+        data: {
+          hashedRefreshToken: null,
+        },
+      }),
+      this.prisma.candidateProfile.updateMany({
+        where: { userId },
+        data: {
+          liveLocationWKT: null,
+          liveLocationUpdatedAt: null,
+        },
+      }),
+      this.prisma.recruiterProfile.updateMany({
+        where: { userId },
+        data: {
+          liveLocationWKT: null,
+          liveLocationUpdatedAt: null,
+        },
+      }),
+    ]);
   }
 
   async refreshTokens(userId: string, refreshToken: string) {
