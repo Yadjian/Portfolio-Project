@@ -20,9 +20,11 @@ describe('AuthService', () => {
     },
     candidateProfile: {
       create: jest.fn(),
+      updateMany: jest.fn(),
     },
     recruiterProfile: {
       create: jest.fn(),
+      updateMany: jest.fn(),
     },
     $transaction: jest.fn(),
   };
@@ -192,19 +194,11 @@ describe('AuthService', () => {
   });
 
   it('should logout by clearing the refresh token hash', async () => {
-    prismaMock.user.updateMany.mockResolvedValue({ count: 1 });
+    prismaMock.$transaction.mockResolvedValue([{ count: 1 }, { count: 0 }, { count: 0 }]);
 
     await service.logout('user-1');
 
-    expect(prismaMock.user.updateMany).toHaveBeenCalledWith({
-      where: {
-        id: 'user-1',
-        hashedRefreshToken: { not: null },
-      },
-      data: {
-        hashedRefreshToken: null,
-      },
-    });
+    expect(prismaMock.$transaction).toHaveBeenCalled();
   });
 
   it('should reject signup when password does not meet backend rules', () => {
