@@ -37,6 +37,18 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  db-test:
+    image: postgis/postgis:15-3.3
+    container_name: mova-db-test
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: testdb
+    ports:
+      - "5433:5432"
+    networks:
+      - mova-network
+
   redis:
     image: redis:7
     container_name: mova-redis
