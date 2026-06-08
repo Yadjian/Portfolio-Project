@@ -4,7 +4,7 @@ import * as request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
 import { PrismaClient } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;
@@ -97,3 +97,4 @@ describe('AppController (e2e)', () => {
       expect(res.body.url || res.body.photoUrl).toBeDefined();
     });
   });
+});

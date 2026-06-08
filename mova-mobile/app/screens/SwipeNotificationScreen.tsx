@@ -183,7 +183,6 @@ export default function SwipeNotificationScreen({ route, navigation }: any) {
       if (!location) {
         location = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
-          timeout: 6000,
         });
       }
 
