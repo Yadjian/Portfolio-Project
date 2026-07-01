@@ -3,10 +3,19 @@ import { ConflictException, ForbiddenException, UnauthorizedException } from '@n
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import * as bcrypt from 'bcrypt';
+jest.mock('bcrypt', () => ({
+  hash: jest.fn(),
+  compare: jest.fn(),
+}));
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { SignupDto, UserRole } from './dto/signup.dto';
+
+const bcryptMock = bcrypt as unknown as {
+  hash: jest.Mock;
+  compare: jest.Mock;
+};
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -83,7 +92,7 @@ describe('AuthService', () => {
 
       return transactionCallback(transactionClient);
     });
-    jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashed-password' as never);
+    bcryptMock.hash.mockResolvedValue('hashed-password');
     jwtServiceMock.signAsync
       .mockResolvedValueOnce('access-token')
       .mockResolvedValueOnce('refresh-token');
@@ -113,7 +122,7 @@ describe('AuthService', () => {
       role: UserRole.CANDIDATE,
     };
     prismaMock.user.findUnique.mockResolvedValue(mockUser);
-    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
+    bcryptMock.compare.mockResolvedValue(true);
     jwtServiceMock.signAsync
       .mockResolvedValueOnce('access-token')
       .mockResolvedValueOnce('refresh-token');
@@ -139,7 +148,7 @@ describe('AuthService', () => {
       password: 'hashed-password',
       role: UserRole.CANDIDATE,
     });
-    jest.spyOn(bcrypt, 'compare').mockResolvedValue(false as never);
+    bcryptMock.compare.mockResolvedValue(false);
 
     await expect(
       service.login({ email: 'lucas.boyadjian@gmail.com', password: 'WrongPassword' }),
@@ -153,8 +162,8 @@ describe('AuthService', () => {
       hashedRefreshToken: 'hashed-refresh-token',
       role: UserRole.CANDIDATE,
     });
-    jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
-    jest.spyOn(bcrypt, 'hash').mockResolvedValue('new-hashed-refresh-token' as never);
+    bcryptMock.compare.mockResolvedValue(true);
+    bcryptMock.hash.mockResolvedValue('new-hashed-refresh-token');
     jwtServiceMock.signAsync
       .mockResolvedValueOnce('new-access-token')
       .mockResolvedValueOnce('new-refresh-token');

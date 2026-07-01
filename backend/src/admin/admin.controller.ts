@@ -16,7 +16,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @Controller('admin')
-// 🔒 SÉCURITÉ CRITIQUE : Seuls les admins peuvent accéder
+// Only for admins
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles('ADMIN')
 export class AdminController {
