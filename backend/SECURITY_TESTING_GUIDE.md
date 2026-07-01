@@ -1,6 +1,10 @@
-# 🔒 Guide d'Exécution des Tests Anti-IDOR
+# 🔒 Guide d'Execution des Tests de Securite
 
-## 🚀 Tests Manuels (Recommandé)
+## 🚀 Scope de test actuel
+
+Les scripts shell IDOR ont ete retires du repository pour garder un scope centre sur les tests automatises unitaires et e2e.
+
+## 🧪 Tests Automatises (Jest)
 
 ### 1. Démarrer le serveur backend
 ```bash
@@ -10,34 +14,25 @@ docker-compose up -d backend db redis
 cd backend && npm run start:dev
 ```
 
-### 2. Exécuter le script de test IDOR
-```bash
-cd /home/oniji/Portfolio-Project/backend
-./test/test-idor-security.sh
-```
-
-**Résultats attendus:**
-- ✅ **Attaque de modification bloquée** (Status 403)
-- ✅ **Attaque de suppression bloquée** (Status 403)  
-- ✅ **Modification légitime autorisée** (Status 200)
-- ✅ **Intégrité des données préservée**
-
-## 🧪 Tests Automatisés (Jest)
-
-### 1. Installer les dépendances de test
+### 1. Installer les dependances de test
 ```bash
 cd backend
 npm install --save-dev @nestjs/testing supertest
 ```
 
-### 2. Lancer les tests unitaires IDOR
+### 2. Lancer les tests unitaires
 ```bash
-npm test -- --testNamePattern="IDOR Security"
+npm test
 ```
 
-### 3. Coverage de sécurité
+### 3. Lancer les tests e2e
 ```bash
-npm run test:cov -- --testNamePattern="IDOR Security"
+npm run test:e2e
+```
+
+### 4. Coverage
+```bash
+npm run test:cov
 ```
 
 ## 📊 Logs d'Audit à Surveiller

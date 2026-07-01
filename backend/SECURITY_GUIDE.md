@@ -56,10 +56,13 @@ if (!isCreator && !isMemberOfCompany) {
 
 ## 🧪 **Tests de Sécurité**
 
-### **Exécution du Script de Test**
+### **Execution des tests automatises**
 ```bash
-# Lancer les tests IDOR
-./test-idor-security.sh
+# Unitaires
+npm test
+
+# End-to-end
+npm run test:e2e
 ```
 
 ### **Tests Manuels Recommandés**
@@ -127,12 +130,8 @@ curl -X POST http://localhost:3001/api/auth/login \
   -d '{"email":"user2@test.com","password":"password"}'
 ```
 
-### **2. Modifier le Script de Test**
-Dans `test-idor-security.sh`, remplacez :
-```bash
-USER_A_TOKEN="your-test-token-a"  # ← Remplacer par le vrai token
-USER_B_TOKEN="your-test-token-b"  # ← Remplacer par le vrai token
-```
+### **2. Notes**
+Les anciens scripts shell IDOR ont ete retires. Utilisez les suites Jest pour les demonstrations et la CI.
 
 ## 🎯 **Objectifs de Sécurité Atteints**
 
