@@ -62,12 +62,12 @@ const getBullImports = () => {
       {
         name: 'default',
         ttl: 60000, // 1 minute
-        limit: 20, // 20 requests per minute
+        limit: 80, // 80 requests per minute
       },
       {
         name: 'auth',
         ttl: 900000, // 15 minutes
-        limit: 30, // 5 login attempts per 15 minutes
+        limit: 5, // 5 login attempts per 15 minutes
       },
     ]),
   ],
