@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
+const request = require('supertest');
 import { AuthModule } from '../src/auth/auth.module';
 import { PrismaClient } from '@prisma/client';
 
