@@ -23,7 +23,7 @@ export class AuthController {
   // Signup route: POST /auth/signup
   // Registers a new user and returns access and refresh tokens
   @Post('signup')
-  @Throttle({ default: { limit: 30, ttl: 60000 } }) // 🔒 5 inscriptions par minute
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 inscriptions par minute
   @HttpCode(HttpStatus.CREATED)
   signup(
     @Body() dto: SignupDto,
@@ -34,7 +34,7 @@ export class AuthController {
   // Login route: POST /auth/login
   // Authenticates a user and returns access and refresh tokens
   @Post('login')
-  @Throttle({ auth: { limit: 30, ttl: 900000 } }) // 🔒 5 tentatives par 15min
+  @Throttle({ auth: { limit: 5, ttl: 900000 } }) // 5 tentatives par 15min
   @HttpCode(HttpStatus.OK)
   login(
     @Body() dto: AuthDto,

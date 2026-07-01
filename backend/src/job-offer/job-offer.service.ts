@@ -29,7 +29,7 @@ export class JobOfferService {
     }
 
     if (!recruiterProfile.memberships?.length) {
-      throw new ForbiddenException('Vous devez être associé à une entreprise.');
+      throw new BadRequestException('Vous devez être associé à une entreprise.');
     }
 
     if (
@@ -37,7 +37,7 @@ export class JobOfferService {
       !recruiterProfile.desiredContractTypes?.length ||
       !recruiterProfile.desiredExperienceLevel
     ) {
-      throw new ForbiddenException(
+      throw new BadRequestException(
         'Veuillez finaliser votre profil (contrats, expérience, catégories) avant de poster une offre.',
       );
     }
