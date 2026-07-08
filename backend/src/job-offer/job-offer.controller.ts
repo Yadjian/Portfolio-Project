@@ -20,8 +20,9 @@ import { JobOfferService } from './job-offer.service';
 import { CreateJobOfferDto } from './dto/create-job-offer.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateJobOfferDto } from './dto/update-job-offer.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
-
+@SkipThrottle()
 @Controller('job-offers')
 export class JobOffersController {
   constructor(private readonly jobOfferService: JobOfferService) {}
