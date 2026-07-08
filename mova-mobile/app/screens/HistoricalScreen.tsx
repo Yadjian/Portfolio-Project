@@ -101,12 +101,11 @@ const CandidateHistoryView = ({ navigation }: { navigation: any }) => {
             meta: '',
             matchDate: match.matchedAt,
             avatarUrl: `https://ui-avatars.com/api/?name=${match.profile.firstName}+${match.profile.lastName}&size=200&background=4930a3&color=fff`,
-            isNew: index >= lastCount, // Les matchs au-delà du dernier count sont nouveaux
+            isNew: index >= lastCount,
           }));
 
           setMatches(normalizedMatches);
           
-          // Marquer les matchs comme vus maintenant que l'utilisateur est sur l'écran
           await updateMatchCount(normalizedMatches.length);
         } catch (error) {
           // Error fetching matches for candidate
@@ -165,7 +164,6 @@ const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
           setLoading(true);
           const data = await getMatches();
           
-          // Récupérer le dernier compteur vu
           const lastCountStr = await SecureStore.getItemAsync('last_match_count');
           const lastCount = lastCountStr ? parseInt(lastCountStr, 10) : 0;
           setLastSeenCount(lastCount);
@@ -178,12 +176,11 @@ const RecruiterHistoryView = ({ navigation }: { navigation: any }) => {
             meta: match.profile.experienceLevel || '',
             matchDate: match.matchedAt,
             avatarUrl: match.profile.photoUrl || `https://ui-avatars.com/api/?name=${match.profile.firstName}+${match.profile.lastName}&size=200&background=4930a3&color=fff`,
-            isNew: index >= lastCount, // Les matchs au-delà du dernier count sont nouveaux
+            isNew: index >= lastCount,
           }));
 
           setMatches(normalizedMatches);
           
-          // Marquer les matchs comme vus maintenant que l'utilisateur est sur l'écran
           await updateMatchCount(normalizedMatches.length);
         } catch (error) {
           // Error fetching matches for recruiter
@@ -238,12 +235,11 @@ export default function HistoricalScreen({ route }: { route: any }) {
   // Get notification context
   const { profileBadgeCount, setMatchBadgeCount, refreshMatchBadge } = useNotifications();
 
-  // Rafraîchir le badge au focus de l'écran
+  // Refresh badge when focus screen
   useFocusEffect(
     React.useCallback(() => {
-      // On est sur l'écran des matchs, donc le badge des matchs passe à 0
+      // Badge at 0 when historicalscreen
       setMatchBadgeCount(0);
-      // Mais on rafraîchit quand même pour la prochaine fois
       refreshMatchBadge();
     }, [setMatchBadgeCount, refreshMatchBadge])
   );
