@@ -5,7 +5,9 @@ import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
 import { CreateSwipeDto } from './dto/create-swipe.dto';
 import { SwipesService } from './swipes.service';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('swipes')
 export class SwipesController {
   constructor(private readonly swipesService: SwipesService) {}

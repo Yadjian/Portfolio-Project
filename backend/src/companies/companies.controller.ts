@@ -6,7 +6,9 @@ import type { Request } from 'express';
 
 import { CompaniesService } from './companies.service';
 import { CreateCompanyOnboardingDto } from './dto/create-company-onboarding.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('companies')
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}

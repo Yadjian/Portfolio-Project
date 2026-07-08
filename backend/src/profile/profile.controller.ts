@@ -24,7 +24,9 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
 import { UpdateLiveLocationDto } from './dto/update-live-location.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
