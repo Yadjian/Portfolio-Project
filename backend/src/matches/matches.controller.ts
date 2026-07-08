@@ -8,7 +8,7 @@ import {
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { MatchesService } from './matches.service';
 
 @Controller('matches')
@@ -22,7 +22,7 @@ export class MatchesController {
     return this.matchesService.findAllMatches(user.sub);
   }
 
-  @Get(':id') // Ex: /matches/uuid-du-swipe
+  @Get(':id')
   @UseGuards(AuthGuard('jwt'))
   getMatchDetails(
     @Req() req: Request,

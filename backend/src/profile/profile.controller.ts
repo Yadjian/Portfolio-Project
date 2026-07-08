@@ -1,5 +1,3 @@
-// Fichier: backend/src/profile/profile.controller.ts
-
 import {
   Controller,
   Get,
@@ -17,9 +15,10 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  HttpException
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { ProfileService } from './profile.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdateLocationDto } from './dto/update-location.dto';
@@ -50,7 +49,7 @@ export class ProfileController {
           new MaxFileSizeValidator({ maxSize: 3 * 1024 * 1024 }),
           new FileTypeValidator({
             fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i,
-          }), // ✅ Message supprimé
+          }),
         ],
       }),
     )
@@ -64,10 +63,10 @@ export class ProfileController {
         photoFile,
       );
     } catch (error) {
-      if (error.response?.statusCode === 400) {
+      if (error instanceof HttpException && error.getStatus() === 400) {
         console.warn(
           'Validation error in updateProfile:',
-          error.response.message,
+          error.getResponse(),
         );
       }
       throw error;
@@ -88,7 +87,10 @@ export class ProfileController {
         updateLocationDto,
       );
     } catch (error) {
-      if (error.message?.includes('ST_GeomFromText')) {
+      if (
+        error instanceof Error &&
+        error.message.includes('ST_GeomFromText')
+      ) {
         throw new BadRequestException(
           'Coordonnées GPS invalides. Vérifiez le format.',
         );
@@ -125,7 +127,7 @@ export class ProfileController {
           new MaxFileSizeValidator({ maxSize: 3 * 1024 * 1024 }),
           new FileTypeValidator({
             fileType: /^image\/(jpeg|jpg|png|webp|gif)$/i,
-          }), // ✅ Message supprimé
+          }),
         ],
       }),
     )
@@ -135,7 +137,10 @@ export class ProfileController {
       const userId = req.user.sub;
       return await this.profileService.updateProfilePhoto(userId, photoFile);
     } catch (error) {
-      console.warn('Photo upload error:', error.message);
+      console.warn(
+        'Photo upload error:',
+        error instanceof Error ? error.message : error,
+      );
       throw error;
     }
   }
@@ -150,7 +155,7 @@ export class ProfileController {
       new ParseFilePipe({
         validators: [
           new MaxFileSizeValidator({ maxSize: 7 * 1024 * 1024 }),
-          new FileTypeValidator({ fileType: /^application\/pdf$/i }), // ✅ Message supprimé
+          new FileTypeValidator({ fileType: /^application\/pdf$/i }),
         ],
       }),
     )
@@ -160,7 +165,10 @@ export class ProfileController {
       const user = req.user as { sub: string };
       return await this.profileService.updateResume(user.sub, file);
     } catch (error) {
-      console.warn('Resume upload error:', error.message);
+      console.warn(
+        'Resume upload error:',
+        error instanceof Error ? error.message : error,
+      );
       throw error;
     }
   }

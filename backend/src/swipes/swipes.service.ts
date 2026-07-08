@@ -4,7 +4,7 @@ import {
   ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq'; // <-- COMMENTE
+import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateSwipeDto } from './dto/create-swipe.dto';

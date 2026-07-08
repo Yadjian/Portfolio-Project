@@ -1,15 +1,12 @@
 import { PrismaClient, ContractType, ExperienceLevel } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
-// Initialiser le client Prisma
 const prisma = new PrismaClient();
 
 async function main() {
   console.log(`Début du script de seeding...`);
 
-  // La liste des catégories de postes que vous voulez ajouter
   const jobCategoriesToCreate = [
-    // Hôtellerie, Restauration, Tourisme, Vente
     'Serveur / Serveuse',
     'Cuisinier / Cuisinière',
     'Barman / Barmaid',
@@ -31,20 +28,16 @@ async function main() {
     'Chauffeur / Chauffeuse',
   ];
 
-  // On transforme la liste de noms en objets pour createMany
   const dataToInsert = jobCategoriesToCreate.map(name => ({ name }));
 
-  // On utilise createMany avec skipDuplicates pour ne pas créer de doublons
-  // On utilise createMany pour insérer toutes les nouvelles catégories
   const result = await prisma.jobCategory.createMany({
     data: dataToInsert,
-    skipDuplicates: true, // Très important ! Évite les erreurs si une catégorie existe déjà.
+    skipDuplicates: true,
   });
 
   console.log(`Seeding terminé. ${result.count} nouvelles catégories ont été ajoutées.`);
 
-  // Création des entreprises
-  console.log('\n🏢 Création des entreprises...');
+  console.log('Création des entreprises...');
 
   const companies = [
     { name: 'Kévin Moov\'', siret: '12345678901234' },
@@ -64,22 +57,20 @@ async function main() {
         data: companyData,
       });
       createdCompanies.push(company);
-      console.log(`✅ Entreprise créée: ${company.name}`);
+      console.log(`Entreprise créée: ${company.name}`);
     } else {
       createdCompanies.push(existingCompany);
-      console.log(`ℹ️  Entreprise existante: ${existingCompany.name}`);
+      console.log(`Entreprise existante: ${existingCompany.name}`);
     }
   }
 
-  console.log('✨ Création des entreprises terminée !');
+  console.log('Création des entreprises terminée !');
 
-  // Créer des profils de test complets
-  console.log('\n👥 Création des profils de test...');
+  console.log('Création des profils de test...');
   
   const bcrypt = require('bcrypt');
   const testPassword = await bcrypt.hash('Test123!', 10);
 
-  // Créer un compte admin (sans profil candidat ni recruteur)
   const adminEmail = 'admin@mova.com';
   const existingAdmin = await prisma.user.findUnique({ where: { email: adminEmail } });
   
@@ -90,12 +81,11 @@ async function main() {
         password: testPassword,
       },
     });
-    console.log('✅ Compte admin créé: admin@mova.com (mot de passe: Test123!)');
+    console.log('Compte admin créé: admin@mova.com (mot de passe: Test123!)');
   } else {
-    console.log('ℹ️  Compte admin existe déjà: admin@mova.com');
+    console.log('Compte admin existe déjà: admin@mova.com');
   }
 
-  // Créer 6 recruteurs complets (MVP: 1 seul ContractType par profil)
   const testRecruiters = [
     {
       email: 'kevin.sport@gmail.com',
@@ -202,16 +192,14 @@ async function main() {
         },
       });
 
-      // Extraire la catégorie depuis searchDescription (format: "JobCategory\n\nDescription")
       const categoryName = recruiterData.searchDescription.split('\n\n')[0].trim();
-      console.log(`🔍 Recherche de la catégorie: "${categoryName}" pour ${recruiterData.firstName}`);
+      console.log(`Recherche de la catégorie: "${categoryName}" pour ${recruiterData.firstName}`);
       const category = await prisma.jobCategory.findFirst({
         where: { name: categoryName }
       });
 
       if (category) {
-        console.log(`✅ Catégorie trouvée: ${category.name} (ID: ${category.id})`);
-        // Associer le recruteur à cette catégorie
+        console.log(`Catégorie trouvée: ${category.name} (ID: ${category.id})`);
         await prisma.recruiterProfile.update({
           where: { id: recruiterProfile.id },
           data: {
@@ -221,10 +209,9 @@ async function main() {
           }
         });
       } else {
-        console.log(`❌ Catégorie "${categoryName}" NON TROUVÉE pour ${recruiterData.firstName}`);
+        console.log(`Catégorie "${categoryName}" NON TROUVÉE pour ${recruiterData.firstName}`);
       }
 
-      // Associer à l'entreprise
       const company = createdCompanies.find(c => c.name === recruiterData.companyName);
       if (company) {
         await prisma.recruiterMembership.create({
@@ -234,14 +221,13 @@ async function main() {
             internalRole: 'Recruteur',
           },
         });
-        console.log(`✅ Recruteur créé: ${recruiterData.firstName} ${recruiterData.lastName} (${company.name})`);
+        console.log(`Recruteur créé: ${recruiterData.firstName} ${recruiterData.lastName} (${company.name})`);
       }
     } else {
-      console.log(`ℹ️  Recruteur existe déjà: ${recruiterData.email}`);
+      console.log(`ℹRecruteur existe déjà: ${recruiterData.email}`);
     }
   }
 
-  // Créer 3 candidats de test avec profils complets (MVP: 1 seul ContractType par profil)
   const testCandidates = [
     {
       email: 'candidat.thomas@mova.com',
@@ -365,7 +351,6 @@ async function main() {
         },
       });
 
-      // Associer la catégorie au candidat
       const category = await prisma.jobCategory.findFirst({
         where: { name: candidateData.desiredJobTitle }
       });
@@ -381,15 +366,14 @@ async function main() {
         });
       }
 
-      console.log(`✅ Candidat créé: ${candidateData.firstName} ${candidateData.lastName} (${candidateData.desiredJobTitle})`);
+      console.log(`Candidat créé: ${candidateData.firstName} ${candidateData.lastName} (${candidateData.desiredJobTitle})`);
     } else {
-      console.log(`ℹ️  Candidat existe déjà: ${candidateData.email}`);
+      console.log(`Candidat existe déjà: ${candidateData.email}`);
     }
   }
 
   console.log('🎉 Tous les profils de test ont été créés !');
 
-  // Créer des offres d'emploi pour les recruteurs
   console.log('\n💼 Création des offres d\'emploi...');
 
   const jobOffers = [
@@ -473,10 +457,9 @@ async function main() {
   ];
 
   for (const offerData of jobOffers) {
-    // Trouver le recruteur
     const user = await prisma.user.findUnique({ where: { email: offerData.recruiterEmail } });
     if (!user) {
-      console.log(`❌ Utilisateur non trouvé: ${offerData.recruiterEmail}`);
+      console.log(`Utilisateur non trouvé: ${offerData.recruiterEmail}`);
       continue;
     }
 
@@ -486,18 +469,25 @@ async function main() {
     });
     
     if (!recruiterProfile) {
-      console.log(`❌ Profil recruteur non trouvé pour: ${offerData.recruiterEmail}`);
+      console.log(`Profil recruteur non trouvé pour: ${offerData.recruiterEmail}`);
       continue;
     }
 
-    // Récupérer la première entreprise du recruteur
     const companyId = recruiterProfile.memberships[0]?.companyId;
     if (!companyId) {
-      console.log(`❌ Pas d'entreprise pour le recruteur: ${offerData.recruiterEmail}`);
+      console.log(`Pas d'entreprise pour le recruteur: ${offerData.recruiterEmail}`);
       continue;
     }
 
-    // Vérifier si l'offre existe déjà
+    const category = await prisma.jobCategory.findFirst({
+      where: { name: offerData.title },
+    });
+
+    if (!category) {
+      console.log(`Catégorie non trouvée pour l'offre: ${offerData.title}`);
+      continue;
+    }
+
     const existingOffer = await prisma.jobOffer.findFirst({
       where: {
         createdById: recruiterProfile.id,
@@ -506,7 +496,7 @@ async function main() {
     });
 
     if (existingOffer) {
-      console.log(`ℹ️  Offre existante: ${offerData.title} (${offerData.recruiterEmail})`);
+      console.log(` Offre existante: ${offerData.title} (${offerData.recruiterEmail})`);
       continue;
     }
 
@@ -516,6 +506,7 @@ async function main() {
       data: {
         createdById: recruiterProfile.id,
         companyId: companyId,
+        categoryId: category.id,
         title: offerData.title,
         description: offerData.description,
         contractType: offerData.contractType,
@@ -528,19 +519,17 @@ async function main() {
       },
     });
 
-    console.log(`✅ Offre créée: ${offerData.title} par ${offerData.recruiterEmail}`);
+    console.log(` Offre créée: ${offerData.title} par ${offerData.recruiterEmail}`);
   }
 
-  console.log('💼 Création des offres d\'emploi terminée !');
+  console.log(' Création des offres d\'emploi terminée !');
 }
 
 main()
   .catch(e => {
     console.error(e);
-    // Renvoyer l'erreur pour que le processus se termine avec un code d'échec
     throw e;
   })
   .finally(async () => {
-    // Fermer la connexion à la base de données
     await prisma.$disconnect();
   });
