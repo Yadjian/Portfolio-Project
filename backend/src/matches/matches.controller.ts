@@ -10,7 +10,9 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import type { Request } from 'express';
 import { MatchesService } from './matches.service';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller('matches')
 export class MatchesController {
   constructor(private readonly matchesService: MatchesService) {}
