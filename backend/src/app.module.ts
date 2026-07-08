@@ -62,7 +62,7 @@ const getBullImports = () => {
       {
         name: 'default',
         ttl: 60000, // 1 minute
-        limit: 500, // 500 requests per minute (app mobile avec polling actif)
+        limit: 500, // 500 requests per minute
       },
     ]),
   ],

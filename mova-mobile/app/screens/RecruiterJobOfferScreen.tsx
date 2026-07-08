@@ -103,7 +103,8 @@ export default function RecruiterJobOfferScreen() {
       }
     } catch (error) {
       if (isActive) {
-        Alert.alert("Erreur", "Impossible de charger vos offres.");
+        const message = error instanceof Error ? error.message : String(error);
+        Alert.alert("Erreur", `Impossible de charger vos offres.\n\nDétail : ${message}`);
       }
     } finally {
       if (isActive) {

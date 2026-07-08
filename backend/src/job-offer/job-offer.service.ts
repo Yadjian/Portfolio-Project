@@ -59,14 +59,14 @@ export class JobOfferService {
         createdBy: {
           connect: { id: recruiterProfile.id },
         },
-        category: {
-          connect: { id: primaryCategoryId },
+        categories: {
+          connect: [{ id: primaryCategoryId }],
         },
       },
       // Include related data in response
       include: {
         company: { select: { name: true, logoUrl: true } },
-        category: true,
+        categories: true,
         createdBy: { select: { firstName: true, lastName: true } },
       },
     });
@@ -91,7 +91,7 @@ export class JobOfferService {
           },
         },
         // Include job category
-        category: true,
+        categories: true,
         // Include recruiter information with their company associations
         createdBy: {
           select: {
@@ -118,7 +118,7 @@ export class JobOfferService {
       where: { id },
       include: {
         company: true,
-        category: true,
+        categories: true,
         createdBy: {
           select: {
             user: {
@@ -200,7 +200,7 @@ export class JobOfferService {
             logoUrl: true,
           },
         },
-        category: true,
+        categories: true,
       },
     });
   }
@@ -284,7 +284,6 @@ export class JobOfferService {
       },
       include: {
         company: true,
-        category: true,
       },
       orderBy: {
         createdAt: 'desc',
