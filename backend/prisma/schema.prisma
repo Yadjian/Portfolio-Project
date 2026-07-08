@@ -193,8 +193,7 @@ model JobOffer {
   expiresAt    DateTime?
   company      Company     @relation(fields: [companyId], references: [id])
   companyId    String
-  category     JobCategory @relation(fields: [categoryId], references: [id])
-  categoryId   String
+  categories   JobCategory[]
 
   // Fields inherited from recruiter profile
   contractType    ContractType
