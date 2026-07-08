@@ -1,5 +1,3 @@
-// Fichier: backend/src/profile/dto/update-profile.dto.ts
-
 import {
   IsString,
   IsOptional,
@@ -16,8 +14,8 @@ import { Transform } from 'class-transformer';
 import { ContractType, ExperienceLevel } from '@prisma/client';
 
 export class UpdateProfileDto {
-  // --- Champs Communs - OPTIONNELS pour compatibilité ---
-  @IsOptional() // ✅ OPTIONNEL pour ne pas casser le frontend
+  // --- Common Fields - OPTIONAL for compatibility ---
+  @IsOptional()// OPTIONAL to avoid breaking the frontend
   @ValidateIf((o) => o.firstName !== undefined && o.firstName !== null)
   @IsString({ message: 'Le prénom doit être une chaîne de caractères' })
   @IsNotEmpty({ message: 'Le prénom ne peut pas être vide' })
@@ -26,7 +24,7 @@ export class UpdateProfileDto {
   @Transform(({ value }) => value?.trim())
   firstName?: string;
 
-  @IsOptional() // ✅ OPTIONNEL pour ne pas casser le frontend
+  @IsOptional() // OPTIONAL to avoid breaking the frontend
   @ValidateIf((o) => o.lastName !== undefined && o.lastName !== null)
   @IsString({ message: 'Le nom doit être une chaîne de caractères' })
   @IsNotEmpty({ message: 'Le nom ne peut pas être vide' })
@@ -66,7 +64,7 @@ export class UpdateProfileDto {
   @ArrayMaxSize(30, { message: 'Trop de catégories sélectionnées (max 30)' })
   interestedInCategoryIds?: string[];
 
-  // --- Champs Spécifiques au Candidat ---
+  // --- Candidate Specific Fields ---
   @IsOptional()
   @ValidateIf(
     (o) => o.coverLetterText !== undefined && o.coverLetterText !== null,
@@ -93,7 +91,7 @@ export class UpdateProfileDto {
   @Transform(({ value }) => value?.trim())
   desiredJobTitle?: string;
 
-  // --- Champs pour les Préférences ---
+  // --- Preference Fields ---
   @IsOptional()
   @ValidateIf(
     (o) => o.experienceLevel !== undefined && o.experienceLevel !== null,
@@ -122,7 +120,7 @@ export class UpdateProfileDto {
   })
   desiredContractTypes?: ContractType[];
 
-  // --- Champs Spécifiques au Recruteur ---
+  // --- Recruiter Specific Fields ---
   @IsOptional()
   @ValidateIf(
     (o) => o.searchDescription !== undefined && o.searchDescription !== null,

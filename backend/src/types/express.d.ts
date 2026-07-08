@@ -1,12 +1,12 @@
 // Fichier: backend/src/types/express.d.ts
 
-// On définit la structure de notre payload JWT
+// Define the structure of our JWT payload
 interface UserPayload {
   sub: string;
-  // Ajoutez d'autres champs du token si nécessaire
+  // Add other token fields if necessary
 }
 
-// On utilise le "declaration merging" de TypeScript pour étendre une interface existante
+// Use TypeScript declaration merging to extend an existing interface
 declare namespace Express {
   export interface Request {
     user: UserPayload;

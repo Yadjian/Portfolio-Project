@@ -20,8 +20,7 @@ import { JobOfferService } from './job-offer.service';
 import { CreateJobOfferDto } from './dto/create-job-offer.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { UpdateJobOfferDto } from './dto/update-job-offer.dto';
-// import { Roles } from '../auth/roles/roles.decorator';
-// import { RolesGuard } from '../auth/roles/roles.guard';
+
 
 @Controller('job-offers')
 export class JobOffersController {

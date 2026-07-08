@@ -5,7 +5,7 @@ import {
   PutObjectCommand,
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
-import { v4 as uuidv4 } from 'uuid'; // Pour générer des noms de fichiers uniques
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class FileStorageService {
@@ -17,7 +17,7 @@ export class FileStorageService {
 
     this.s3Client = new S3Client({
       endpoint: `https://${process.env.R2_ENDPOINT}`,
-      region: 'auto', // Important pour R2
+      region: 'auto',
       credentials: {
         accessKeyId: process.env.R2_ACCESS_KEY_ID,
         secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
@@ -26,29 +26,26 @@ export class FileStorageService {
   }
 
   /**
-   * Téléverse un fichier sur R2 (S3).
-   * @param file Le buffer du fichier (de multer)
-   * @param folder Le dossier de destination (ex: 'resumes')
-   * @returns L'URL publique du fichier
+   * Uploads a file to R2 (S3).
+   * @param file The file buffer (from multer)
+   * @param folder The destination folder (e.g., 'resumes')
+   * @returns The public URL of the file
    */
   async uploadFile(file: Express.Multer.File, folder: string): Promise<string> {
-    // Crée un nom de fichier unique pour éviter les conflits
     const fileExtension = file.originalname.split('.').pop();
     const fileName = `${folder}/${uuidv4()}.${fileExtension}`;
 
-    // Prépare la commande d'upload
     const command = new PutObjectCommand({
       Bucket: this.bucketName,
-      Key: fileName, // Le chemin complet du fichier dans R2
+      Key: fileName,
       Body: file.buffer,
       ContentType: file.mimetype,
-      // ACL: 'public-read', // R2 gère l'accès public via le bucket
     });
 
-    // Envoie le fichier
+    // Send the file
     await this.s3Client.send(command);
 
-    // Construit l'URL publique à partir de la variable d'environnement ou utilise la valeur par défaut
+    // Build the public URL from environment variables or use the default value
     const publicUrl =
       process.env.R2_PUBLIC_URL ||
       'https://pub-b9b7f6ccf2824f88b6a79de85bf5c55c.r2.dev';
@@ -56,14 +53,14 @@ export class FileStorageService {
   }
 
   /**
-   * Supprime un fichier de R2 en utilisant son URL.
-   * @param fileUrl L'URL complète du fichier à supprimer
-   */
+  * Deletes a file from R2 using its URL.
+  * @param fileUrl The full URL of the file to delete
+  */
   async deleteFileByUrl(fileUrl: string): Promise<void> {
     if (!fileUrl) return;
 
     try {
-      // Extrait le nom du fichier (key) à partir de l'URL
+      // Extract the file name (key) from the URL
       const publicUrl =
         process.env.R2_PUBLIC_URL ||
         'https://pub-b9b7f6ccf2824f88b6a79de85bf5c55c.r2.dev';
@@ -75,10 +72,9 @@ export class FileStorageService {
       });
 
       await this.s3Client.send(command);
-      console.log(`✅ Fichier supprimé de R2: ${fileName}`);
+      console.log(`Fichier supprimé de R2: ${fileName}`);
     } catch (error) {
-      console.error('❌ Erreur lors de la suppression du fichier R2:', error);
-      // On ne lève pas d'erreur pour ne pas bloquer la mise à jour du profil
+      console.error('Erreur lors de la suppression du fichier R2:', error);
     }
   }
 }

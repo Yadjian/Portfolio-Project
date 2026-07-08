@@ -20,15 +20,13 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  // 🔒 INSCRIPTION SÉCURISÉE - Base sur votre logique existante
+  // Secure signup - based on existing logic
   async signup(
     dto: SignupDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const { email, password, role } = dto;
 
-    // 🔒 L'email est déjà normalisé par le Transform dans le DTO
-
-    // ✅ VOTRE LOGIQUE EXISTANTE - Vérifier si l'utilisateur existe
+   // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
@@ -37,21 +35,21 @@ export class AuthService {
       throw new ConflictException('Un utilisateur avec cet email existe déjà.');
     }
 
-    // 🔒 Hash sécurisé - passé de 10 à 12 rounds pour plus de sécurité
+    // Secure hash 12 rounds
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // ✅ VOTRE TRANSACTION EXISTANTE - inchangée
+    //Existing transaction
     const newUser = await this.prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
           email,
           password: hashedPassword,
-          role, // Fix: set role from signup DTO
+          role,
         },
         select: {
           id: true,
           email: true,
-          role: true, //  Inclure le rle
+          role: true,
         },
       });
 
@@ -76,19 +74,15 @@ export class AuthService {
       return user;
     });
 
-    // ✅ VOTRE GÉNÉRATION DE TOKENS - inchangée
     const tokens = await this.getTokens(newUser.id, newUser.email, newUser.role);
     await this.updateRefreshTokenHash(newUser.id, tokens.refreshToken);
     return tokens;
   }
 
-  // 🔒 CONNEXION SÉCURISÉE - Base sur votre logique
   async login(
     dto: AuthDto,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const { email, password } = dto;
-
-    // 🔒 L'email est déjà normalisé par le Transform dans le DTO
 
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -96,7 +90,7 @@ export class AuthService {
         id: true,
         email: true,
         password: true,
-        role: true, // 🔒 Inclure le rôle
+        role: true,
       },
     });
 
@@ -110,13 +104,10 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants incorrects.');
     }
 
-    // ✅ VOTRE GÉNÉRATION DE TOKENS - inchangée
     const tokens = await this.getTokens(user.id, user.email, user.role);
     await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
     return tokens;
   }
-
-  // ✅ VOS MÉTHODES EXISTANTES - inchangées
   async logout(userId: string): Promise<void> {
     await this.prisma.$transaction([
       this.prisma.user.updateMany({
@@ -152,7 +143,7 @@ export class AuthService {
         id: true,
         email: true,
         hashedRefreshToken: true,
-        role: true, // 🔒 Inclure le rôle
+        role: true,
       },
     });
     if (!user || !user.hashedRefreshToken)
@@ -170,7 +161,7 @@ export class AuthService {
   }
 
   private async updateRefreshTokenHash(userId: string, refreshToken: string) {
-    const hash = await bcrypt.hash(refreshToken, 12); // 🔒 12 au lieu de 10
+    const hash = await bcrypt.hash(refreshToken, 12);
     await this.prisma.user.update({
       where: { id: userId },
       data: { hashedRefreshToken: hash },
@@ -181,8 +172,8 @@ export class AuthService {
     const payload = {
       sub: userId,
       email,
-      role, // 🔒 Inclure le rôle dans le JWT
-      jti: crypto.randomUUID(), // 🔒 ID unique pour le token
+      role,
+      jti: crypto.randomUUID(),
     };
 
     const [accessToken, refreshToken] = await Promise.all([

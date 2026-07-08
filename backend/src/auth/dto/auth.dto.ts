@@ -1,4 +1,4 @@
-// src/auth/dto/auth.dto.ts - VERSION RENFORCÉE
+// src/auth/dto/auth.dto.ts
 import {
   IsEmail,
   IsNotEmpty,
@@ -12,7 +12,7 @@ export class AuthDto {
   @IsEmail({}, { message: "Format d'email invalide" })
   @IsNotEmpty({ message: "L'email est obligatoire" })
   @MaxLength(254, { message: "L'email ne peut pas dépasser 254 caractères" })
-  @Transform(({ value }) => value?.toLowerCase().trim()) // 🔒 Auto-nettoyage
+  @Transform(({ value }) => value?.toLowerCase().trim())
   email: string;
 
   @IsString({ message: 'Le mot de passe doit être une chaîne de caractères' })

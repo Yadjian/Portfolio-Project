@@ -2,9 +2,8 @@
 
 import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
-// import { Roles } from '../auth/roles/roles.decorator'; // Optionally use for role-based access
-// import { RolesGuard } from '../auth/roles/roles.guard';
+import type { Request } from 'express';
+
 import { CompaniesService } from './companies.service';
 import { CreateCompanyOnboardingDto } from './dto/create-company-onboarding.dto';
 
@@ -12,8 +11,6 @@ import { CreateCompanyOnboardingDto } from './dto/create-company-onboarding.dto'
 export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
-  // POST /companies/onboarding
-  // Protected route: only accessible to authenticated users (JWT required)
   // Handles onboarding a new company for a recruiter
   @Post('onboarding')
   @UseGuards(AuthGuard('jwt')) // Protect the route with JWT authentication

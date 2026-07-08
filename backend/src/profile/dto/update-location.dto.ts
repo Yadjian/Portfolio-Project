@@ -1,4 +1,3 @@
-// src/profile/dto/update-location.dto.ts - VERSION COMPATIBLE
 import {
   IsString,
   IsNotEmpty,

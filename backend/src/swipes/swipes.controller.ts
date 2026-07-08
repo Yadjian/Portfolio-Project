@@ -2,7 +2,7 @@
 
 import { Controller, Post, Body, UseGuards, Req, Delete } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { CreateSwipeDto } from './dto/create-swipe.dto';
 import { SwipesService } from './swipes.service';
 
