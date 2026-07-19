@@ -17,7 +17,7 @@ export class AuthDto {
 
   @IsString({ message: 'Le mot de passe doit être une chaîne de caractères' })
   @IsNotEmpty({ message: 'Le mot de passe ne peut pas être vide' })
-  @MinLength(6, {
+  @MinLength(8, {
     message: 'Le mot de passe doit contenir au moins 8 caractères.',
   })
   @MaxLength(72, {
