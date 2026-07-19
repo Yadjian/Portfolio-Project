@@ -270,7 +270,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       try {
-        await updatePushToken('');
+        await updatePushToken(null);
       } catch (error) {
       }
       try {

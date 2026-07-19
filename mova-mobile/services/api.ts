@@ -339,7 +339,7 @@ export async function checkBackendHealth() {
 /**
  * Update the push notification token
  */
-export async function updatePushToken(token: string) {
+export async function updatePushToken(token: string | null) {
   const response = await fetch(`${API_URL}/profile/push-token`, {
     method: 'POST',
     headers: await getHeaders(true),
